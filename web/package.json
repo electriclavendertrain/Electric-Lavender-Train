@@ -13,9 +13,22 @@
   },
   "dependencies": {
     "@sanity/astro": "^3.5.0",
-    "@sanity/client": "^7.25.0",
+    "@sanity/client": "^7.26.0",
+    "@sanity/image-url": "^2.1.1",
+    "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.1.6",
+    "astro-portabletext": "^0.13.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-is": "^19.2.8",
+    "sanity": "^6.8.0",
+    "styled-components": "^6.4.4",
     "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/node": "^22.20.1",
+    "typescript": "^6.0.3"
   }
 }

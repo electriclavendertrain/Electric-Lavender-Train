@@ -36,3 +36,9 @@ pnpm-debug.log*
 
 # Certificates and private keys
 *.pem
+
+# Skeleton Directory
+skele/
+
+# Agent Instructions
+docs/
