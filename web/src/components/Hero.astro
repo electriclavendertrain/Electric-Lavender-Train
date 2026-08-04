@@ -1,0 +1,163 @@
+---
+import { Image } from "astro:assets";
+import logo from "../assets/images/elt-logo.jpg";
+import siteConfig from "../data/siteConfig";
+
+interface Props {
+  eyebrow: string;
+  headline: string;
+  subcopy: string;
+}
+
+const { eyebrow, headline, subcopy } = Astro.props;
+---
+
+<section class="hero" id="home">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <Image
+      class="hero-logo reveal in"
+      src={logo}
+      alt={siteConfig.bandNameFormal}
+      width={560}
+      loading="eager"
+    />
+    <p class="eyebrow reveal in reveal-1">{eyebrow}</p>
+    <h1 class="reveal in reveal-2">{headline}</h1>
+    <p class="sub reveal in reveal-3">{subcopy}</p>
+    <div class="hero-buttons reveal in reveal-4">
+      <a href={siteConfig.routes.bookingForm} class="btn btn-primary">Book Us</a>
+      <a href={siteConfig.routes.shows} class="btn btn-outline">Upcoming Shows</a>
+    </div>
+  </div>
+  <div class="scroll-cue" aria-hidden="true"></div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 140px 6% 100px;
+    text-align: center;
+    overflow: hidden;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        ellipse at 50% 30%,
+        rgba(90, 62, 123, 0.25),
+        transparent 60%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(11, 11, 18, 0.55) 0%,
+        rgba(11, 11, 18, 0.35) 40%,
+        rgba(11, 11, 18, 0.72) 100%
+      );
+    z-index: 1;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 26px;
+  }
+  .hero-content :global(.hero-logo) {
+    max-width: 560px;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 40px rgba(160, 123, 239, 0.35))
+      drop-shadow(0 10px 40px rgba(0, 0, 0, 0.5));
+    border-radius: 14px;
+    animation: logoFloat 7s ease-in-out infinite;
+  }
+  @keyframes logoFloat {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .eyebrow {
+    font-size: 0.78rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .hero h1 {
+    font-size: clamp(1.8rem, 4.2vw, 3.1rem);
+    text-shadow: 0 0 30px rgba(160, 123, 239, 0.3);
+  }
+  .hero p.sub {
+    font-size: clamp(1rem, 1.6vw, 1.2rem);
+    color: var(--cream);
+    max-width: 600px;
+    font-weight: 300;
+  }
+  .hero-buttons {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 34px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    width: 22px;
+    height: 36px;
+    border: 1.5px solid rgba(244, 232, 208, 0.5);
+    border-radius: 14px;
+  }
+  .scroll-cue::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 8px;
+    border-radius: 2px;
+    background: var(--gold);
+    animation: scrollDot 1.8s ease-in-out infinite;
+  }
+  @keyframes scrollDot {
+    0% {
+      opacity: 1;
+      top: 6px;
+    }
+    70% {
+      opacity: 0;
+      top: 18px;
+    }
+    100% {
+      opacity: 0;
+      top: 6px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .hero {
+      padding: 120px 6% 80px;
+    }
+    .hero-buttons {
+      flex-direction: column;
+      width: 100%;
+    }
+  }
+</style>

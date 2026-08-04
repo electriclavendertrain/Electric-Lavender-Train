@@ -1,0 +1,114 @@
+---
+import { Image } from "astro:assets";
+import siteConfig from "../data/siteConfig";
+import type { GalleryItem } from "../data/homeData";
+
+interface Props {
+  kicker: string;
+  heading: string;
+  ctaLabel: string;
+  items: GalleryItem[];
+}
+
+const { kicker, heading, ctaLabel, items } = Astro.props;
+---
+
+<section id="gallery">
+  <div class="section-inner">
+    <p class="kicker reveal">{kicker}</p>
+    <h2 class="reveal heading">{heading}</h2>
+    <div class="gallery-grid reveal">
+      {
+        items.map((item) => (
+          <figure class="g-item">
+            <Image src={item.image} alt={item.alt} width={800} />
+            <figcaption class="g-cap">{item.caption}</figcaption>
+          </figure>
+        ))
+      }
+    </div>
+    <div class="gallery-more">
+      <a href={siteConfig.routes.mediaMerch} class="btn-ghost">{ctaLabel} &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .heading {
+    margin-bottom: 44px;
+  }
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 180px;
+    gap: 16px;
+  }
+  .g-item {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    height: 100%;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+  .gallery-grid .g-item:nth-child(1) {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+  .gallery-grid .g-item:nth-child(4) {
+    grid-row: span 2;
+  }
+  .g-item :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.75) brightness(0.85);
+    transition: transform 0.6s var(--ease), filter 0.6s var(--ease);
+  }
+  .g-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(11, 11, 18, 0.75));
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  .g-item:hover :global(img) {
+    transform: scale(1.08);
+    filter: saturate(1.1) brightness(1);
+  }
+  .g-item:hover::after {
+    opacity: 1;
+  }
+  .g-cap {
+    position: absolute;
+    bottom: 14px;
+    left: 16px;
+    right: 16px;
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    color: var(--cream);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: 0.4s var(--ease);
+  }
+  .g-item:hover .g-cap {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .gallery-more {
+    text-align: center;
+    margin-top: 44px;
+  }
+
+  @media (max-width: 900px) {
+    .gallery-grid {
+      grid-template-columns: repeat(2, 1fr);
+      grid-auto-rows: 150px;
+    }
+    .gallery-grid .g-item:nth-child(1) {
+      grid-column: span 2;
+    }
+  }
+</style>

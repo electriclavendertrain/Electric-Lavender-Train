@@ -1,0 +1,247 @@
+---
+import { Image } from "astro:assets";
+import logo from "../assets/images/elt-logo.jpg";
+import siteConfig from "../data/siteConfig";
+
+const NAV_LINKS = [
+  { href: siteConfig.routes.home, label: "Home" },
+  { href: siteConfig.routes.about, label: "About" },
+  { href: siteConfig.routes.shows, label: "Shows" },
+  { href: siteConfig.routes.mediaMerch, label: "Media & Merch" },
+  { href: siteConfig.routes.contactBooking, label: "Contact" },
+];
+
+const currentPath = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === siteConfig.routes.home
+    ? currentPath === href
+    : currentPath === href || currentPath.startsWith(`${href}/`);
+---
+
+<header id="site-header" class="site-header">
+  <a href={siteConfig.routes.home} id="brand-link" class="brand">
+    <Image src={logo} alt={`${siteConfig.bandNameFormal} — home`} width={200} />
+  </a>
+
+  <nav class="desktop-nav" aria-label="Primary">
+    {
+      NAV_LINKS.map((link) => (
+        <a href={link.href} class="nav-link" aria-current={isActive(link.href) ? "page" : undefined}>
+          {link.label}
+        </a>
+      ))
+    }
+    <a href={siteConfig.routes.bookingForm} class="btn-book">Book Us</a>
+  </nav>
+
+  <button
+    type="button"
+    id="nav-toggle"
+    class="burger"
+    aria-expanded="false"
+    aria-controls="primary-navigation"
+  >
+    <span class="burger-box" aria-hidden="true"><span></span><span></span><span></span></span>
+    <span class="visually-hidden" id="nav-toggle-label">Open menu</span>
+  </button>
+</header>
+
+<div class="mobile-nav" id="primary-navigation" aria-hidden="true" inert>
+  <nav aria-label="Mobile">
+    <ul>
+      {
+        NAV_LINKS.map((link) => (
+          <li>
+            <a href={link.href} class="nav-link" aria-current={isActive(link.href) ? "page" : undefined}>
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <a href={siteConfig.routes.bookingForm} class="btn-book">Book Us</a>
+  </nav>
+</div>
+
+<script>
+  import "../scripts/navigation";
+</script>
+
+<style>
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    /* Above .mobile-nav's z-index (55) so the toggle stays visible and
+       clickable as a close control while the overlay is open. */
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 5%;
+    transition: background 0.4s var(--ease), backdrop-filter 0.4s var(--ease),
+      padding 0.4s var(--ease), box-shadow 0.4s var(--ease);
+  }
+  .site-header.scrolled {
+    background: rgba(11, 11, 18, 0.82);
+    backdrop-filter: blur(14px) saturate(140%);
+    padding: 10px 5%;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    border-bottom: 1px solid rgba(160, 123, 239, 0.12);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+  }
+  .brand :global(img) {
+    height: 44px;
+    width: auto;
+    border-radius: 6px;
+    transition: height 0.3s var(--ease);
+  }
+  .site-header.scrolled .brand :global(img) {
+    height: 36px;
+  }
+
+  .desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 2.2rem;
+  }
+  .desktop-nav .nav-link {
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--warm-white);
+    position: relative;
+    padding: 6px 0;
+    transition: color 0.25s;
+  }
+  .desktop-nav .nav-link::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 1px;
+    width: 0;
+    background: var(--gold);
+    transition: width 0.3s var(--ease);
+  }
+  .desktop-nav .nav-link:hover,
+  .desktop-nav .nav-link[aria-current="page"] {
+    color: var(--gold);
+  }
+  .desktop-nav .nav-link:hover::after,
+  .desktop-nav .nav-link[aria-current="page"]::after {
+    width: 100%;
+  }
+
+  /* .btn-book is intentionally excluded from .nav-link so it never
+     competes with the regular nav-link rules above (underline, color,
+     compact padding) on specificity — it owns its own pill-button look. */
+  .btn-book {
+    background: linear-gradient(135deg, var(--gold), #d9bd8a);
+    color: var(--black);
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 18px rgba(200, 168, 107, 0.35);
+    transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+  }
+  .btn-book:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 26px rgba(200, 168, 107, 0.5);
+  }
+
+  .burger {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    z-index: 60;
+    background: none;
+    border: none;
+    padding: 10px;
+  }
+  .burger-box {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .burger-box span {
+    width: 26px;
+    height: 2px;
+    background: var(--cream);
+    transition: 0.3s;
+  }
+  .burger.is-open .burger-box span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  .burger.is-open .burger-box span:nth-child(2) {
+    opacity: 0;
+  }
+  .burger.is-open .burger-box span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+
+  .mobile-nav {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 11, 18, 0.98);
+    backdrop-filter: blur(10px);
+    z-index: 55;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: transform 0.45s var(--ease), opacity 0.3s;
+    pointer-events: none;
+  }
+  .mobile-nav.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .mobile-nav nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  .mobile-nav ul {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+  }
+  .mobile-nav .nav-link {
+    font-family: var(--display);
+    font-size: 1.4rem;
+    letter-spacing: 1px;
+    color: var(--cream);
+  }
+  .mobile-nav .nav-link[aria-current="page"] {
+    color: var(--gold);
+  }
+  .mobile-nav .btn-book {
+    margin-top: 1rem;
+  }
+
+  @media (max-width: 900px) {
+    .desktop-nav {
+      display: none;
+    }
+    .burger {
+      display: flex;
+    }
+  }
+</style>

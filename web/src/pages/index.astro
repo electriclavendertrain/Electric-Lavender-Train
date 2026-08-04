@@ -1,19 +1,66 @@
 ---
-import type { SanityDocument } from "@sanity/client";
-import { sanityClient } from "sanity:client";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import BandIntro from "../components/BandIntro.astro";
+import UpcomingShows from "../components/UpcomingShows.astro";
+import GalleryPreview from "../components/GalleryPreview.astro";
+import Testimonials from "../components/Testimonials.astro";
+import BookingCTA from "../components/BookingCTA.astro";
+import siteConfig from "../data/siteConfig";
+import {
+  hero,
+  bandIntro,
+  upcomingShowsCopy,
+  galleryCopy,
+  galleryItems,
+  testimonialsCopy,
+  testimonials,
+  bookingCta,
+} from "../data/homeData";
+import { shows } from "../data/shows";
 
+const title = `${siteConfig.bandNameFormal} (${siteConfig.bandNameShort}) — Central Coast's Favorite Dance Band`;
+const description = siteConfig.tagline;
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title={title} description={description}>
+  <Hero eyebrow={hero.eyebrow} headline={hero.headline} subcopy={hero.subcopy} />
+
+  <BandIntro
+    kicker={bandIntro.kicker}
+    heading={bandIntro.heading}
+    paragraphs={bandIntro.paragraphs}
+    ctaLabel={bandIntro.ctaLabel}
+  />
+
+  <UpcomingShows
+    kicker={upcomingShowsCopy.kicker}
+    heading={upcomingShowsCopy.heading}
+    viewAllLabel={upcomingShowsCopy.viewAllLabel}
+    placeholderNote={upcomingShowsCopy.placeholderNote}
+    shows={shows}
+    emptyStateTitle={upcomingShowsCopy.emptyStateTitle}
+    emptyStateMessage={upcomingShowsCopy.emptyStateMessage}
+  />
+
+  <GalleryPreview
+    kicker={galleryCopy.kicker}
+    heading={galleryCopy.heading}
+    ctaLabel={galleryCopy.ctaLabel}
+    items={galleryItems}
+  />
+
+  <Testimonials
+    kicker={testimonialsCopy.kicker}
+    heading={testimonialsCopy.heading}
+    placeholderNote={testimonialsCopy.placeholderNote}
+    items={testimonials}
+  />
+
+  <BookingCTA
+    kicker={bookingCta.kicker}
+    heading={bookingCta.heading}
+    body={bookingCta.body}
+    ctaLabel={bookingCta.ctaLabel}
+  />
+</BaseLayout>

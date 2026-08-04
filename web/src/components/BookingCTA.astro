@@ -1,0 +1,73 @@
+---
+import siteConfig from "../data/siteConfig";
+
+interface Props {
+  kicker: string;
+  heading: string;
+  body: string;
+  ctaLabel: string;
+}
+
+const { kicker, heading, body, ctaLabel } = Astro.props;
+---
+
+<section class="cta" id="contact">
+  <div class="cta-blob" aria-hidden="true"></div>
+  <p class="kicker centered">{kicker}</p>
+  <h2 class="reveal reveal-1">{heading}</h2>
+  <p class="reveal reveal-2">{body}</p>
+  <a href={siteConfig.routes.bookingForm} class="btn btn-primary reveal reveal-3">
+    {ctaLabel}
+  </a>
+</section>
+
+<style>
+  .cta {
+    position: relative;
+    text-align: center;
+    padding: 130px 6%;
+    overflow: hidden;
+    background: radial-gradient(
+        ellipse at 30% 20%,
+        rgba(90, 62, 123, 0.5),
+        transparent 55%
+      ),
+      radial-gradient(ellipse at 75% 80%, rgba(160, 123, 239, 0.3), transparent 55%),
+      rgba(46, 33, 64, 0.5);
+  }
+  .cta-blob {
+    position: absolute;
+    top: -100px;
+    left: 10%;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: var(--purple);
+    filter: blur(80px);
+    opacity: 0.25;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .kicker.centered {
+    justify-content: center;
+  }
+  .cta h2 {
+    position: relative;
+    z-index: 1;
+    font-size: clamp(1.8rem, 4vw, 2.9rem);
+    max-width: 760px;
+    margin: 0 auto 26px;
+  }
+  .cta p {
+    position: relative;
+    z-index: 1;
+    color: rgba(244, 232, 208, 0.8);
+    max-width: 520px;
+    margin: 0 auto 36px;
+    font-weight: 300;
+  }
+  .cta .btn {
+    position: relative;
+    z-index: 1;
+  }
+</style>

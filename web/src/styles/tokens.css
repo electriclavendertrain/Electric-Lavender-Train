@@ -1,0 +1,18 @@
+:root {
+  --black: #0b0b12;
+  --black-soft: #121018;
+  --purple: #5a3e7b;
+  --purple-deep: #2e2140;
+  --lavender: #a07bef;
+  --lavender-soft: #c9b3ff;
+  --cream: #f4e8d0;
+  --warm-white: #fbf6ec;
+  --gold: #c8a86b;
+  --burgundy: #7a3b41;
+
+  --display: "Ultra", serif;
+  --body: "Jost", sans-serif;
+  --ease: cubic-bezier(0.16, 0.84, 0.44, 1);
+
+  --content-max-width: 1180px;
+}

@@ -1,0 +1,158 @@
+---
+import siteConfig from "../data/siteConfig";
+
+const socialLinks = [
+  { key: "instagram", label: "Instagram", href: siteConfig.social.instagram },
+  { key: "facebook", label: "Facebook", href: siteConfig.social.facebook },
+  { key: "youtube", label: "YouTube", href: siteConfig.social.youtube },
+  { key: "linktree", label: "Linktree", href: siteConfig.social.linktree },
+].filter((link): link is { key: string; label: string; href: string } => Boolean(link.href));
+
+const year = new Date().getFullYear();
+---
+
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <p class="footer-brand__name">{siteConfig.bandNameFormal}</p>
+      <p class="footer-brand__tagline">{siteConfig.tagline}</p>
+      <p class="footer-brand__location">{siteConfig.location}</p>
+    </div>
+
+    <div class="footer-col">
+      <h2>Navigation</h2>
+      <a href={siteConfig.routes.home}>Home</a>
+      <a href={siteConfig.routes.about}>About</a>
+      <a href={siteConfig.routes.shows}>Shows</a>
+      <a href={siteConfig.routes.mediaMerch}>Media &amp; Merch</a>
+      <a href={siteConfig.routes.contactBooking}>Contact</a>
+    </div>
+
+    <div class="footer-col">
+      <h2>Follow Us</h2>
+      {
+        socialLinks.map((link) => (
+          <a href={link.href} target="_blank" rel="noopener noreferrer">
+            {link.label}
+            <span class="visually-hidden"> (opens in a new tab)</span>
+          </a>
+        ))
+      }
+      {
+        siteConfig.social.venmo && (
+          <a href={siteConfig.social.venmo} target="_blank" rel="noopener noreferrer">
+            {siteConfig.venmoLabel}
+            <span class="visually-hidden"> (opens in a new tab)</span>
+          </a>
+        )
+      }
+    </div>
+
+    <div class="footer-col">
+      <h2>Contact</h2>
+      <span>{siteConfig.location}</span>
+      <a href={siteConfig.routes.bookingForm}>Booking Inquiries &rarr;</a>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>&copy; {year} {siteConfig.bandNameFormal}. All rights reserved.</span>
+    <span>Site in progress — placeholder content marked for replacement.</span>
+  </div>
+</footer>
+
+<style>
+  footer {
+    position: relative;
+    padding: 70px 6% 30px;
+    background: linear-gradient(to bottom, transparent 0, var(--black) 160px);
+  }
+  footer::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      rgba(160, 123, 239, 0.55) 18%,
+      rgba(200, 168, 107, 0.4) 50%,
+      rgba(160, 123, 239, 0.55) 82%,
+      transparent
+    );
+    box-shadow: 0 0 18px 1px rgba(160, 123, 239, 0.28);
+    pointer-events: none;
+  }
+
+  .footer-grid {
+    position: relative;
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+    gap: 44px;
+    padding-bottom: 44px;
+  }
+
+  .footer-brand__name {
+    font-family: var(--display);
+    font-size: 0.95rem;
+    color: var(--cream);
+    margin-bottom: 10px;
+  }
+  .footer-brand__tagline,
+  .footer-brand__location {
+    font-size: 0.85rem;
+    color: rgba(244, 232, 208, 0.5);
+    max-width: 260px;
+    margin-bottom: 6px;
+  }
+
+  .footer-col h2 {
+    font-family: var(--display);
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+    line-height: 1.3;
+  }
+  .footer-col a,
+  .footer-col span {
+    display: block;
+    font-size: 0.88rem;
+    color: rgba(244, 232, 208, 0.75);
+    margin-bottom: 11px;
+    transition: color 0.25s;
+  }
+  .footer-col a:hover {
+    color: var(--lavender-soft);
+  }
+
+  .footer-bottom {
+    position: relative;
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding-top: 26px;
+    border-top: 1px solid rgba(160, 123, 239, 0.1);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.78rem;
+    color: rgba(244, 232, 208, 0.4);
+  }
+
+  @media (max-width: 860px) {
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 560px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
