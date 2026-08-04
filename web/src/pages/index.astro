@@ -9,6 +9,7 @@ import BookingCTA from "../components/BookingCTA.astro";
 import siteConfig from "../data/siteConfig";
 import {
   hero,
+  heroVideoUrl,
   bandIntro,
   upcomingShowsCopy,
   galleryCopy,
@@ -24,7 +25,12 @@ const description = siteConfig.tagline;
 ---
 
 <BaseLayout title={title} description={description}>
-  <Hero eyebrow={hero.eyebrow} headline={hero.headline} subcopy={hero.subcopy} />
+  <Hero
+    eyebrow={hero.eyebrow}
+    headline={hero.headline}
+    subcopy={hero.subcopy}
+    videoUrl={heroVideoUrl}
+  />
 
   <BandIntro
     kicker={bandIntro.kicker}

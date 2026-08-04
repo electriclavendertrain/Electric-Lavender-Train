@@ -21,6 +21,19 @@ export const hero = {
     "Playing the songs you love with the people you love. Good vibes, great music, unforgettable nights.",
 };
 
+/**
+ * Hero click-to-play featured video, isolated here rather than in
+ * siteConfig.ts because it's homepage-specific editorial content, not
+ * shared site identity. A verified ELT performance video URL has not yet
+ * been supplied, so this ships as null: the hero renders the plain static
+ * floating logo, with no play control, and keeps the eyebrow above. When a
+ * verified URL is set, Hero.astro swaps the eyebrow to "Play Featured
+ * Video" and renders the logo as an interactive poster. In Phase 3 this
+ * becomes a `heroVideo` reference on the Sanity homepage singleton,
+ * filtered to video media items (see docs/home.md).
+ */
+export const heroVideoUrl: string | null = null;
+
 export const bandIntro = {
   kicker: "Who We Are",
   heading: "More Than a Band, We're Family.",
