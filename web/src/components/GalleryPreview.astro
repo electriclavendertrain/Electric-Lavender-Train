@@ -93,12 +93,22 @@ const { kicker, heading, ctaLabel, items } = Astro.props;
     pointer-events: none;
     background: linear-gradient(180deg, transparent 55%, rgba(11, 11, 18, 0.75));
   }
+  /* The gradient alone could not carry the caption: it ramps from
+     transparent at 55% and is applied over whatever the image happens to
+     show, so a tile cropped to sky or a pale wall left cream text well
+     below the 4.5:1 contrast minimum — worst measured cases were ~1.2:1 on
+     small tiles and ~4.1:1 even on desktop. This restrained scrim sits
+     directly behind the caption text only, so contrast no longer depends on
+     the underlying photograph at all. The gradient is kept as-is for depth. */
   .g-cap {
     position: absolute;
-    bottom: 14px;
-    left: 16px;
-    right: 16px;
+    bottom: 12px;
+    left: 12px;
     z-index: 2;
+    max-width: calc(100% - 24px);
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(11, 11, 18, 0.72);
     font-size: 0.78rem;
     letter-spacing: 1px;
     color: var(--cream);

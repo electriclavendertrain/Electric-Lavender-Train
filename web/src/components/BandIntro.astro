@@ -11,7 +11,16 @@ interface Props {
 }
 
 const { kicker, heading, paragraphs, ctaLabel } = Astro.props;
-const nonEmptyParagraphs = paragraphs.filter((paragraph) => paragraph && paragraph.trim().length > 0);
+
+// Mirrors the schema's `Rule.min(1).max(2)` on `bandIntro.paragraphs`.
+// Studio validation binds the Studio UI, not the Content API, so a raw API
+// write can store more than two. Blank entries are filtered out FIRST, so a
+// blank paragraph never consumes one of the two rendered slots; order is
+// preserved.
+const MAX_PARAGRAPHS = 2;
+const nonEmptyParagraphs = paragraphs
+  .filter((paragraph) => paragraph && paragraph.trim().length > 0)
+  .slice(0, MAX_PARAGRAPHS);
 ---
 
 <section class="about" id="about">

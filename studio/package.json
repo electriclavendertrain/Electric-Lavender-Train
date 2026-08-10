@@ -10,7 +10,7 @@
     "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
     "start": "sanity start",
-    "extract": "sanity schemas extract --enforce-required-fields",
+    "extract": "sanity schemas extract --enforce-required-fields --force",
     "typegen": "sanity typegen generate",
     "types": "npm run extract && npm run typegen"
   },

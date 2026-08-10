@@ -108,7 +108,37 @@ export const event = defineType({
         layout: 'radio',
       },
       initialValue: 'public',
-      validation: (Rule) => Rule.required(),
+      /**
+       * The stale-public-details guard lives HERE, on the primitive
+       * `visibility` string, rather than as a document-level rule.
+       *
+       * Why: in the installed Sanity version, custom validation attached to
+       * an object-typed node (an `image` field, or the document root) is
+       * emitted at `warning` level, and Studio only blocks publishing on
+       * `error`. A document-level rule therefore showed the message but let
+       * the editor publish anyway. Custom validation on a primitive field
+       * *is* emitted as an error, so anchoring the same check to this string
+       * field genuinely blocks publishing. Adding `.error()` to the
+       * document-level rule was tested and does not change its level.
+       *
+       * The message is unchanged, and it still surfaces next to Visibility —
+       * which is the field the editor has to change to resolve it.
+       */
+      validation: (Rule) =>
+        Rule.required().custom((value, context) => {
+          if (value === 'public') return true
+
+          const document = context.document as Record<string, unknown> | undefined
+          const populated = PUBLIC_ONLY_FIELDS.filter((f) =>
+            hasValue(f.name === 'slug' ? document?.slug : document?.[f.name]),
+          )
+          if (populated.length === 0) return true
+
+          const targetLabel = value === 'hidden' ? 'hidden event' : 'private booking'
+          return `To publish this as a ${targetLabel}, clear the populated public-show fields below: ${formatFieldList(
+            populated.map((f) => f.label),
+          )}.`
+        }),
     }),
     defineField({
       name: 'title',
@@ -185,22 +215,9 @@ export const event = defineType({
       validation: (Rule) => Rule.uri({scheme: ['http', 'https']}),
     }),
   ],
-  validation: (Rule) =>
-    Rule.custom((doc) => {
-      const document = doc as Record<string, unknown> | undefined
-      if (isPublic(document)) return true
-
-      const populated = PUBLIC_ONLY_FIELDS.filter((f) =>
-        hasValue(f.name === 'slug' ? document?.slug : document?.[f.name]),
-      )
-      if (populated.length === 0) return true
-
-      const targetLabel = document?.visibility === 'hidden' ? 'hidden event' : 'private booking'
-      return {
-        message: `To publish this as a ${targetLabel}, clear the populated public-show fields below: ${formatFieldList(populated.map((f) => f.label))}.`,
-        path: ['visibility'],
-      }
-    }),
+  // No document-level validation: the stale-public-details guard now lives on
+  // the `visibility` field itself, where Sanity emits it as a blocking error
+  // rather than an advisory warning (see that field for the full reasoning).
   preview: {
     select: {
       title: 'title',

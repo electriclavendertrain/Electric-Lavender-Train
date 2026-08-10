@@ -36,7 +36,24 @@ export const mediaItem = defineType({
         ],
         layout: 'radio',
       },
-      validation: (Rule) => Rule.required(),
+      /**
+       * The "an image item must actually have an image" check lives HERE, on
+       * the primitive `mediaType` string, not on the `image` field itself.
+       *
+       * Why: custom validation attached to an object-typed field (`image` is
+       * one) is emitted at `warning` level by the installed Sanity version,
+       * and Studio only blocks publishing on `error`. Anchored to this
+       * primitive field instead, the same check blocks publishing.
+       */
+      validation: (Rule) =>
+        Rule.required().custom((value, context) => {
+          if (value !== 'image') return true
+          const document = context.document as Record<string, unknown> | undefined
+          if (!document?.image) {
+            return 'Upload an image in the Image field below before publishing an image media item.'
+          }
+          return true
+        }),
     }),
     defineField({
       name: 'image',
@@ -44,13 +61,8 @@ export const mediaItem = defineType({
       type: 'image',
       options: {hotspot: true},
       hidden: ({document}) => !isImage(document),
-      validation: (Rule) =>
-        Rule.custom((value, context) => {
-          if (isImage(context.document as Record<string, unknown>) && !value) {
-            return 'Required for image media items'
-          }
-          return true
-        }),
+      // Required-ness is enforced on `mediaType` above — a custom rule here
+      // would only ever produce a non-blocking warning.
     }),
     defineField({
       name: 'alt',
@@ -78,10 +90,20 @@ export const mediaItem = defineType({
         layout: 'radio',
       },
       hidden: ({document}) => !isVideo(document),
+      /**
+       * Two checks live here: the provider is required for video items, and —
+       * for the "Other external video" provider — a poster image must exist.
+       * The poster check is anchored to this primitive string rather than to
+       * the object-typed `videoPoster` field, because custom validation on an
+       * object field is only ever emitted as a non-blocking warning.
+       */
       validation: (Rule) =>
         Rule.custom((value, context) => {
-          if (isVideo(context.document as Record<string, unknown>) && !value) {
-            return 'Required for video media items'
+          const document = context.document as Record<string, unknown> | undefined
+          if (!isVideo(document)) return true
+          if (!value) return 'Required for video media items'
+          if (value === 'other' && !document?.videoPoster) {
+            return 'Upload a Video poster below — no reliable thumbnail can be assumed for "Other external video."'
           }
           return true
         }),
@@ -128,14 +150,8 @@ export const mediaItem = defineType({
       type: 'image',
       options: {hotspot: true},
       hidden: ({document}) => !isVideo(document),
-      validation: (Rule) =>
-        Rule.custom((value, context) => {
-          const document = context.document as MediaItemDoc | undefined
-          if (isVideo(document as Record<string, unknown>) && document?.videoProvider === 'other' && !value) {
-            return 'Required when the video provider is "Other" — no reliable thumbnail can be assumed.'
-          }
-          return true
-        }),
+      // Required-ness for the "other" provider is enforced on `videoProvider`
+      // above — a custom rule here would only ever produce a warning.
     }),
   ],
   preview: {

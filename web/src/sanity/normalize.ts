@@ -27,6 +27,13 @@ export interface NormalizedGalleryItem {
 }
 
 const GALLERY_IMAGE_WIDTH = 900;
+/**
+ * Mirrors the schema's `Rule.max(6)` on `homepage.featuredMedia`. Studio
+ * validation binds the Studio UI, not the Content API — a raw API write can
+ * store more than six. The mosaic CSS only styles the 1st and 4th tiles
+ * specially, so extra tiles would render as unplanned trailing cells.
+ */
+const MAX_FEATURED_MEDIA = 6;
 /** Used for Sanity images with no hotspot, and for locally-bundled fallback images (no hotspot data at all). */
 export const DEFAULT_OBJECT_POSITION = "50% 50%";
 
@@ -108,6 +115,11 @@ function computeCroppedAspectRatio(image: GalleryMediaImage): number {
  * mediaItem, is missing its asset id (nothing for the image-url builder to
  * build a CDN URL from), or is missing alt text — never render a broken
  * `<img>` or one without accessible alt text.
+ *
+ * Caps the result at six, defensively. The cap counts *valid* items only:
+ * a dropped entry never consumes one of the six slots, so six good images
+ * still render even if malformed entries precede them. Selection order is
+ * preserved — the array's order is the render order.
  */
 export function normalizeFeaturedMedia(
   featuredMedia: Homepage["featuredMedia"],
@@ -116,6 +128,8 @@ export function normalizeFeaturedMedia(
 
   const items: NormalizedGalleryItem[] = [];
   for (const entry of featuredMedia) {
+    if (items.length >= MAX_FEATURED_MEDIA) break;
+
     const media = entry.mediaItem;
     const image = media?.image;
     const assetId = image?.asset?._id;
