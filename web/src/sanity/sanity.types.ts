@@ -35,16 +35,16 @@ export type Homepage = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  hero?: {
+  hero: {
     eyebrow?: string;
-    headline?: string;
+    headline: string;
     subcopy?: string;
   };
   heroVideo?: MediaItemReference;
-  bandIntro?: {
+  bandIntro: {
     kicker?: string;
-    heading?: string;
-    paragraphs?: Array<string>;
+    heading: string;
+    paragraphs: Array<string>;
     ctaLabel?: string;
   };
   featuredMedia?: Array<
@@ -53,16 +53,16 @@ export type Homepage = {
     } & MediaItemReference
   >;
   testimonials?: Array<{
-    quote?: string;
-    attribution?: string;
+    quote: string;
+    attribution: string;
     _type: "testimonial";
     _key: string;
   }>;
-  bookingCta?: {
+  bookingCta: {
     kicker?: string;
-    heading?: string;
-    body?: string;
-    ctaLabel?: string;
+    heading: string;
+    body: string;
+    ctaLabel: string;
   };
   seo?: {
     metaTitle?: string;
@@ -265,19 +265,19 @@ export type AllSanitySchemaTypes =
 export type HOMEPAGE_QUERY_RESULT = {
   hero: {
     eyebrow?: string;
-    headline?: string;
+    headline: string;
     subcopy?: string;
-  } | null;
+  };
   heroVideo: {
     videoUrl: string | null;
     videoProvider: "other" | "vimeo" | "youtube" | null;
   } | null;
   bandIntro: {
     kicker?: string;
-    heading?: string;
-    paragraphs?: Array<string>;
+    heading: string;
+    paragraphs: Array<string>;
     ctaLabel?: string;
-  } | null;
+  };
   featuredMedia: Array<{
     _key: string;
     mediaItem: {
@@ -300,15 +300,15 @@ export type HOMEPAGE_QUERY_RESULT = {
   }> | null;
   testimonials: Array<{
     _key: string;
-    quote: string | null;
-    attribution: string | null;
+    quote: string;
+    attribution: string;
   }> | null;
   bookingCta: {
     kicker?: string;
-    heading?: string;
-    body?: string;
-    ctaLabel?: string;
-  } | null;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
   seo: {
     metaTitle?: string;
     metaDescription?: string;

@@ -1,4 +1,5 @@
 ---
+import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/Hero.astro";
 import BandIntro from "../components/BandIntro.astro";
@@ -8,43 +9,143 @@ import Testimonials from "../components/Testimonials.astro";
 import BookingCTA from "../components/BookingCTA.astro";
 import siteConfig from "../data/siteConfig";
 import {
-  hero,
-  heroVideoUrl,
-  bandIntro,
   upcomingShowsCopy,
   galleryCopy,
-  galleryItems,
   testimonialsCopy,
-  testimonials,
-  bookingCta,
+  heroFallback,
+  bandIntroFallback,
+  galleryFallback,
+  testimonialsFallback,
+  bookingCtaFallback,
 } from "../data/homeData";
-import { shows } from "../data/shows";
+import { sanityClient } from "../sanity/client";
+import { HOMEPAGE_QUERY, UPCOMING_PUBLIC_EVENTS_QUERY } from "../sanity/queries";
+import {
+  normalizeFeaturedMedia,
+  normalizeTestimonials,
+  normalizeUpcomingEvents,
+  isHeroContentComplete,
+  isBandIntroComplete,
+  isBookingCtaComplete,
+  getHeroVideoUrl,
+  getOgImageUrl,
+  DEFAULT_OBJECT_POSITION,
+  type NormalizedGalleryItem,
+} from "../sanity/normalize";
 
-const title = `${siteConfig.bandNameFormal} (${siteConfig.bandNameShort}) — Central Coast's Favorite Dance Band`;
-const description = siteConfig.tagline;
+// The production-vs-development policy is decided by which Sanity dataset
+// is actually configured, not by Astro's own build mode — a "production"
+// Astro build can legitimately point at the development dataset (e.g. a
+// staging preview), and that must NOT trip the strict production
+// requirement below (docs/phase3-plan.md §16).
+const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
+
+// Both queries are independent of each other and fetched in parallel.
+// Neither call is wrapped in a try/catch: a genuine failure (network,
+// auth, malformed GROQ, config) throws here and fails the build, in every
+// environment — the only case handled below is a *successful* query that
+// legitimately found no homepage document.
+const [homepage, upcomingEvents] = await Promise.all([
+  sanityClient.fetch(HOMEPAGE_QUERY),
+  sanityClient.fetch(UPCOMING_PUBLIC_EVENTS_QUERY),
+]);
+
+if (homepage === null && isProductionDataset) {
+  throw new Error(
+    "The Sanity `homepage` singleton is missing from the production dataset. " +
+      "Publish it in Sanity Studio before building for production — see docs/phase3-plan.md §16.",
+  );
+}
+
+const singletonExists = homepage !== null;
+
+// Hero/band-intro/booking-CTA are singular content blocks, not lists — if
+// the singleton exists but one of them is incomplete, that section is
+// omitted rather than patched with fallback text (never mix live Sanity
+// content with placeholder copy in the same render). The fallback objects
+// below are only ever used when the whole document is absent.
+const heroContent = singletonExists
+  ? isHeroContentComplete(homepage.hero)
+    ? homepage.hero
+    : null
+  : heroFallback;
+
+const bandIntroContent = singletonExists
+  ? isBandIntroComplete(homepage.bandIntro)
+    ? homepage.bandIntro
+    : null
+  : bandIntroFallback;
+
+const bookingCtaContent = singletonExists
+  ? isBookingCtaComplete(homepage.bookingCta)
+    ? homepage.bookingCta
+    : null
+  : bookingCtaFallback;
+
+// The hero video always comes from the live query — there is no fallback
+// URL. A missing or non-YouTube reference resolves to null here, and
+// Hero.astro's own (Phase 2.5-approved, untouched) validation renders the
+// static logo for null exactly as it always has.
+const heroVideoUrl = getHeroVideoUrl(homepage?.heroVideo);
+
+const galleryItems: NormalizedGalleryItem[] = singletonExists
+  ? normalizeFeaturedMedia(homepage.featuredMedia)
+  : await Promise.all(
+      galleryFallback.map(async (item) => {
+        const optimized = await getImage({ src: item.image, width: 800 });
+        return {
+          _key: item._key,
+          src: optimized.src,
+          width: optimized.attributes.width ?? 800,
+          height: optimized.attributes.height ?? optimized.attributes.width ?? 800,
+          objectPosition: DEFAULT_OBJECT_POSITION,
+          alt: item.alt,
+          caption: item.caption,
+        };
+      }),
+    );
+
+const testimonials = singletonExists
+  ? normalizeTestimonials(homepage.testimonials)
+  : testimonialsFallback;
+
+const events = normalizeUpcomingEvents(upcomingEvents);
+
+const title = homepage?.seo?.metaTitle
+  ? homepage.seo.metaTitle
+  : `${siteConfig.bandNameFormal} (${siteConfig.bandNameShort}) — Central Coast's Favorite Dance Band`;
+const description = homepage?.seo?.metaDescription ?? siteConfig.tagline;
+const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
 ---
 
-<BaseLayout title={title} description={description}>
-  <Hero
-    eyebrow={hero.eyebrow}
-    headline={hero.headline}
-    subcopy={hero.subcopy}
-    videoUrl={heroVideoUrl}
-  />
+<BaseLayout title={title} description={description} ogImage={ogImage}>
+  {
+    heroContent && (
+      <Hero
+        eyebrow={heroContent.eyebrow}
+        headline={heroContent.headline}
+        subcopy={heroContent.subcopy}
+        videoUrl={heroVideoUrl}
+      />
+    )
+  }
 
-  <BandIntro
-    kicker={bandIntro.kicker}
-    heading={bandIntro.heading}
-    paragraphs={bandIntro.paragraphs}
-    ctaLabel={bandIntro.ctaLabel}
-  />
+  {
+    bandIntroContent && (
+      <BandIntro
+        kicker={bandIntroContent.kicker}
+        heading={bandIntroContent.heading}
+        paragraphs={bandIntroContent.paragraphs}
+        ctaLabel={bandIntroContent.ctaLabel}
+      />
+    )
+  }
 
   <UpcomingShows
     kicker={upcomingShowsCopy.kicker}
     heading={upcomingShowsCopy.heading}
     viewAllLabel={upcomingShowsCopy.viewAllLabel}
-    placeholderNote={upcomingShowsCopy.placeholderNote}
-    shows={shows}
+    events={events}
     emptyStateTitle={upcomingShowsCopy.emptyStateTitle}
     emptyStateMessage={upcomingShowsCopy.emptyStateMessage}
   />
@@ -56,17 +157,16 @@ const description = siteConfig.tagline;
     items={galleryItems}
   />
 
-  <Testimonials
-    kicker={testimonialsCopy.kicker}
-    heading={testimonialsCopy.heading}
-    placeholderNote={testimonialsCopy.placeholderNote}
-    items={testimonials}
-  />
+  <Testimonials kicker={testimonialsCopy.kicker} heading={testimonialsCopy.heading} items={testimonials} />
 
-  <BookingCTA
-    kicker={bookingCta.kicker}
-    heading={bookingCta.heading}
-    body={bookingCta.body}
-    ctaLabel={bookingCta.ctaLabel}
-  />
+  {
+    bookingCtaContent && (
+      <BookingCTA
+        kicker={bookingCtaContent.kicker}
+        heading={bookingCtaContent.heading}
+        body={bookingCtaContent.body}
+        ctaLabel={bookingCtaContent.ctaLabel}
+      />
+    )
+  }
 </BaseLayout>

@@ -5,17 +5,49 @@ const TIME_ZONE_OPTIONS = {
   allowTimeZoneSwitch: false,
 } as const
 
-const PUBLIC_ONLY_FIELD_NAMES = [
-  'title',
-  'slug',
-  'venue',
-  'location',
-  'description',
-  'externalEventUrl',
+const PUBLIC_ONLY_FIELDS = [
+  {name: 'title', label: 'Title'},
+  {name: 'slug', label: 'Slug'},
+  {name: 'venue', label: 'Venue'},
+  {name: 'location', label: 'Location'},
+  {name: 'description', label: 'Description'},
+  {name: 'externalEventUrl', label: 'Tickets or external event page'},
 ] as const
 
 function isPublic(document: Record<string, unknown> | undefined) {
   return document?.visibility === 'public'
+}
+
+/** Handles both plain field values and the slug's `{current}` object shape. */
+function hasValue(value: unknown): boolean {
+  if (value && typeof value === 'object' && 'current' in (value as Record<string, unknown>)) {
+    return Boolean((value as {current?: string}).current)
+  }
+  return Boolean(value)
+}
+
+/**
+ * A public-only field stays visible whenever it's public (as before), but
+ * now also stays visible for a non-public event for as long as it still
+ * holds a value — so the editor can see and clear it without switching
+ * visibility back to Public first. Once cleared, it hides again.
+ */
+function hiddenUnlessNeededToClear({
+  document,
+  value,
+}: {
+  document: Record<string, unknown> | undefined
+  value: unknown
+}) {
+  if (isPublic(document)) return false
+  return !hasValue(value)
+}
+
+/** "Title, Slug and Venue" / "Title, Slug, Venue, and Location" (Oxford comma for 3+). */
+function formatFieldList(labels: string[]): string {
+  if (labels.length <= 1) return labels[0] ?? ''
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`
+  return `${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]}`
 }
 
 export const event = defineType({
@@ -82,7 +114,7 @@ export const event = defineType({
       name: 'title',
       title: 'Title',
       type: 'string',
-      hidden: ({document}) => !isPublic(document),
+      hidden: hiddenUnlessNeededToClear,
       validation: (Rule) =>
         Rule.custom((value, context) => {
           if (isPublic(context.document as Record<string, unknown>) && !value) {
@@ -96,7 +128,7 @@ export const event = defineType({
       title: 'Slug',
       type: 'slug',
       options: {source: 'title', maxLength: 96},
-      hidden: ({document}) => !isPublic(document),
+      hidden: hiddenUnlessNeededToClear,
       validation: (Rule) =>
         Rule.custom(async (value, context) => {
           const document = context.document as {_id?: string} | undefined
@@ -117,7 +149,7 @@ export const event = defineType({
       name: 'venue',
       title: 'Venue',
       type: 'string',
-      hidden: ({document}) => !isPublic(document),
+      hidden: hiddenUnlessNeededToClear,
       validation: (Rule) =>
         Rule.custom((value, context) => {
           if (isPublic(context.document as Record<string, unknown>) && !value) {
@@ -130,7 +162,7 @@ export const event = defineType({
       name: 'location',
       title: 'Location',
       type: 'string',
-      hidden: ({document}) => !isPublic(document),
+      hidden: hiddenUnlessNeededToClear,
       validation: (Rule) =>
         Rule.custom((value, context) => {
           if (isPublic(context.document as Record<string, unknown>) && !value) {
@@ -143,13 +175,13 @@ export const event = defineType({
       name: 'description',
       title: 'Description',
       type: 'text',
-      hidden: ({document}) => !isPublic(document),
+      hidden: hiddenUnlessNeededToClear,
     }),
     defineField({
       name: 'externalEventUrl',
       title: 'Tickets or external event page',
       type: 'url',
-      hidden: ({document}) => !isPublic(document),
+      hidden: hiddenUnlessNeededToClear,
       validation: (Rule) => Rule.uri({scheme: ['http', 'https']}),
     }),
   ],
@@ -157,14 +189,17 @@ export const event = defineType({
     Rule.custom((doc) => {
       const document = doc as Record<string, unknown> | undefined
       if (isPublic(document)) return true
-      const stalePublicFields = PUBLIC_ONLY_FIELD_NAMES.filter((name) => {
-        if (name === 'slug') {
-          return Boolean((document?.slug as {current?: string} | undefined)?.current)
-        }
-        return Boolean(document?.[name])
-      })
-      if (stalePublicFields.length === 0) return true
-      return 'Clear the public show details (title, slug, venue, location, description, ticket link) before saving this as a private or hidden event.'
+
+      const populated = PUBLIC_ONLY_FIELDS.filter((f) =>
+        hasValue(f.name === 'slug' ? document?.slug : document?.[f.name]),
+      )
+      if (populated.length === 0) return true
+
+      const targetLabel = document?.visibility === 'hidden' ? 'hidden event' : 'private booking'
+      return {
+        message: `To publish this as a ${targetLabel}, clear the populated public-show fields below: ${formatFieldList(populated.map((f) => f.label))}.`,
+        path: ['visibility'],
+      }
     }),
   preview: {
     select: {

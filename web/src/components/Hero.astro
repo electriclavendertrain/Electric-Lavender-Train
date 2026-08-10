@@ -5,9 +5,9 @@ import siteConfig from "../data/siteConfig";
 import { getYouTubeVideoId } from "../lib/youtube";
 
 interface Props {
-  eyebrow: string;
+  eyebrow?: string | null;
   headline: string;
-  subcopy: string;
+  subcopy?: string | null;
   videoUrl: string | null;
 }
 
@@ -45,9 +45,9 @@ const videoTitle = `${siteConfig.bandNameFormal} — Featured Video`;
         )
       }
     </div>
-    <p class="eyebrow reveal in reveal-1">{displayEyebrow}</p>
+    {displayEyebrow && <p class="eyebrow reveal in reveal-1">{displayEyebrow}</p>}
     <h1 class="reveal in reveal-2">{headline}</h1>
-    <p class="sub reveal in reveal-3">{subcopy}</p>
+    {subcopy && <p class="sub reveal in reveal-3">{subcopy}</p>}
     <div class="hero-buttons reveal in reveal-4">
       <a href={siteConfig.routes.bookingForm} class="btn btn-primary">Book Us</a>
       <a href={siteConfig.routes.shows} class="btn btn-outline">Upcoming Shows</a>

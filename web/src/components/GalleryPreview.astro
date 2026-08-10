@@ -1,37 +1,48 @@
 ---
-import { Image } from "astro:assets";
 import siteConfig from "../data/siteConfig";
-import type { GalleryItem } from "../data/homeData";
+import type { NormalizedGalleryItem } from "../sanity/normalize";
 
 interface Props {
   kicker: string;
   heading: string;
   ctaLabel: string;
-  items: GalleryItem[];
+  items: NormalizedGalleryItem[];
 }
 
 const { kicker, heading, ctaLabel, items } = Astro.props;
 ---
 
-<section id="gallery">
-  <div class="section-inner">
-    <p class="kicker reveal">{kicker}</p>
-    <h2 class="reveal heading">{heading}</h2>
-    <div class="gallery-grid reveal">
-      {
-        items.map((item) => (
-          <figure class="g-item">
-            <Image src={item.image} alt={item.alt} width={800} />
-            <figcaption class="g-cap">{item.caption}</figcaption>
-          </figure>
-        ))
-      }
-    </div>
-    <div class="gallery-more">
-      <a href={siteConfig.routes.mediaMerch} class="btn-ghost">{ctaLabel} &rarr;</a>
-    </div>
-  </div>
-</section>
+{
+  items.length > 0 && (
+    <section id="gallery">
+      <div class="section-inner">
+        <p class="kicker reveal">{kicker}</p>
+        <h2 class="reveal heading">{heading}</h2>
+        <div class="gallery-grid reveal">
+          {items.map((item) => (
+            <figure class="g-item" data-key={item._key}>
+              <img
+                src={item.src}
+                width={item.width}
+                height={item.height}
+                alt={item.alt}
+                loading="lazy"
+                decoding="async"
+                style={`--focal-point: ${item.objectPosition}`}
+              />
+              <figcaption class="g-cap">{item.caption}</figcaption>
+            </figure>
+          ))}
+        </div>
+        <div class="gallery-more">
+          <a href={siteConfig.routes.mediaMerch} class="btn-ghost">
+            {ctaLabel} &rarr;
+          </a>
+        </div>
+      </div>
+    </section>
+  )
+}
 
 <style>
   .heading {
@@ -63,43 +74,67 @@ const { kicker, heading, ctaLabel, items } = Astro.props;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    /* Each image's own Sanity hotspot, propagated by normalize.ts — never a
+       single hardcoded position shared across images. Falls back to center
+       only when a media item genuinely has no hotspot set. */
+    object-position: var(--focal-point, 50% 50%);
     filter: saturate(0.75) brightness(0.85);
     transition: transform 0.6s var(--ease), filter 0.6s var(--ease);
   }
+  /* Dark gradient sits above the image but below the caption (explicit
+     stacking) and never intercepts pointer input. Visible by default —
+     devices without genuine hover (touch/coarse pointers) always show the
+     gradient and caption, since they can't rely on a hover reveal. */
   .g-item::after {
     content: "";
     position: absolute;
     inset: 0;
+    z-index: 1;
+    pointer-events: none;
     background: linear-gradient(180deg, transparent 55%, rgba(11, 11, 18, 0.75));
-    opacity: 0;
-    transition: opacity 0.4s;
-  }
-  .g-item:hover :global(img) {
-    transform: scale(1.08);
-    filter: saturate(1.1) brightness(1);
-  }
-  .g-item:hover::after {
-    opacity: 1;
   }
   .g-cap {
     position: absolute;
     bottom: 14px;
     left: 16px;
     right: 16px;
+    z-index: 2;
     font-size: 0.78rem;
     letter-spacing: 1px;
     color: var(--cream);
-    opacity: 0;
-    transform: translateY(8px);
-    transition: 0.4s var(--ease);
-  }
-  .g-item:hover .g-cap {
-    opacity: 1;
-    transform: translateY(0);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
   }
   .gallery-more {
     text-align: center;
     margin-top: 44px;
+  }
+
+  /* Hover-reveal, zoom, and the crop-further hover scale are restricted to
+     pointers that genuinely support hover — on touch-only devices the
+     gradient/caption stay on by default (above) and no zoom ever crops the
+     image further. */
+  @media (hover: hover) and (pointer: fine) {
+    .g-item::after {
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .g-item:hover::after {
+      opacity: 1;
+    }
+    .g-cap {
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+    }
+    .g-item:hover .g-cap {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .g-item:hover :global(img) {
+      transform: scale(1.08);
+      transform-origin: var(--focal-point, 50% 50%);
+      filter: saturate(1.1) brightness(1);
+    }
   }
 
   @media (max-width: 900px) {

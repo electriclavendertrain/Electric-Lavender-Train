@@ -1,9 +1,8 @@
 import {defineQuery} from 'groq'
 
 /**
- * Structural placeholder for Phase 3A: written and typed, but not yet
- * called from any page — index.astro isn't wired to Sanity until Phase 3C
- * (docs/phase3-plan.md §17, §23).
+ * Fetches the homepage singleton by its fixed `_id`. Fetched once, at build
+ * time, in `index.astro`'s frontmatter (docs/phase3-plan.md §17, §19).
  */
 export const HOMEPAGE_QUERY = defineQuery(`
   *[_type == "homepage" && _id == "homepage"][0]{
@@ -34,9 +33,10 @@ export const HOMEPAGE_QUERY = defineQuery(`
 `)
 
 /**
- * Structural placeholder for Phase 3A — see note above. Never selects
- * busy-only or hidden events; never selects events by recency of creation
- * (docs/phase3-plan.md §3).
+ * The next three chronologically upcoming public scheduled events, fetched
+ * independently of the homepage singleton (never duplicated into it). Never
+ * selects busy-only or hidden events; never selects events by recency of
+ * creation (docs/phase3-plan.md §3).
  */
 export const UPCOMING_PUBLIC_EVENTS_QUERY = defineQuery(`
   *[_type == "event"

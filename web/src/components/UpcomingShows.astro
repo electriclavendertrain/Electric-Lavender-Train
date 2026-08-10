@@ -1,27 +1,19 @@
 ---
 import siteConfig from "../data/siteConfig";
-import type { Show } from "../data/shows";
-import { formatFullDate, getShowDateParts } from "../lib/dateFormat";
+import type { NormalizedEventCard } from "../sanity/normalize";
+import { formatEventDateTime, getEventDateParts } from "../lib/dateFormat";
 
 interface Props {
   kicker: string;
   heading: string;
   viewAllLabel: string;
-  placeholderNote: string;
-  shows: Show[];
+  events: NormalizedEventCard[];
   emptyStateTitle: string;
   emptyStateMessage: string;
 }
 
-const {
-  kicker,
-  heading,
-  viewAllLabel,
-  placeholderNote,
-  shows,
-  emptyStateTitle,
-  emptyStateMessage,
-} = Astro.props;
+const { kicker, heading, viewAllLabel, events, emptyStateTitle, emptyStateMessage } =
+  Astro.props;
 ---
 
 <section id="shows">
@@ -35,40 +27,38 @@ const {
     </div>
 
     {
-      shows.length === 0 ? (
+      events.length === 0 ? (
         <div class="empty-state reveal" role="status">
           <p class="empty-state__icon" aria-hidden="true">&#9835;</p>
           <h3>{emptyStateTitle}</h3>
           <p>{emptyStateMessage}</p>
         </div>
       ) : (
-        <>
-          <div class="shows-grid">
-            {shows.map((show, index) => {
-              const { month, day } = getShowDateParts(show.date);
-              return (
-                <div class={`show-card reveal reveal-${Math.min(index + 1, 4)}`}>
-                  <div class="show-date">
-                    <span class="m">{month}</span>
-                    <span class="d">{day}</span>
-                  </div>
-                  {show.isPlaceholder && <span class="show-card__badge">Placeholder date</span>}
-                  <h3>{show.title}</h3>
-                  <p class="venue-city">
-                    {show.venue} &middot; {show.city}
-                  </p>
-                  <span class="time">{formatFullDate(show.date)} &middot; {show.timeDisplay}</span>
-                  {show.detailsHref ? (
-                    <a href={show.detailsHref} class="details">Details</a>
-                  ) : (
-                    <span class="show-card__status">Pending confirmation</span>
-                  )}
+        <div class="shows-grid">
+          {events.map((event, index) => {
+            const { month, day } = getEventDateParts(event.startDateTime);
+            return (
+              <div class={`show-card reveal reveal-${Math.min(index + 1, 4)}`}>
+                <div class="show-date">
+                  <span class="m">{month}</span>
+                  <span class="d">{day}</span>
                 </div>
-              );
-            })}
-          </div>
-          <p class="placeholder-note reveal">{placeholderNote}</p>
-        </>
+                <h3>{event.title}</h3>
+                <p class="venue-city">
+                  {event.venue} &middot; {event.location}
+                </p>
+                <span class="time">
+                  {formatEventDateTime(event.startDateTime, event.endDateTime)}
+                </span>
+                {event.externalEventUrl && (
+                  <a href={event.externalEventUrl} class="details">
+                    Event Details
+                  </a>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )
     }
   </div>
@@ -137,18 +127,6 @@ const {
     font-size: 1.3rem;
     color: var(--warm-white);
   }
-  .show-card__badge {
-    display: inline-block;
-    font-size: 0.68rem;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: var(--gold);
-    border: 1px solid rgba(200, 168, 107, 0.5);
-    border-radius: 20px;
-    padding: 3px 10px;
-    margin-bottom: 10px;
-  }
   .show-card h3 {
     font-size: 1.15rem;
     color: var(--warm-white);
@@ -181,13 +159,6 @@ const {
   .show-card .details:hover {
     background: var(--gold);
   }
-  .show-card__status {
-    font-size: 0.78rem;
-    letter-spacing: 0.5px;
-    font-style: italic;
-    color: rgba(244, 232, 208, 0.45);
-  }
-
   .empty-state {
     text-align: center;
     padding: 50px 20px;

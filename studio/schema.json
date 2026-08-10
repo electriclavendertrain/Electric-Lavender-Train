@@ -111,7 +111,7 @@
               "value": {
                 "type": "string"
               },
-              "optional": true
+              "optional": false
             },
             "subcopy": {
               "type": "objectAttribute",
@@ -122,7 +122,7 @@
             }
           }
         },
-        "optional": true
+        "optional": false
       },
       "heroVideo": {
         "type": "objectAttribute",
@@ -149,7 +149,7 @@
               "value": {
                 "type": "string"
               },
-              "optional": true
+              "optional": false
             },
             "paragraphs": {
               "type": "objectAttribute",
@@ -159,7 +159,7 @@
                   "type": "string"
                 }
               },
-              "optional": true
+              "optional": false
             },
             "ctaLabel": {
               "type": "objectAttribute",
@@ -170,7 +170,7 @@
             }
           }
         },
-        "optional": true
+        "optional": false
       },
       "featuredMedia": {
         "type": "objectAttribute",
@@ -206,14 +206,14 @@
                 "value": {
                   "type": "string"
                 },
-                "optional": true
+                "optional": false
               },
               "attribution": {
                 "type": "objectAttribute",
                 "value": {
                   "type": "string"
                 },
-                "optional": true
+                "optional": false
               },
               "_type": {
                 "type": "objectAttribute",
@@ -255,25 +255,25 @@
               "value": {
                 "type": "string"
               },
-              "optional": true
+              "optional": false
             },
             "body": {
               "type": "objectAttribute",
               "value": {
                 "type": "string"
               },
-              "optional": true
+              "optional": false
             },
             "ctaLabel": {
               "type": "objectAttribute",
               "value": {
                 "type": "string"
               },
-              "optional": true
+              "optional": false
             }
           }
         },
-        "optional": true
+        "optional": false
       },
       "seo": {
         "type": "objectAttribute",

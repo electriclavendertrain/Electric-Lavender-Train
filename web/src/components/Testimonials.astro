@@ -1,14 +1,13 @@
 ---
-import type { Testimonial } from "../data/homeData";
+import type { NormalizedTestimonial } from "../sanity/normalize";
 
 interface Props {
   kicker: string;
   heading: string;
-  placeholderNote: string;
-  items: Testimonial[];
+  items: NormalizedTestimonial[];
 }
 
-const { kicker, heading, placeholderNote, items } = Astro.props;
+const { kicker, heading, items } = Astro.props;
 ---
 
 {
@@ -19,14 +18,13 @@ const { kicker, heading, placeholderNote, items } = Astro.props;
         <h2 class="reveal heading">{heading}</h2>
         <div class="testi-grid">
           {items.map((testimonial, index) => (
-            <div class={`testi-card reveal reveal-${Math.min(index + 1, 4)}`}>
+            <div class={`testi-card reveal reveal-${Math.min(index + 1, 4)}`} data-key={testimonial._key}>
               <span class="quote-mark" aria-hidden="true">&ldquo;</span>
               <p>{testimonial.quote}</p>
               <p class="testi-attribution">{testimonial.attribution}</p>
             </div>
           ))}
         </div>
-        <p class="placeholder-note reveal">{placeholderNote}</p>
       </div>
     </section>
   )

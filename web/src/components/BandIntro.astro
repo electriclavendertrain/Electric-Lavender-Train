@@ -4,13 +4,14 @@ import familyPhoto from "../assets/images/elt-family.jpeg";
 import siteConfig from "../data/siteConfig";
 
 interface Props {
-  kicker: string;
+  kicker?: string | null;
   heading: string;
   paragraphs: string[];
-  ctaLabel: string;
+  ctaLabel?: string | null;
 }
 
 const { kicker, heading, paragraphs, ctaLabel } = Astro.props;
+const nonEmptyParagraphs = paragraphs.filter((paragraph) => paragraph && paragraph.trim().length > 0);
 ---
 
 <section class="about" id="about">
@@ -22,10 +23,14 @@ const { kicker, heading, paragraphs, ctaLabel } = Astro.props;
     />
   </div>
   <div class="about-copy reveal reveal-2">
-    <p class="kicker">{kicker}</p>
+    {kicker && <p class="kicker">{kicker}</p>}
     <h2>{heading}</h2>
-    {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
-    <a href={siteConfig.routes.about} class="btn-ghost">{ctaLabel} &rarr;</a>
+    {nonEmptyParagraphs.map((paragraph) => <p>{paragraph}</p>)}
+    {ctaLabel && (
+      <a href={siteConfig.routes.about} class="btn-ghost">
+        {ctaLabel} &rarr;
+      </a>
+    )}
   </div>
 </section>
 
