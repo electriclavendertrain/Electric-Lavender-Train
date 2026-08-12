@@ -1,0 +1,330 @@
+---
+/**
+ * One public show. Takes a plain `NormalizedPublicShow` and knows nothing
+ * about Sanity, GROQ, or query shapes.
+ *
+ * Every field it renders has already been whitelisted, trimmed, and validated
+ * by `normalizePublicShows` — including the external URL's protocol — so this
+ * component does no defensive checking of its own beyond "is it present".
+ *
+ * Cancelled and postponed shows render HERE, in chronological position, with
+ * an explicit text badge. They are never moved into a separate section, and
+ * their status is never signalled by color alone.
+ */
+
+import type { NormalizedPublicShow } from "../sanity/normalize";
+import { formatEventDateTime, getEventDateParts, toDateTimeAttribute } from "../lib/dateFormat";
+import { showsPageCopy } from "../data/showsData";
+
+interface Props {
+  event: NormalizedPublicShow;
+  /** Keeps the document outline logical: 4 under a month heading, 3 under a section heading. */
+  headingLevel?: 3 | 4;
+  variant?: "upcoming" | "recent";
+}
+
+const { event, headingLevel = 4, variant = "upcoming" } = Astro.props;
+
+const Heading = `h${headingLevel}` as "h3" | "h4";
+
+const { month, day, year } = getEventDateParts(event.startDateTime);
+const dateTimeText = formatEventDateTime(event.startDateTime, event.endDateTime);
+
+const badge =
+  event.status === "cancelled"
+    ? showsPageCopy.statusBadges.cancelled
+    : event.status === "postponed"
+      ? showsPageCopy.statusBadges.postponed
+      : null;
+
+const note =
+  event.status === "cancelled"
+    ? showsPageCopy.statusNotes.cancelled
+    : event.status === "postponed"
+      ? showsPageCopy.statusNotes.postponed
+      : null;
+
+// "Tickets" would be a false promise on a cancelled or postponed date, where
+// the destination is an announcement rather than a way to buy anything.
+const linkLabel =
+  variant === "recent"
+    ? showsPageCopy.externalLinkLabels.recent
+    : event.status === "cancelled"
+      ? showsPageCopy.externalLinkLabels.cancelled
+      : event.status === "postponed"
+        ? showsPageCopy.externalLinkLabels.postponed
+        : showsPageCopy.externalLinkLabels.scheduled;
+---
+
+<article class:list={["show-card", `show-card--${variant}`, `show-card--${event.status}`]}>
+  {/* Decorative restatement of the date line below — hidden from assistive
+      technology so the date isn't announced twice per card. */}
+  <p class="show-card__chip" aria-hidden="true">
+    <span class="show-card__chip-month">{month}</span>
+    <span class="show-card__chip-day">{day}</span>
+    <span class="show-card__chip-year">{year}</span>
+  </p>
+
+  <div class="show-card__body">
+    {badge && (
+      <p class="show-card__badges">
+        <span class:list={["badge", `badge--${event.status}`]}>{badge}</span>
+      </p>
+    )}
+
+    <Heading class="show-card__title">{event.title}</Heading>
+
+    <p class="show-card__venue">
+      <span class="show-card__venue-name">{event.venue}</span>
+      <span class="show-card__venue-sep" aria-hidden="true"> &middot; </span>
+      <span class="show-card__venue-location">{event.location}</span>
+    </p>
+
+    {note && <p class="show-card__note">{note}</p>}
+
+    <p class="show-card__time">
+      <time datetime={toDateTimeAttribute(event.startDateTime)}>{dateTimeText}</time>
+    </p>
+
+    {event.description && <p class="show-card__description">{event.description}</p>}
+  </div>
+
+  {
+    event.externalEventUrl && (
+      <p class="show-card__actions">
+        <a
+          class="show-card__link"
+          href={event.externalEventUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {linkLabel}
+          {/* Without this, a screen reader's link list would read as a dozen
+              identical "Tickets & Details" entries. */}
+          <span class="visually-hidden">
+            {" "}for {event.title}{showsPageCopy.newTabSuffix}
+          </span>
+        </a>
+      </p>
+    )
+  }
+</article>
+
+<style>
+  /* Ported from the homepage show card, relaid out for a long grouped list:
+     the date moves from a block above the title to a fixed column beside it,
+     so a run of cards scans as a schedule rather than as a card grid. */
+  .show-card {
+    display: grid;
+    grid-template-columns: 76px 1fr auto;
+    gap: 24px;
+    align-items: start;
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.18), rgba(11, 11, 18, 0.4));
+    border: 1px solid rgba(160, 123, 239, 0.25);
+    border-radius: 18px;
+    padding: 26px 28px;
+    transition: transform 0.35s var(--ease), border-color 0.35s, box-shadow 0.35s;
+  }
+
+  .show-card:not(.show-card--cancelled):hover {
+    transform: translateY(-4px);
+    border-color: var(--lavender);
+    box-shadow: 0 18px 40px rgba(90, 62, 123, 0.32);
+  }
+
+  /* A show that already happened is presented more quietly — but with type
+     colors that still clear AA, never by dropping opacity on the whole card. */
+  .show-card--recent {
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.1), rgba(11, 11, 18, 0.45));
+    border-color: rgba(160, 123, 239, 0.16);
+  }
+
+  .show-card--cancelled {
+    border-color: rgba(163, 92, 99, 0.45);
+    background: linear-gradient(160deg, rgba(116, 116, 126, 0.18), rgba(11, 11, 18, 0.52));
+    box-shadow: inset 0 0 0 999px rgba(94, 94, 104, 0.035);
+  }
+
+  .show-card--postponed {
+    border-color: rgba(200, 168, 107, 0.45);
+    background: linear-gradient(160deg, rgba(116, 116, 126, 0.14), rgba(11, 11, 18, 0.48));
+    box-shadow: inset 0 0 0 999px rgba(94, 94, 104, 0.025);
+  }
+
+  /* ---------- Date chip ---------- */
+  .show-card__chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    padding: 10px 4px;
+    border-radius: 12px;
+    background: rgba(200, 168, 107, 0.12);
+    border: 1px solid rgba(200, 168, 107, 0.4);
+    line-height: 1.25;
+  }
+  .show-card__chip-month {
+    font-size: 0.66rem;
+    letter-spacing: 2px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+  .show-card__chip-day {
+    font-family: var(--display);
+    font-size: 1.35rem;
+    color: var(--warm-white);
+  }
+  .show-card__chip-year {
+    font-size: 0.66rem;
+    letter-spacing: 1.5px;
+    color: rgba(244, 232, 208, 0.6);
+  }
+  .show-card--cancelled .show-card__chip,
+  .show-card--postponed .show-card__chip {
+    background: rgba(129, 129, 138, 0.1);
+    border-color: rgba(154, 154, 164, 0.35);
+  }
+  .show-card--cancelled .show-card__chip-month,
+  .show-card--postponed .show-card__chip-month {
+    color: #a9a9b2;
+  }
+  .show-card--cancelled .show-card__chip-day,
+  .show-card--postponed .show-card__chip-day {
+    color: #d1d1d6;
+  }
+  .show-card--cancelled .show-card__chip-year,
+  .show-card--postponed .show-card__chip-year {
+    color: rgba(209, 209, 214, 0.65);
+  }
+
+  /* ---------- Body ---------- */
+  .show-card__body {
+    min-width: 0;
+  }
+
+  .show-card__badges {
+    margin-bottom: 10px;
+  }
+
+  /* Text badges. Color reinforces the label; it never carries it alone. */
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+  }
+  .badge--cancelled {
+    color: #f7cace;
+    background: rgba(122, 59, 65, 0.42);
+    border: 1px solid rgba(196, 118, 126, 0.6);
+  }
+  .badge--postponed {
+    color: #e2c68f;
+    background: rgba(200, 168, 107, 0.16);
+    border: 1px solid rgba(200, 168, 107, 0.55);
+  }
+
+  .show-card__title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--warm-white);
+    line-height: 1.35;
+    /* Long single-token titles must wrap rather than push the grid wider. */
+    overflow-wrap: anywhere;
+    margin-bottom: 5px;
+  }
+
+  .show-card__venue {
+    color: rgba(244, 232, 208, 0.72);
+    font-size: 0.92rem;
+    overflow-wrap: anywhere;
+    margin-bottom: 12px;
+  }
+
+  .show-card__note {
+    font-size: 0.85rem;
+    color: rgba(244, 232, 208, 0.82);
+    border-left: 2px solid rgba(200, 168, 107, 0.5);
+    padding-left: 12px;
+    margin-bottom: 12px;
+  }
+  .show-card--cancelled .show-card__note {
+    border-left-color: rgba(196, 118, 126, 0.7);
+  }
+
+  .show-card__time {
+    color: var(--lavender-soft);
+    font-size: 0.87rem;
+  }
+
+  .show-card__description {
+    margin-top: 12px;
+    max-width: 62ch;
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: rgba(244, 232, 208, 0.7);
+    overflow-wrap: anywhere;
+  }
+
+  /* ---------- Action ---------- */
+  .show-card__actions {
+    align-self: center;
+  }
+
+  .show-card__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px minimum interactive target. */
+    min-height: 44px;
+    padding: 12px 22px;
+    border-radius: 24px;
+    white-space: nowrap;
+    font-size: 0.76rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--black);
+    background: var(--lavender-soft);
+    transition: background 0.3s var(--ease);
+  }
+  .show-card__link:hover {
+    background: var(--gold);
+  }
+  .show-card--recent .show-card__link,
+  .show-card--cancelled .show-card__link,
+  .show-card--postponed .show-card__link {
+    color: var(--warm-white);
+    background: transparent;
+    border: 1.5px solid var(--lavender-soft);
+  }
+  .show-card--recent .show-card__link:hover,
+  .show-card--cancelled .show-card__link:hover,
+  .show-card--postponed .show-card__link:hover {
+    background: rgba(160, 123, 239, 0.2);
+  }
+
+  /* One DOM structure at every breakpoint — the grid reflows, the markup
+     never changes and is never duplicated. */
+  @media (max-width: 760px) {
+    .show-card {
+      grid-template-columns: 64px 1fr;
+      gap: 18px;
+      padding: 22px;
+    }
+    .show-card__chip {
+      width: 64px;
+    }
+    .show-card__actions {
+      grid-column: 1 / -1;
+      align-self: stretch;
+    }
+    .show-card__link {
+      width: 100%;
+    }
+  }
+</style>

@@ -1,4 +1,5 @@
 import type {StructureResolver} from 'sanity/structure'
+import {CalendarIcon} from '@sanity/icons/Calendar'
 
 export const structure: StructureResolver = (S) =>
   S.list()
@@ -8,6 +9,11 @@ export const structure: StructureResolver = (S) =>
         .title('Homepage')
         .id('homepage')
         .child(S.document().schemaType('homepage').documentId('homepage')),
+      S.listItem()
+        .title('Shows Page')
+        .id('showsPage')
+        .icon(CalendarIcon)
+        .child(S.document().schemaType('showsPage').documentId('showsPage')),
       S.divider(),
       S.listItem()
         .title('Events')

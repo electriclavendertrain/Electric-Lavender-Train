@@ -10,8 +10,10 @@ import BookingCTA from "../components/BookingCTA.astro";
 import siteConfig from "../data/siteConfig";
 import {
   upcomingShowsCopy,
+  upcomingShowsEmptyStateFallback,
   galleryCopy,
-  testimonialsCopy,
+  testimonialsIntroFallback,
+  homepageSeoFallback,
   heroFallback,
   bandIntroFallback,
   galleryFallback,
@@ -109,12 +111,28 @@ const testimonials = singletonExists
   ? normalizeTestimonials(homepage.testimonials)
   : testimonialsFallback;
 
+// These two editorial blocks were added after the original singleton was
+// already in use. Each falls back as one complete unit until the matching
+// Studio object is populated; individual live and fallback fields are never
+// mixed within the same block.
+const upcomingShowsEmptyState =
+  homepage?.upcomingShows?.emptyState?.title &&
+  homepage.upcomingShows.emptyState.message &&
+  homepage.upcomingShows.emptyState.actionLabel
+    ? homepage.upcomingShows.emptyState
+    : upcomingShowsEmptyStateFallback;
+
+const testimonialsIntro =
+  homepage?.testimonialsIntro?.kicker && homepage.testimonialsIntro.heading
+  ? homepage.testimonialsIntro
+  : testimonialsIntroFallback;
+
 const events = normalizeUpcomingEvents(upcomingEvents);
 
 const title = homepage?.seo?.metaTitle
   ? homepage.seo.metaTitle
   : `${siteConfig.bandNameFormal} (${siteConfig.bandNameShort}) — Central Coast's Favorite Dance Band`;
-const description = homepage?.seo?.metaDescription ?? siteConfig.tagline;
+const description = homepage?.seo?.metaDescription ?? homepageSeoFallback.metaDescription;
 const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
 ---
 
@@ -146,8 +164,9 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
     heading={upcomingShowsCopy.heading}
     viewAllLabel={upcomingShowsCopy.viewAllLabel}
     events={events}
-    emptyStateTitle={upcomingShowsCopy.emptyStateTitle}
-    emptyStateMessage={upcomingShowsCopy.emptyStateMessage}
+    emptyStateTitle={upcomingShowsEmptyState.title}
+    emptyStateMessage={upcomingShowsEmptyState.message}
+    emptyStateActionLabel={upcomingShowsEmptyState.actionLabel}
   />
 
   <GalleryPreview
@@ -157,7 +176,11 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
     items={galleryItems}
   />
 
-  <Testimonials kicker={testimonialsCopy.kicker} heading={testimonialsCopy.heading} items={testimonials} />
+  <Testimonials
+    kicker={testimonialsIntro.kicker}
+    heading={testimonialsIntro.heading}
+    items={testimonials}
+  />
 
   {
     bookingCtaContent && (
@@ -166,6 +189,7 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
         heading={bookingCtaContent.heading}
         body={bookingCtaContent.body}
         ctaLabel={bookingCtaContent.ctaLabel}
+        balancedKicker={true}
       />
     )
   }

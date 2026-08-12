@@ -6,14 +6,22 @@ interface Props {
   heading: string;
   body: string;
   ctaLabel: string;
+  /** Adds a matching rule before the centered kicker. Off by default so
+   * existing uses keep their approved appearance. */
+  balancedKicker?: boolean;
 }
 
-const { kicker, heading, body, ctaLabel } = Astro.props;
+const { kicker, heading, body, ctaLabel, balancedKicker = false } = Astro.props;
 ---
 
 <section class="cta" id="contact">
   <div class="cta-blob" aria-hidden="true"></div>
-  {kicker && <p class="kicker centered">{kicker}</p>}
+  {kicker && (
+    <p class:list={["kicker", "centered", { "centered--balanced": balancedKicker }]}>
+      {balancedKicker && <span class="kicker__leading-rule" aria-hidden="true"></span>}
+      <span>{kicker}</span>
+    </p>
+  )}
   <h2 class="reveal reveal-1">{heading}</h2>
   <p class="reveal reveal-2">{body}</p>
   <a href={siteConfig.routes.bookingForm} class="btn btn-primary reveal reveal-3">
@@ -50,6 +58,12 @@ const { kicker, heading, body, ctaLabel } = Astro.props;
   }
   .kicker.centered {
     justify-content: center;
+  }
+  .kicker__leading-rule {
+    flex: 0 0 40px;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.5;
   }
   .cta h2 {
     position: relative;

@@ -1,0 +1,75 @@
+---
+/**
+ * One Pacific-calendar month of the upcoming schedule: a heading, and an
+ * ordered list of the events in it.
+ *
+ * `<ol>` rather than `<ul>` because the order is meaningful — this is a
+ * chronological sequence, and assistive technology announcing "1 of 4" is
+ * telling the truth about the schedule.
+ *
+ * The `kind` switch below is the only place the two card types are chosen
+ * between. Because `kind` is assigned during normalization rather than copied
+ * from Sanity, a private event cannot be routed to the public card.
+ */
+
+import type { ShowsMonthGroup } from "../lib/showsSchedule";
+import PublicShowCard from "./PublicShowCard.astro";
+import PrivateEventCard from "./PrivateEventCard.astro";
+
+interface Props {
+  group: ShowsMonthGroup;
+}
+
+const { group } = Astro.props;
+---
+
+<section class="month-group" aria-labelledby={group.anchorId}>
+  <h3 class="month-group__heading" id={group.anchorId}>{group.label}</h3>
+
+  <ol class="month-group__list">
+    {
+      group.events.map((event) => (
+        <li>
+          {event.kind === "public" ? (
+            <PublicShowCard event={event} headingLevel={4} variant="upcoming" />
+          ) : (
+            <PrivateEventCard event={event} headingLevel={4} />
+          )}
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  /* Nested inside the page's Upcoming section, so it carries no padding of
+     its own and no `section::after` divider. */
+  .month-group {
+    padding: 0;
+  }
+  .month-group::after {
+    content: none;
+  }
+  .month-group + .month-group {
+    margin-top: 46px;
+  }
+
+  .month-group__heading {
+    font-family: var(--display);
+    font-size: 1.05rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    padding-bottom: 12px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid rgba(200, 168, 107, 0.28);
+    /* Clears the fixed header when a month-nav link jumps to this heading. */
+    scroll-margin-top: 110px;
+  }
+
+  .month-group__list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+</style>

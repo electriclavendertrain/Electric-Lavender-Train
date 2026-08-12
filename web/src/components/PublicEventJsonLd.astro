@@ -1,0 +1,81 @@
+---
+/**
+ * schema.org `MusicEvent` structured data for UPCOMING PUBLIC shows only.
+ *
+ * Its input type is `NormalizedPublicShow[]` — private and hidden events are
+ * not merely filtered out here, they cannot be passed in, because they never
+ * normalize into this shape. Recent shows are excluded too: structured data
+ * describes what is coming up.
+ *
+ * Every value emitted is a value the card beside it already displays. Nothing
+ * is added that a visitor cannot see on the page.
+ *
+ * This does not promise rich-result eligibility. Search engines decide that,
+ * and event rich results generally want offers and images that this phase
+ * deliberately does not model.
+ */
+
+import type { NormalizedPublicShow } from "../sanity/normalize";
+import siteConfig from "../data/siteConfig";
+
+interface Props {
+  events: readonly NormalizedPublicShow[];
+}
+
+const { events } = Astro.props;
+
+/**
+ * A cancelled or postponed event keeps its ORIGINAL date and location, per
+ * schema.org: consumers use the unchanged date to match the listing against
+ * one they already hold, and `eventStatus` is what tells them it changed.
+ */
+const EVENT_STATUS_URLS = {
+  scheduled: "https://schema.org/EventScheduled",
+  cancelled: "https://schema.org/EventCancelled",
+  postponed: "https://schema.org/EventPostponed",
+} as const;
+
+function buildMusicEvent(event: NormalizedPublicShow) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "MusicEvent",
+    name: event.title,
+    startDate: event.startDateTime,
+    ...(event.endDateTime ? { endDate: event.endDateTime } : {}),
+    eventStatus: EVENT_STATUS_URLS[event.status],
+    eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+    location: {
+      "@type": "Place",
+      name: event.venue,
+      address: event.location,
+    },
+    performer: {
+      "@type": "MusicGroup",
+      name: siteConfig.bandNameFormal,
+    },
+    ...(event.description ? { description: event.description } : {}),
+    ...(event.externalEventUrl ? { url: event.externalEventUrl } : {}),
+  };
+}
+
+/**
+ * `<`, `>` and `&` can only occur inside JSON string values, never in JSON's
+ * structural syntax, so escaping them across the whole document is safe and
+ * still produces valid JSON. This is what stops a title containing
+ * `</script>` from closing the element and turning content into markup.
+ * U+2028/U+2029 are escaped because they are literal line terminators to a
+ * JavaScript parser.
+ */
+function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
+const jsonLd = events.length > 0 ? serializeJsonLd(events.map(buildMusicEvent)) : null;
+---
+
+{jsonLd && <script type="application/ld+json" is:inline set:html={jsonLd} />}

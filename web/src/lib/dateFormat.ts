@@ -39,6 +39,23 @@ const DAY_NUMBER_FORMAT = new Intl.DateTimeFormat("en-US", {
   day: "2-digit",
 });
 
+const YEAR_FORMAT = new Intl.DateTimeFormat("en-US", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+});
+
+/** Drives both the month key and the month label, so they can never disagree. */
+const MONTH_PARTS_FORMAT = new Intl.DateTimeFormat("en-US", {
+  timeZone: TIME_ZONE,
+  year: "numeric",
+  month: "long",
+});
+
+const MONTH_NUMBER_FORMAT = new Intl.DateTimeFormat("en-US", {
+  timeZone: TIME_ZONE,
+  month: "2-digit",
+});
+
 function formatDay(date: Date): string {
   return DAY_FORMAT.format(date);
 }
@@ -91,14 +108,54 @@ export function formatEventDateTime(
   return `${startDay} · ${startTime} – ${endDay} · ${endTime}`;
 }
 
-/** Short month/day pair for the compact date badge, e.g. { month: "Aug", day: "22" }, in Pacific time. */
+/** Short month/day/year parts for the compact date badge, e.g. { month: "Aug", day: "22", year: "2026" }, in Pacific time. */
 export function getEventDateParts(startISO: string): {
   month: string;
   day: string;
+  year: string;
 } {
   const date = new Date(startISO);
   return {
     month: MONTH_SHORT_FORMAT.format(date),
     day: DAY_NUMBER_FORMAT.format(date),
+    year: YEAR_FORMAT.format(date),
   };
+}
+
+/**
+ * True only for a string `Date` can actually parse. Sanity's `datetime` type
+ * and the `defined(startDateTime)` GROQ filter both guarantee a *present*
+ * value, not a *parseable* one — a raw Content API write can store any
+ * string. Normalization uses this to drop malformed records rather than
+ * rendering "Invalid Date".
+ */
+export function isValidDateTime(value: string | null | undefined): value is string {
+  if (!value) return false;
+  return !Number.isNaN(new Date(value).getTime());
+}
+
+/**
+ * The value for a `<time datetime="…">` attribute: the same instant,
+ * normalized to ISO 8601 UTC. Timezone-independent by construction, so it
+ * carries no dependency on the build machine or the visitor's clock — the
+ * human-readable text beside it is the Pacific rendering.
+ */
+export function toDateTimeAttribute(iso: string): string {
+  return new Date(iso).toISOString();
+}
+
+/**
+ * Stable sort/grouping key for an event's PACIFIC calendar month, e.g.
+ * "2026-08" — not its UTC month. This distinction is load-bearing: a show at
+ * 6pm Pacific on August 31 is 01:00 UTC on September 1, and grouping it under
+ * "September 2026" would be wrong for every visitor reading the page.
+ */
+export function getPacificMonthKey(iso: string): string {
+  const date = new Date(iso);
+  return `${YEAR_FORMAT.format(date)}-${MONTH_NUMBER_FORMAT.format(date)}`;
+}
+
+/** Human-readable Pacific month heading, e.g. "August 2026". */
+export function getPacificMonthLabel(iso: string): string {
+  return MONTH_PARTS_FORMAT.format(new Date(iso));
 }

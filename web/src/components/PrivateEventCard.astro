@@ -1,0 +1,123 @@
+---
+/**
+ * A private booking, rendered as a date and nothing else.
+ *
+ * This component is structurally incapable of leaking booking details: its
+ * only prop is a `NormalizedPrivateEvent`, whose type has no field for a
+ * title, venue, location, description, slug, status, or URL. The visible
+ * "Private Event" wording comes from `showsData.ts` — the frontend — not from
+ * Sanity, which never sends a title for these at all.
+ *
+ * It is deliberately non-interactive. No link, no button, and no hover lift:
+ * a card that rises on hover reads as "click me for more", and there is no
+ * more. The dashed, quieter treatment says the same thing visually. No lock
+ * icon — the point is that the date is taken, not that something is being
+ * withheld.
+ */
+
+import type { NormalizedPrivateEvent } from "../sanity/normalize";
+import { formatEventDateTime, getEventDateParts, toDateTimeAttribute } from "../lib/dateFormat";
+import { showsPageCopy } from "../data/showsData";
+
+interface Props {
+  event: NormalizedPrivateEvent;
+  headingLevel?: 3 | 4;
+}
+
+const { event, headingLevel = 4 } = Astro.props;
+
+const Heading = `h${headingLevel}` as "h3" | "h4";
+
+const { month, day, year } = getEventDateParts(event.startDateTime);
+const dateTimeText = formatEventDateTime(event.startDateTime, event.endDateTime);
+---
+
+<article class="private-card">
+  <p class="private-card__chip" aria-hidden="true">
+    <span class="private-card__chip-month">{month}</span>
+    <span class="private-card__chip-day">{day}</span>
+    <span class="private-card__chip-year">{year}</span>
+  </p>
+
+  <div class="private-card__body">
+    <Heading class="private-card__title">{showsPageCopy.privateEventTitle}</Heading>
+    <p class="private-card__time">
+      <time datetime={toDateTimeAttribute(event.startDateTime)}>{dateTimeText}</time>
+    </p>
+  </div>
+</article>
+
+<style>
+  .private-card {
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 24px;
+    align-items: center;
+    /* Quieter than a public card, and dashed rather than solid, so it reads
+       as "this date is spoken for" instead of "here is a show". */
+    background: rgba(160, 123, 239, 0.045);
+    border: 1px dashed rgba(160, 123, 239, 0.34);
+    border-radius: 18px;
+    padding: 22px 28px;
+    /* No transform, no border-color change, no shadow on hover — nothing
+       here implies a detail view exists. */
+  }
+
+  .private-card__chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    padding: 10px 4px;
+    border-radius: 12px;
+    background: rgba(160, 123, 239, 0.07);
+    border: 1px dashed rgba(160, 123, 239, 0.32);
+    line-height: 1.25;
+  }
+  .private-card__chip-month {
+    font-size: 0.66rem;
+    letter-spacing: 2px;
+    color: rgba(201, 179, 255, 0.85);
+    text-transform: uppercase;
+  }
+  .private-card__chip-day {
+    font-family: var(--display);
+    font-size: 1.35rem;
+    color: rgba(251, 246, 236, 0.88);
+  }
+  .private-card__chip-year {
+    font-size: 0.66rem;
+    letter-spacing: 1.5px;
+    color: rgba(244, 232, 208, 0.6);
+  }
+
+  .private-card__body {
+    min-width: 0;
+  }
+
+  .private-card__title {
+    font-size: 1.02rem;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    color: rgba(251, 246, 236, 0.88);
+    line-height: 1.35;
+    margin-bottom: 4px;
+  }
+
+  .private-card__time {
+    color: rgba(244, 232, 208, 0.68);
+    font-size: 0.87rem;
+  }
+
+  @media (max-width: 760px) {
+    .private-card {
+      grid-template-columns: 64px 1fr;
+      gap: 18px;
+      padding: 20px 22px;
+    }
+    .private-card__chip {
+      width: 64px;
+    }
+  }
+</style>

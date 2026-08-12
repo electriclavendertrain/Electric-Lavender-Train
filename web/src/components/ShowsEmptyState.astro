@@ -1,0 +1,77 @@
+---
+/**
+ * Shown when there are no displayable upcoming events at all.
+ *
+ * It says one thing and refuses to imply a second: the page currently lists
+ * nothing, and that is not a statement about availability. A visitor must
+ * never read an empty schedule as "any date is free" — the band confirms
+ * availability directly, every time.
+ *
+ * No `role="status"` and no live region. This is static build-time output, so
+ * nothing changes after load for a live region to announce; the message is
+ * simply part of the page when the page is served.
+ *
+ * There is no placeholder show, in any environment. A fabricated date would
+ * imply a performance that isn't happening.
+ */
+
+interface Props {
+  title: string;
+  message: string;
+  actionHref?: string | null;
+  actionLabel?: string;
+  newTabSuffix?: string;
+}
+
+const {
+  title,
+  message,
+  actionHref = null,
+  actionLabel,
+  newTabSuffix = " (opens in a new tab)",
+} = Astro.props;
+---
+
+<div class="shows-empty">
+  <p class="shows-empty__icon" aria-hidden="true">&#9835;</p>
+  <h3 class="shows-empty__title">{title}</h3>
+  <p class="shows-empty__message">{message}</p>
+
+  {
+    actionHref && actionLabel && (
+      <a class="btn btn-ghost" href={actionHref} target="_blank" rel="noopener noreferrer">
+        {actionLabel}
+        <span class="visually-hidden">{newTabSuffix}</span>
+      </a>
+    )
+  }
+</div>
+
+<style>
+  .shows-empty {
+    text-align: center;
+    padding: 56px 24px;
+    border: 1px dashed rgba(160, 123, 239, 0.3);
+    border-radius: 18px;
+  }
+
+  .shows-empty__icon {
+    font-size: 1.7rem;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  .shows-empty__title {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    color: var(--warm-white);
+    margin-bottom: 12px;
+  }
+
+  .shows-empty__message {
+    max-width: 56ch;
+    margin: 0 auto 26px;
+    color: rgba(244, 232, 208, 0.78);
+    font-weight: 300;
+  }
+</style>

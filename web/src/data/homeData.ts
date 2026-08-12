@@ -2,9 +2,9 @@
  * Two different kinds of homepage content live here, and they're handled
  * differently by index.astro:
  *
- * 1. Section-level copy that was never part of the Sanity homepage-singleton
- *    schema (gallery/testimonials headings, all Upcoming Shows copy) — this
- *    is permanent code copy, always used, regardless of Sanity state.
+ * 1. Section-level interface copy that is not part of the Sanity homepage
+ *    singleton (for example button labels), plus coherent fallback blocks for
+ *    newly added singleton fields while an existing document is populated.
  *
  * 2. `heroFallback` / `bandIntroFallback` / `galleryFallback` /
  *    `testimonialsFallback` / `bookingCtaFallback` — used ONLY when the
@@ -34,9 +34,12 @@ export const upcomingShowsCopy = {
   kicker: "Where to Find Us",
   heading: "Upcoming Shows",
   viewAllLabel: "View All Shows",
-  emptyStateTitle: "No shows on the calendar right now",
-  emptyStateMessage:
-    "Check back soon, or follow along on Instagram for the latest announcements.",
+};
+
+export const upcomingShowsEmptyStateFallback = {
+  title: "No shows on the calendar right now",
+  message: "Check back soon, or follow along on Instagram for the latest announcements.",
+  actionLabel: "Follow Us on Instagram",
 };
 
 export const galleryCopy = {
@@ -45,9 +48,14 @@ export const galleryCopy = {
   ctaLabel: "View Full Gallery",
 };
 
-export const testimonialsCopy = {
+export const testimonialsIntroFallback = {
   kicker: "What People Are Saying",
   heading: "Straight From the Dance Floor",
+};
+
+export const homepageSeoFallback = {
+  metaDescription:
+    "Electric Lavender Train brings high-energy live dance music to weddings, parties, breweries, festivals, and events across California’s Central Coast.",
 };
 
 // ---------------------------------------------------------------------

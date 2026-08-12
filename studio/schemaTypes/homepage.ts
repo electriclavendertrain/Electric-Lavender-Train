@@ -4,6 +4,24 @@ export const homepage = defineType({
   name: 'homepage',
   title: 'Homepage',
   type: 'document',
+  initialValue: {
+    upcomingShows: {
+      emptyState: {
+        title: 'No shows on the calendar right now',
+        message:
+          'Check back soon, or follow along on Instagram for the latest announcements.',
+        actionLabel: 'Follow Us on Instagram',
+      },
+    },
+    testimonialsIntro: {
+      kicker: 'What People Are Saying',
+      heading: 'Straight From the Dance Floor',
+    },
+    seo: {
+      metaDescription:
+        'Electric Lavender Train brings high-energy live dance music to weddings, parties, breweries, festivals, and events across California’s Central Coast.',
+    },
+  },
   fields: [
     defineField({
       name: 'hero',
@@ -90,6 +108,63 @@ export const homepage = defineType({
       validation: (Rule) => Rule.max(6),
     }),
     defineField({
+      name: 'upcomingShows',
+      title: 'Upcoming shows section',
+      type: 'object',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'emptyState',
+          title: 'No upcoming shows message',
+          description: 'Shown only when there are no eligible upcoming public shows.',
+          type: 'object',
+          validation: (Rule) => Rule.required(),
+          fields: [
+            defineField({
+              name: 'title',
+              title: 'Heading',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'message',
+              title: 'Message',
+              type: 'text',
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'actionLabel',
+              title: 'Instagram button text',
+              description:
+                'The destination is the verified Instagram URL in site configuration.',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+            }),
+          ],
+        }),
+      ],
+    }),
+    defineField({
+      name: 'testimonialsIntro',
+      title: 'Testimonials section heading',
+      type: 'object',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'kicker',
+          title: 'Small label above heading',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+      ],
+    }),
+    defineField({
       name: 'testimonials',
       title: 'Testimonials',
       description: 'Up to three testimonials.',
@@ -156,7 +231,14 @@ export const homepage = defineType({
       type: 'object',
       fields: [
         defineField({name: 'metaTitle', title: 'Meta title', type: 'string'}),
-        defineField({name: 'metaDescription', title: 'Meta description', type: 'text'}),
+        defineField({
+          name: 'metaDescription',
+          title: 'Meta description',
+          description:
+            'Suggested: Electric Lavender Train brings high-energy live dance music to weddings, parties, breweries, festivals, and events across California’s Central Coast.',
+          type: 'text',
+          validation: (Rule) => Rule.max(180).warning('Keep this concise for search results.'),
+        }),
         defineField({
           name: 'ogImage',
           title: 'Social share image',

@@ -1,7 +1,12 @@
 import { sanityImageUrl } from "./image";
+import { isValidDateTime } from "../lib/dateFormat";
 import type {
   HOMEPAGE_QUERY_RESULT,
   UPCOMING_PUBLIC_EVENTS_QUERY_RESULT,
+  SHOWS_PAGE_QUERY_RESULT,
+  SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY_RESULT,
+  SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY_RESULT,
+  SHOWS_RECENT_PUBLIC_EVENTS_QUERY_RESULT,
 } from "./sanity.types";
 
 /**
@@ -269,4 +274,239 @@ const OG_IMAGE_SIZE = { width: 1200, height: 630 };
 export function getOgImageUrl(ogImage: OgImage | null | undefined): string | null {
   if (!ogImage?.asset) return null;
   return sanityImageUrl(ogImage, OG_IMAGE_SIZE);
+}
+
+/* =========================================================================
+ * Shows page (/shows)
+ *
+ * A discriminated union, not one loose event shape. `kind` is the
+ * discriminant, and it is assigned HERE from the function that produced the
+ * object — never copied out of the query result — so a component branching on
+ * `kind === "private"` can never be handed an object carrying public fields.
+ *
+ * The privacy rule that matters: a private normalized object is CONSTRUCTED
+ * FIELD BY FIELD. Nothing in this file spreads a raw private query result,
+ * and `NormalizedPrivateEvent` has no field capable of holding editor-typed
+ * text. Even if the private projection were widened by accident, the extra
+ * fields would stop here rather than reaching a component.
+ * ====================================================================== */
+
+export type PublicShowStatus = "scheduled" | "cancelled" | "postponed";
+
+const PUBLIC_SHOW_STATUSES: readonly string[] = [
+  "scheduled",
+  "cancelled",
+  "postponed",
+];
+
+export interface NormalizedPublicShow {
+  _id: string;
+  kind: "public";
+  status: PublicShowStatus;
+  title: string;
+  venue: string;
+  location: string;
+  startDateTime: string;
+  endDateTime: string | null;
+  description: string | null;
+  externalEventUrl: string | null;
+}
+
+/**
+ * Everything a private booking is allowed to become on the way to the page:
+ * an id to key the list by, and two instants. There is deliberately no field
+ * here for a title, venue, location, description, slug, status, visibility,
+ * or URL — the visible "Private Event" wording comes from
+ * `web/src/data/showsData.ts`.
+ */
+export interface NormalizedPrivateEvent {
+  _id: string;
+  kind: "private";
+  startDateTime: string;
+  endDateTime: string | null;
+}
+
+export type NormalizedShowsEvent = NormalizedPublicShow | NormalizedPrivateEvent;
+
+/** Both public Shows queries project identically, so one normalizer serves both. */
+type RawPublicShow =
+  | SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY_RESULT[number]
+  | SHOWS_RECENT_PUBLIC_EVENTS_QUERY_RESULT[number];
+
+/** Non-blank text, trimmed — or null. Whitespace-only is treated as absent. */
+function cleanText(value: string | null | undefined): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+export interface NormalizedShowsPageContent {
+  intro: {
+    kicker: string | null;
+    heading: string;
+    paragraphs: string[];
+  };
+  upcoming: { heading: string };
+  recent: { kicker: string | null; heading: string };
+  emptyState: { title: string; message: string; actionLabel: string };
+  bookingCta: { kicker: string | null; heading: string; body: string; ctaLabel: string };
+  seo: { metaTitle: string | null; metaDescription: string | null };
+}
+
+/**
+ * Treats the Shows singleton as one complete editorial unit. A malformed
+ * published document returns null rather than mixing individual live fields
+ * with code fallback copy. The page then falls back only in non-production
+ * datasets and fails production builds with a clear error.
+ */
+export function normalizeShowsPageContent(
+  page: SHOWS_PAGE_QUERY_RESULT,
+): NormalizedShowsPageContent | null {
+  if (!page) return null;
+
+  const introHeading = cleanText(page.intro?.heading);
+  const introParagraphs = (page.intro?.paragraphs ?? [])
+    .map(cleanText)
+    .filter((paragraph): paragraph is string => paragraph !== null)
+    .slice(0, 2);
+  const upcomingHeading = cleanText(page.upcoming?.heading);
+  const recentHeading = cleanText(page.recent?.heading);
+  const emptyTitle = cleanText(page.emptyState?.title);
+  const emptyMessage = cleanText(page.emptyState?.message);
+  const emptyActionLabel = cleanText(page.emptyState?.actionLabel);
+  const bookingHeading = cleanText(page.bookingCta?.heading);
+  const bookingBody = cleanText(page.bookingCta?.body);
+  const bookingCtaLabel = cleanText(page.bookingCta?.ctaLabel);
+
+  if (
+    !introHeading ||
+    introParagraphs.length === 0 ||
+    !upcomingHeading ||
+    !recentHeading ||
+    !emptyTitle ||
+    !emptyMessage ||
+    !emptyActionLabel ||
+    !bookingHeading ||
+    !bookingBody ||
+    !bookingCtaLabel
+  ) {
+    return null;
+  }
+
+  return {
+    intro: {
+      kicker: cleanText(page.intro?.kicker),
+      heading: introHeading,
+      paragraphs: introParagraphs,
+    },
+    upcoming: { heading: upcomingHeading },
+    recent: {
+      kicker: cleanText(page.recent?.kicker),
+      heading: recentHeading,
+    },
+    emptyState: {
+      title: emptyTitle,
+      message: emptyMessage,
+      actionLabel: emptyActionLabel,
+    },
+    bookingCta: {
+      kicker: cleanText(page.bookingCta?.kicker),
+      heading: bookingHeading,
+      body: bookingBody,
+      ctaLabel: bookingCtaLabel,
+    },
+    seo: {
+      metaTitle: cleanText(page.seo?.metaTitle),
+      metaDescription: cleanText(page.seo?.metaDescription),
+    },
+  };
+}
+
+/**
+ * Studio's `Rule.uri({scheme: ['http', 'https']})` binds the Studio UI, not
+ * the Content API, so this re-checks the protocol at render time rather than
+ * trusting it. Anything `URL` cannot parse, and anything that parses to a
+ * scheme other than http/https (`javascript:`, `data:`, `file:`), is dropped
+ * to null and the card simply renders without its link.
+ *
+ * The validated string is returned verbatim rather than `URL`-normalized, so
+ * the rendered href is exactly what the editor entered.
+ */
+function safeExternalUrl(value: string | null | undefined): string | null {
+  const raw = cleanText(value);
+  if (!raw) return null;
+  try {
+    const { protocol } = new URL(raw);
+    return protocol === "http:" || protocol === "https:" ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+function isPublicShowStatus(value: unknown): value is PublicShowStatus {
+  return typeof value === "string" && PUBLIC_SHOW_STATUSES.includes(value);
+}
+
+/**
+ * Whitelists every public field onto a freshly-built object, and drops any
+ * event a card cannot honestly render: missing title, venue, location, an
+ * unparseable start instant, or a status outside the three known values.
+ *
+ * Rejected records are dropped silently and no content value is logged —
+ * build logs are not a place to echo event text. A document `_id` would be
+ * the only safe diagnostic if one is ever needed.
+ */
+export function normalizePublicShows(events: RawPublicShow[]): NormalizedPublicShow[] {
+  const shows: NormalizedPublicShow[] = [];
+
+  for (const event of events) {
+    const title = cleanText(event.title);
+    const venue = cleanText(event.venue);
+    const location = cleanText(event.location);
+
+    if (!title || !venue || !location) continue;
+    if (!isValidDateTime(event.startDateTime)) continue;
+    if (!isPublicShowStatus(event.status)) continue;
+
+    shows.push({
+      _id: event._id,
+      kind: "public",
+      status: event.status,
+      title,
+      venue,
+      location,
+      startDateTime: event.startDateTime,
+      // An unparseable end time degrades to "no end time" rather than
+      // invalidating an otherwise renderable show.
+      endDateTime: isValidDateTime(event.endDateTime) ? event.endDateTime : null,
+      description: cleanText(event.description),
+      externalEventUrl: safeExternalUrl(event.externalEventUrl),
+    });
+  }
+
+  return shows;
+}
+
+/**
+ * Builds each private entry explicitly from two fields. Note what is absent:
+ * no spread, no `...event`, no `Object.assign`. Malformed entries with an
+ * unparseable start instant are dropped.
+ */
+export function normalizePrivateEvents(
+  events: SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY_RESULT,
+): NormalizedPrivateEvent[] {
+  const privateEvents: NormalizedPrivateEvent[] = [];
+
+  for (const event of events) {
+    if (!isValidDateTime(event.startDateTime)) continue;
+
+    privateEvents.push({
+      _id: event._id,
+      kind: "private",
+      startDateTime: event.startDateTime,
+      endDateTime: isValidDateTime(event.endDateTime) ? event.endDateTime : null,
+    });
+  }
+
+  return privateEvents;
 }

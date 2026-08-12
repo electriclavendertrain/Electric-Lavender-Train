@@ -10,10 +10,18 @@ interface Props {
   events: NormalizedEventCard[];
   emptyStateTitle: string;
   emptyStateMessage: string;
+  emptyStateActionLabel: string;
 }
 
-const { kicker, heading, viewAllLabel, events, emptyStateTitle, emptyStateMessage } =
-  Astro.props;
+const {
+  kicker,
+  heading,
+  viewAllLabel,
+  events,
+  emptyStateTitle,
+  emptyStateMessage,
+  emptyStateActionLabel,
+} = Astro.props;
 ---
 
 <section id="shows">
@@ -28,10 +36,21 @@ const { kicker, heading, viewAllLabel, events, emptyStateTitle, emptyStateMessag
 
     {
       events.length === 0 ? (
-        <div class="empty-state reveal" role="status">
+        <div class="empty-state reveal">
           <p class="empty-state__icon" aria-hidden="true">&#9835;</p>
           <h3>{emptyStateTitle}</h3>
-          <p>{emptyStateMessage}</p>
+          <p class="empty-state__message">{emptyStateMessage}</p>
+          {siteConfig.social.instagram && (
+            <a
+              class="btn btn-ghost empty-state__action"
+              href={siteConfig.social.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {emptyStateActionLabel}
+              <span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
+          )}
         </div>
       ) : (
         <div class="shows-grid">
@@ -180,6 +199,13 @@ const { kicker, heading, viewAllLabel, events, emptyStateTitle, emptyStateMessag
     max-width: 420px;
     margin: 0 auto;
   }
+  /* Qualified with `p` so it outweighs the `margin: 0 auto` shorthand above,
+     which would otherwise win on specificity and zero this out. Scoped to the
+     message alone — `.empty-state p` also matches the icon. */
+  .empty-state p.empty-state__message {
+    margin-bottom: 25px;
+  }
+
 
   @media (max-width: 900px) {
     .shows-head {

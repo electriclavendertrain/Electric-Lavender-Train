@@ -17,19 +17,28 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
     // Replace the auto-generated "event" template with the two named entry
-    // points, and drop the auto-generated "homepage" template entirely so
-    // the singleton can never be created from the generic Create menu.
+    // points, and drop page-singleton templates entirely so duplicate page
+    // documents cannot be created from the generic Create menu.
     templates: (prev) =>
-      [...prev.filter((item) => item.schemaType !== 'homepage' && item.schemaType !== 'event'), ...eventTemplates],
+      [
+        ...prev.filter(
+          (item) =>
+            item.schemaType !== 'homepage' &&
+            item.schemaType !== 'showsPage' &&
+            item.schemaType !== 'event',
+        ),
+        ...eventTemplates,
+      ],
   },
 
   document: {
-    // Belt-and-suspenders: also strip any leftover "homepage" entry from the
-    // global "+" Create menu specifically, independent of the templates
-    // array filtering above.
+    // Belt-and-suspenders: also strip any leftover singleton entries from the
+    // global "+" Create menu, independent of the templates filtering above.
     newDocumentOptions: (prev, {creationContext}) => {
       if (creationContext.type === 'global') {
-        return prev.filter((item) => item.templateId !== 'homepage')
+        return prev.filter(
+          (item) => item.templateId !== 'homepage' && item.templateId !== 'showsPage',
+        )
       }
       return prev
     },

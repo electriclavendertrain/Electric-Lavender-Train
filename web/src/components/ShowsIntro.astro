@@ -1,0 +1,77 @@
+---
+/**
+ * The Shows page's compact opening block, and the page's only `<h1>`.
+ *
+ * The two notes below are not decoration. The timezone note states the
+ * display timezone once, up front, so no card has to repeat "PT" on every
+ * line. The availability note is the page's core honesty requirement: the
+ * schedule lists confirmed engagements, so a gap in it says nothing about
+ * whether that date can be booked.
+ */
+
+interface Props {
+  kicker?: string | null;
+  heading: string;
+  paragraphs: readonly string[];
+  timeZoneNote: string;
+  availabilityNote: string;
+}
+
+const { kicker, heading, paragraphs, timeZoneNote, availabilityNote } = Astro.props;
+---
+
+<section class="shows-intro">
+  <div class="section-inner">
+    {kicker && <p class="kicker">{kicker}</p>}
+    <h1>{heading}</h1>
+
+    {paragraphs.map((paragraph) => <p class="shows-intro__lead">{paragraph}</p>)}
+
+    <p class="shows-intro__note">{timeZoneNote}</p>
+    <p class="shows-intro__disclaimer">{availabilityNote}</p>
+  </div>
+</section>
+
+<style>
+  /* The page's h1 — global CSS sizes h2 but deliberately leaves h1 to the
+     page that owns one, since the homepage's h1 lives inside the hero. */
+  .shows-intro h1 {
+    font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+    margin-bottom: 22px;
+  }
+
+  .shows-intro__lead {
+    color: rgba(244, 232, 208, 0.82);
+    font-size: 1.02rem;
+    font-weight: 300;
+    max-width: 62ch;
+    margin-bottom: 18px;
+  }
+
+  .shows-intro__note {
+    font-size: 0.86rem;
+    color: var(--lavender-soft);
+    letter-spacing: 0.3px;
+    margin-bottom: 18px;
+  }
+
+  .shows-intro__disclaimer {
+    max-width: 62ch;
+    font-size: 0.9rem;
+    color: rgba(244, 232, 208, 0.75);
+    border-left: 2px solid rgba(200, 168, 107, 0.55);
+    padding-left: 16px;
+  }
+
+  /* The intro sits directly under the fixed header, which the homepage's
+     full-height hero normally clears on its own. */
+  .shows-intro {
+    padding-top: 150px;
+  }
+
+  @media (max-width: 900px) {
+    .shows-intro {
+      padding-top: 120px;
+    }
+  }
+</style>

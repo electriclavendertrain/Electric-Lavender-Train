@@ -15,6 +15,41 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
+export type ShowsPage = {
+  _id: string;
+  _type: "showsPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  intro: {
+    kicker?: string;
+    heading: string;
+    paragraphs: Array<string>;
+  };
+  upcoming: {
+    heading: string;
+  };
+  recent: {
+    kicker?: string;
+    heading: string;
+  };
+  emptyState: {
+    title: string;
+    message: string;
+    actionLabel: string;
+  };
+  bookingCta: {
+    kicker?: string;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+  };
+};
+
 export type MediaItemReference = {
   _ref: string;
   _type: "reference";
@@ -52,6 +87,17 @@ export type Homepage = {
       _key: string;
     } & MediaItemReference
   >;
+  upcomingShows: {
+    emptyState: {
+      title: string;
+      message: string;
+      actionLabel: string;
+    };
+  };
+  testimonialsIntro: {
+    kicker: string;
+    heading: string;
+  };
   testimonials?: Array<{
     quote: string;
     attribution: string;
@@ -242,6 +288,7 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
+  | ShowsPage
   | MediaItemReference
   | SanityImageAssetReference
   | Homepage
@@ -261,7 +308,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: HOMEPAGE_QUERY
-// Query: *[_type == "homepage" && _id == "homepage"][0]{    hero,    heroVideo->{ videoUrl, videoProvider },    bandIntro,    featuredMedia[]{      _key,      "mediaItem": @->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{              dimensions            }          }        }      }    },    testimonials[]{ _key, quote, attribution },    bookingCta,    seo  }
+// Query: *[_type == "homepage" && _id == "homepage"][0]{    hero,    heroVideo->{ videoUrl, videoProvider },    bandIntro,    featuredMedia[]{      _key,      "mediaItem": @->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{              dimensions            }          }        }      }    },    upcomingShows{ emptyState{ title, message, actionLabel } },    testimonialsIntro{ kicker, heading },    testimonials[]{ _key, quote, attribution },    bookingCta,    seo  }
 export type HOMEPAGE_QUERY_RESULT = {
   hero: {
     eyebrow?: string;
@@ -298,6 +345,17 @@ export type HOMEPAGE_QUERY_RESULT = {
       } | null;
     };
   }> | null;
+  upcomingShows: {
+    emptyState: {
+      title: string;
+      message: string;
+      actionLabel: string;
+    };
+  };
+  testimonialsIntro: {
+    kicker: string;
+    heading: string;
+  };
   testimonials: Array<{
     _key: string;
     quote: string;
@@ -336,11 +394,90 @@ export type UPCOMING_PUBLIC_EVENTS_QUERY_RESULT = Array<{
   externalEventUrl: string | null;
 }>;
 
+// Source: ../web/src/sanity/queries.ts
+// Variable: SHOWS_PAGE_QUERY
+// Query: *[_type == "showsPage" && _id == "showsPage"][0]{    intro{ kicker, heading, paragraphs },    upcoming{ heading },    recent{ kicker, heading },    emptyState{ title, message, actionLabel },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription }  }
+export type SHOWS_PAGE_QUERY_RESULT = {
+  intro: {
+    kicker: string | null;
+    heading: string;
+    paragraphs: Array<string>;
+  };
+  upcoming: {
+    heading: string;
+  };
+  recent: {
+    kicker: string | null;
+    heading: string;
+  };
+  emptyState: {
+    title: string;
+    message: string;
+    actionLabel: string;
+  };
+  bookingCta: {
+    kicker: string | null;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
+  seo: {
+    metaTitle: string | null;
+    metaDescription: string | null;
+  } | null;
+} | null;
+
+// Source: ../web/src/sanity/queries.ts
+// Variable: SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY
+// Query: *[    _type == "event"    && visibility == "public"    && defined(startDateTime)    && coalesce(endDateTime, startDateTime) >= now()  ]  | order(startDateTime asc, _id asc) {    _id,    "kind": "public",    status,    startDateTime,    endDateTime,    title,    venue,    location,    description,    externalEventUrl  }
+export type SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY_RESULT = Array<{
+  _id: string;
+  kind: "public";
+  status: "cancelled" | "postponed" | "scheduled";
+  startDateTime: string;
+  endDateTime: string | null;
+  title: string | null;
+  venue: string | null;
+  location: string | null;
+  description: string | null;
+  externalEventUrl: string | null;
+}>;
+
+// Source: ../web/src/sanity/queries.ts
+// Variable: SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY
+// Query: *[    _type == "event"    && visibility == "busyOnly"    && status == "scheduled"    && defined(startDateTime)    && coalesce(endDateTime, startDateTime) >= now()  ]  | order(startDateTime asc, _id asc) {    _id,    "kind": "private",    startDateTime,    endDateTime  }
+export type SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY_RESULT = Array<{
+  _id: string;
+  kind: "private";
+  startDateTime: string;
+  endDateTime: string | null;
+}>;
+
+// Source: ../web/src/sanity/queries.ts
+// Variable: SHOWS_RECENT_PUBLIC_EVENTS_QUERY
+// Query: *[    _type == "event"    && visibility == "public"    && status == "scheduled"    && defined(startDateTime)    && coalesce(endDateTime, startDateTime) < now()  ]  | order(startDateTime desc, _id asc) [0...12] {    _id,    "kind": "public",    status,    startDateTime,    endDateTime,    title,    venue,    location,    description,    externalEventUrl  }
+export type SHOWS_RECENT_PUBLIC_EVENTS_QUERY_RESULT = Array<{
+  _id: string;
+  kind: "public";
+  status: "cancelled" | "postponed" | "scheduled";
+  startDateTime: string;
+  endDateTime: string | null;
+  title: string | null;
+  venue: string | null;
+  location: string | null;
+  description: string | null;
+  externalEventUrl: string | null;
+}>;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_type == "homepage" && _id == "homepage"][0]{\n    hero,\n    heroVideo->{ videoUrl, videoProvider },\n    bandIntro,\n    featuredMedia[]{\n      _key,\n      "mediaItem": @->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{\n              dimensions\n            }\n          }\n        }\n      }\n    },\n    testimonials[]{ _key, quote, attribution },\n    bookingCta,\n    seo\n  }\n': HOMEPAGE_QUERY_RESULT;
+    '\n  *[_type == "homepage" && _id == "homepage"][0]{\n    hero,\n    heroVideo->{ videoUrl, videoProvider },\n    bandIntro,\n    featuredMedia[]{\n      _key,\n      "mediaItem": @->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{\n              dimensions\n            }\n          }\n        }\n      }\n    },\n    upcomingShows{ emptyState{ title, message, actionLabel } },\n    testimonialsIntro{ kicker, heading },\n    testimonials[]{ _key, quote, attribution },\n    bookingCta,\n    seo\n  }\n': HOMEPAGE_QUERY_RESULT;
     '\n  *[_type == "event"\n    && visibility == "public"\n    && status == "scheduled"\n    && coalesce(endDateTime, startDateTime) >= now()\n  ] | order(startDateTime asc) [0...3] {\n    _id, title, slug, startDateTime, endDateTime,\n    venue, location, externalEventUrl\n  }\n': UPCOMING_PUBLIC_EVENTS_QUERY_RESULT;
+    '\n  *[_type == "showsPage" && _id == "showsPage"][0]{\n    intro{ kicker, heading, paragraphs },\n    upcoming{ heading },\n    recent{ kicker, heading },\n    emptyState{ title, message, actionLabel },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription }\n  }\n': SHOWS_PAGE_QUERY_RESULT;
+    '\n  *[\n    _type == "event"\n    && visibility == "public"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) >= now()\n  ]\n  | order(startDateTime asc, _id asc) {\n    _id,\n    "kind": "public",\n    status,\n    startDateTime,\n    endDateTime,\n    title,\n    venue,\n    location,\n    description,\n    externalEventUrl\n  }\n': SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY_RESULT;
+    '\n  *[\n    _type == "event"\n    && visibility == "busyOnly"\n    && status == "scheduled"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) >= now()\n  ]\n  | order(startDateTime asc, _id asc) {\n    _id,\n    "kind": "private",\n    startDateTime,\n    endDateTime\n  }\n': SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY_RESULT;
+    '\n  *[\n    _type == "event"\n    && visibility == "public"\n    && status == "scheduled"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) < now()\n  ]\n  | order(startDateTime desc, _id asc) [0...12] {\n    _id,\n    "kind": "public",\n    status,\n    startDateTime,\n    endDateTime,\n    title,\n    venue,\n    location,\n    description,\n    externalEventUrl\n  }\n': SHOWS_RECENT_PUBLIC_EVENTS_QUERY_RESULT;
   }
 }

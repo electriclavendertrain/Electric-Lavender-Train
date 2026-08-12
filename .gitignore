@@ -40,11 +40,5 @@ pnpm-debug.log*
 # Skeleton Directory
 skele/
 
-# Agent Instructions
-# `docs/*` rather than `docs/` so individual files can be re-included below —
-# git will not descend into an excluded *directory*, which makes a negation
-# for a file inside it impossible.
+# Agent-only planning and maintenance notes
 docs/*
-
-# Version-controlled implementation documentation (not agent/planning material)
-!docs/developer-guide.md

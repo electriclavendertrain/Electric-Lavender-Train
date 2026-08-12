@@ -1,0 +1,221 @@
+---
+/**
+ * Month jump navigation — a row of ordinary anchor links, not a calendar and
+ * not a filter.
+ *
+ * Every link is a plain in-page `#anchor`: jumping works with the page's
+ * existing smooth scrolling, works with JS disabled, and each link is
+ * independently focusable, right-clickable, and shareable. A progressive
+ * script only toggles overflow cues. Nothing hides or reveals events; the
+ * full chronological list is always present in the DOM.
+ *
+ * Only months that contain at least one displayable upcoming event reach this
+ * component — `groupByPacificMonth` never produces an empty group — so an
+ * empty month can't be rendered.
+ */
+
+import type { ShowsMonthGroup } from "../lib/showsSchedule";
+
+interface Props {
+  label: string;
+  months: readonly ShowsMonthGroup[];
+}
+
+const { label, months } = Astro.props;
+---
+
+{
+  months.length > 0 && (
+    <div class="month-nav-shell" data-month-nav-shell>
+      <nav class="month-nav" aria-label={label} data-month-nav>
+        <ul class="month-nav__list">
+          {months.map((month) => (
+            <li>
+              <a class="month-nav__link" href={`#${month.anchorId}`}>
+                {month.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Progressive scroll controls. They are hidden unless the row can move
+          in their direction; the month links remain ordinary anchors, so the
+          schedule is still usable if this enhancement is unavailable. */}
+      <button
+        class="month-nav__cue month-nav__cue--start"
+        type="button"
+        aria-label="Scroll to earlier months"
+        data-month-nav-scroll="start"
+      >
+        &larr;
+      </button>
+      <button
+        class="month-nav__cue month-nav__cue--end"
+        type="button"
+        aria-label="Scroll to later months"
+        data-month-nav-scroll="end"
+      >
+        &rarr;
+      </button>
+    </div>
+  )
+}
+
+<script>
+  /**
+   * CSS cannot reliably detect whether this dynamic row actually overflows.
+   * Show edge cues only when useful and keep them synchronized after scroll,
+   * keyboard focus, and viewport changes.
+   */
+  document.querySelectorAll<HTMLElement>("[data-month-nav-shell]").forEach((shell) => {
+    const nav = shell.querySelector<HTMLElement>("[data-month-nav]");
+    if (!nav) return;
+
+    const updateCues = () => {
+      const maxScroll = Math.max(0, nav.scrollWidth - nav.clientWidth);
+      const hasOverflow = maxScroll > 2;
+      shell.toggleAttribute("data-can-scroll", hasOverflow);
+      shell.toggleAttribute("data-at-start", nav.scrollLeft <= 2);
+      shell.toggleAttribute("data-at-end", nav.scrollLeft >= maxScroll - 2);
+    };
+
+    updateCues();
+    nav.addEventListener("scroll", updateCues, { passive: true });
+
+    shell.querySelectorAll<HTMLButtonElement>("[data-month-nav-scroll]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const direction = button.dataset.monthNavScroll === "start" ? -1 : 1;
+        const distance = Math.max(240, nav.clientWidth * 0.75);
+        nav.scrollBy({ left: direction * distance, behavior: "smooth" });
+      });
+    });
+
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(updateCues);
+      observer.observe(nav);
+      observer.observe(nav.firstElementChild ?? nav);
+    } else {
+      window.addEventListener("resize", updateCues, { passive: true });
+    }
+  });
+</script>
+
+<style>
+  .month-nav-shell {
+    position: relative;
+    margin-bottom: 40px;
+  }
+
+  .month-nav {
+    /* The scroll container. Vertical padding is load-bearing: `overflow-x`
+       forces `overflow-y` to compute to `auto`, which would otherwise clip
+       the focus ring off the top and bottom of a focused link. This leaves
+       room for the global 2.5px outline at its 3px offset. */
+    overflow-x: auto;
+    padding: 10px 8px;
+    margin-inline: -8px;
+    /* Keeps a link clear of the container edge when jumped/scrolled to. */
+    scroll-padding-inline: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(160, 123, 239, 0.5) transparent;
+  }
+
+  .month-nav__list {
+    display: flex;
+    gap: 12px;
+    /* Pills keep their width instead of compressing as the row grows. */
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .month-nav__link {
+    display: inline-flex;
+    align-items: center;
+    /* 44px minimum target, met by height rather than by font size. */
+    min-height: 44px;
+    padding: 10px 20px;
+    border-radius: 24px;
+    white-space: nowrap;
+    font-size: 0.82rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--lavender-soft);
+    background: rgba(160, 123, 239, 0.1);
+    border: 1px solid rgba(160, 123, 239, 0.35);
+    transition: background 0.3s var(--ease), border-color 0.3s var(--ease),
+      color 0.3s var(--ease);
+  }
+
+  .month-nav__link:hover {
+    background: rgba(160, 123, 239, 0.22);
+    border-color: var(--lavender);
+    color: var(--warm-white);
+  }
+
+  /* The global offset outline sat partly outside this overflow container,
+     producing a clipped/doubled gold pill. Keep focus fully inside the link
+     while retaining a strong, high-contrast shape change. */
+  .month-nav__link:focus-visible {
+    outline: none;
+    color: var(--warm-white);
+    background: rgba(160, 123, 239, 0.24);
+    border-color: transparent;
+    box-shadow: inset 0 0 0 2px var(--gold);
+  }
+
+  .month-nav__cue {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    transform: translateY(-50%);
+    color: var(--black);
+    background: var(--gold);
+    border: 1px solid rgba(251, 246, 236, 0.7);
+    border-radius: 50%;
+    box-shadow: 0 4px 16px rgba(11, 11, 18, 0.65);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease),
+      transform 0.2s var(--ease);
+  }
+  .month-nav__cue:hover {
+    color: var(--warm-white);
+    background: var(--purple-bright);
+    transform: translateY(-50%) scale(1.06);
+  }
+  .month-nav__cue:focus-visible {
+    outline: 2.5px solid var(--gold);
+    outline-offset: 3px;
+  }
+  .month-nav__cue--start {
+    left: 0;
+  }
+  .month-nav__cue--end {
+    right: 0;
+  }
+
+  .month-nav-shell[data-can-scroll]:not([data-at-start]) .month-nav__cue--start,
+  .month-nav-shell[data-can-scroll]:not([data-at-end]) .month-nav__cue--end {
+    display: flex;
+  }
+
+  .month-nav::-webkit-scrollbar {
+    height: 6px;
+  }
+  .month-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .month-nav::-webkit-scrollbar-thumb {
+    background: rgba(160, 123, 239, 0.4);
+    border-radius: 3px;
+  }
+</style>

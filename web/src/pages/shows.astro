@@ -1,0 +1,174 @@
+---
+/**
+ * /shows — the public performance schedule.
+ *
+ * This is the only file on this route that touches Sanity. It fetches, hands
+ * the raw results straight to normalization, and passes plain objects down;
+ * no component below it knows Sanity exists.
+ *
+ * Everything here runs once, at `astro build`. The output is a static
+ * snapshot: `now()` was evaluated during the build, so an event does not move
+ * from Upcoming to Recent by time passing — it moves when the site rebuilds.
+ * That is why a scheduled daily rebuild, landing safely after midnight
+ * Pacific, is required in addition to any publish-triggered one
+ * (docs/developer-guide.md §12, §13).
+ */
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BookingCTA from "../components/BookingCTA.astro";
+import ShowsIntro from "../components/ShowsIntro.astro";
+import ShowsMonthNav from "../components/ShowsMonthNav.astro";
+import ShowsEventGroup from "../components/ShowsEventGroup.astro";
+import PublicShowCard from "../components/PublicShowCard.astro";
+import ShowsEmptyState from "../components/ShowsEmptyState.astro";
+import PublicEventJsonLd from "../components/PublicEventJsonLd.astro";
+import siteConfig from "../data/siteConfig";
+import { showsPageCopy, showsPageFallback } from "../data/showsData";
+import { sanityClient } from "../sanity/client";
+import {
+  SHOWS_PAGE_QUERY,
+  SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY,
+  SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY,
+  SHOWS_RECENT_PUBLIC_EVENTS_QUERY,
+} from "../sanity/queries";
+import {
+  normalizeShowsPageContent,
+  normalizePublicShows,
+  normalizePrivateEvents,
+} from "../sanity/normalize";
+import { mergeUpcomingEvents, groupByPacificMonth } from "../lib/showsSchedule";
+
+// Four independent queries, fetched in parallel. None is wrapped in a
+// try/catch, deliberately and consistently with index.astro: a genuine
+// failure — network, auth, malformed GROQ, bad config — throws here and fails
+// the build in every environment. A silent fallback would publish a schedule
+// that looks fine while being wrong about when the band is playing.
+//
+const [rawShowsPage, rawUpcomingPublic, rawUpcomingPrivate, rawRecentPublic] = await Promise.all([
+  sanityClient.fetch(SHOWS_PAGE_QUERY),
+  sanityClient.fetch(SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY),
+  sanityClient.fetch(SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY),
+  sanityClient.fetch(SHOWS_RECENT_PUBLIC_EVENTS_QUERY),
+]);
+
+const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
+const normalizedShowsPage = normalizeShowsPageContent(rawShowsPage);
+
+if (normalizedShowsPage === null && isProductionDataset) {
+  throw new Error(
+    "The Sanity `showsPage` singleton is missing or incomplete in the production dataset. " +
+      "Publish the Shows Page in Sanity Studio before building for production.",
+  );
+}
+
+// The fallback is one complete unit and is allowed only outside production.
+// Individual live fields are never patched with fallback values.
+const pageContent = normalizedShowsPage ?? showsPageFallback;
+
+// Normalize BEFORE merging, so the two streams are already whitelisted plain
+// objects by the time they meet. Nothing downstream ever sees a raw result.
+const upcomingPublicShows = normalizePublicShows(rawUpcomingPublic);
+const upcomingPrivateEvents = normalizePrivateEvents(rawUpcomingPrivate);
+const recentShows = normalizePublicShows(rawRecentPublic);
+
+const upcomingEvents = mergeUpcomingEvents(upcomingPublicShows, upcomingPrivateEvents);
+const monthGroups = groupByPacificMonth(upcomingEvents);
+
+const hasUpcoming = upcomingEvents.length > 0;
+const hasRecent = recentShows.length > 0;
+
+const metaTitle = pageContent.seo.metaTitle ?? showsPageFallback.seo.metaTitle;
+const metaDescription = pageContent.seo.metaDescription ?? showsPageFallback.seo.metaDescription;
+const title = `${metaTitle} — ${siteConfig.bandNameFormal}`;
+---
+
+<BaseLayout title={title} description={metaDescription}>
+  {/* Upcoming public shows only — never private, never hidden, never past. */}
+  <PublicEventJsonLd events={upcomingPublicShows} />
+
+  <ShowsIntro
+    kicker={pageContent.intro.kicker}
+    heading={pageContent.intro.heading}
+    paragraphs={pageContent.intro.paragraphs}
+    timeZoneNote={showsPageCopy.intro.timeZoneNote}
+    availabilityNote={showsPageCopy.intro.availabilityNote}
+  />
+
+  <section id="upcoming" aria-labelledby={showsPageCopy.upcoming.headingId}>
+    <div class="section-inner">
+      {/* Renders nothing when there are no months, so the empty state below
+          is never preceded by an orphaned navigation strip. */}
+      <ShowsMonthNav label={showsPageCopy.monthNav.label} months={monthGroups} />
+
+      <h2 id={showsPageCopy.upcoming.headingId} class="shows-section__heading">
+        {pageContent.upcoming.heading}
+      </h2>
+
+      {
+        hasUpcoming ? (
+          <div class="shows-groups">
+            {monthGroups.map((group) => (
+              <ShowsEventGroup group={group} />
+            ))}
+          </div>
+        ) : (
+          <ShowsEmptyState
+            title={pageContent.emptyState.title}
+            message={pageContent.emptyState.message}
+            actionHref={siteConfig.social.instagram}
+            actionLabel={pageContent.emptyState.actionLabel}
+            newTabSuffix={showsPageCopy.newTabSuffix}
+          />
+        )
+      }
+    </div>
+  </section>
+
+  {/* Omitted entirely when there is nothing eligible — an empty "Recent
+      Shows" heading would be worse than no section. */}
+  {
+    hasRecent && (
+      <section id="recent" aria-labelledby={showsPageCopy.recent.headingId}>
+        <div class="section-inner">
+          {pageContent.recent.kicker && <p class="kicker">{pageContent.recent.kicker}</p>}
+          <h2 id={showsPageCopy.recent.headingId} class="shows-section__heading">
+            {pageContent.recent.heading}
+          </h2>
+
+          <ol class="shows-recent-list">
+            {recentShows.map((event) => (
+              <li>
+                <PublicShowCard event={event} headingLevel={3} variant="recent" />
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+    )
+  }
+
+  <BookingCTA
+    kicker={pageContent.bookingCta.kicker}
+    heading={pageContent.bookingCta.heading}
+    body={pageContent.bookingCta.body}
+    ctaLabel={pageContent.bookingCta.ctaLabel}
+    balancedKicker={true}
+  />
+</BaseLayout>
+
+<style>
+  .shows-section__heading {
+    margin-bottom: 36px;
+  }
+
+  .shows-groups {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .shows-recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+</style>
