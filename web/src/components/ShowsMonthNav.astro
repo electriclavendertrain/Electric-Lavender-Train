@@ -173,8 +173,11 @@ const { label, months } = Astro.props;
     display: none;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    /* 44px minimum target, matching the month links beside them. These were
+       32px, which is the one place on this page that missed the site-wide
+       minimum — caught by the responsive review, not by reading the CSS. */
+    width: 44px;
+    height: 44px;
     transform: translateY(-50%);
     color: var(--black);
     background: var(--gold);
