@@ -1,0 +1,124 @@
+---
+/**
+ * The About page's opening block, and the page's only `<h1>`.
+ *
+ * Deliberately NOT a second full-height video hero: the homepage already owns
+ * that treatment, and repeating it here would push the page's actual content
+ * a full viewport down for no gain. This is a compact two-column introduction
+ * that clears the fixed header, exactly as `ShowsIntro.astro` does.
+ *
+ * Uses `intro-enter` rather than `.reveal` because this block is above the
+ * fold: it should animate on load, not wait for a scroll observer that fires
+ * immediately anyway. It is the SAME animation either way — one keyframe,
+ * duration, easing, distance and stagger for the whole site (global.css →
+ * "Entrance animation") — and it is CSS-only, so it never depends on a script.
+ */
+
+interface Props {
+  kicker?: string | null;
+  heading: string;
+  lede: string;
+  image: {
+    src: string;
+    width: number;
+    height: number;
+    alt: string;
+    objectPosition: string;
+  };
+}
+
+const { kicker, heading, lede, image } = Astro.props;
+---
+
+<section class="about-hero">
+  <div class="section-inner about-hero__grid">
+    <div class="about-hero__copy intro-enter intro-enter-1">
+      {kicker && <p class="kicker">{kicker}</p>}
+      <h1>{heading}</h1>
+      <p class="about-hero__lede">{lede}</p>
+    </div>
+
+    <div class="about-hero__frame intro-enter intro-enter-2">
+      {/* Above the fold, so eagerly loaded and given a fetch priority — this is
+          the page's largest contentful paint candidate. */}
+      <img
+        src={image.src}
+        width={image.width}
+        height={image.height}
+        alt={image.alt}
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+        style={`--focal-point: ${image.objectPosition}`}
+      />
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Clears the fixed site header, which the homepage's full-height hero
+     handles on its own. */
+  .about-hero {
+    padding-top: 150px;
+  }
+
+  .about-hero__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .about-hero h1 {
+    font-family: var(--display);
+    color: var(--warm-white);
+    line-height: 1.25;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    margin-bottom: 22px;
+    overflow-wrap: anywhere;
+  }
+
+  .about-hero__lede {
+    color: rgba(244, 232, 208, 0.85);
+    font-size: 1.05rem;
+    font-weight: 300;
+    max-width: 52ch;
+  }
+
+  .about-hero__frame {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  }
+  .about-hero__frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    border: 1px solid rgba(160, 123, 239, 0.3);
+    pointer-events: none;
+  }
+  .about-hero__frame img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    /* The editor's hotspot, re-based against any manual crop in
+       `normalize.ts`, so exactly one crop happens — here, in the browser. */
+    object-position: var(--focal-point, 50% 50%);
+  }
+
+  @media (max-width: 860px) {
+    .about-hero {
+      padding-top: 120px;
+    }
+    .about-hero__grid {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .about-hero__frame img {
+      aspect-ratio: 16 / 10;
+    }
+  }
+</style>

@@ -15,6 +15,8 @@
  * - email, phone: both references show different, placeholder-shaped values
  *   (a ".example" domain and a "555"/sequential-digit number). Neither is
  *   real; left null so nothing fake ships.
+ * - siteUrl (confirmed 2026-08-13): the canonical production origin. Used
+ *   only to build canonical/og:url values; nothing fetches from it.
  */
 
 export interface SiteConfig {
@@ -22,6 +24,12 @@ export interface SiteConfig {
   bandNameShort: string;
   tagline: string;
   location: string;
+  /**
+   * The confirmed canonical origin. Every page's `<link rel="canonical">` and
+   * `og:url` are built from this plus the route path, in `BaseLayout.astro`.
+   * No trailing slash — the layout joins the path itself.
+   */
+  siteUrl: string;
   routes: {
     home: string;
     about: string;
@@ -50,6 +58,7 @@ export const siteConfig: SiteConfig = {
   tagline:
     "The Central Coast's favorite dance band — good music, good people, good times.",
   location: "San Luis Obispo & the Central Coast, California",
+  siteUrl: "https://electriclavendertrain.com",
 
   routes: {
     home: "/",
@@ -75,5 +84,15 @@ export const siteConfig: SiteConfig = {
     phone: null,
   },
 };
+
+/**
+ * Appends the current formal band name to a route's page-specific SEO title.
+ * Studio editors enter only the route portion (for example, "Home" or
+ * "Shows"). When the formal name drops "The", changing `bandNameFormal`
+ * above updates every route title, Open Graph title, and Twitter title.
+ */
+export function formatPageTitle(pageTitle: string): string {
+  return `${pageTitle.trim()} — ${siteConfig.bandNameFormal}`;
+}
 
 export default siteConfig;

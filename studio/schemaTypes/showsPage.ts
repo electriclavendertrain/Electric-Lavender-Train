@@ -162,12 +162,25 @@ export const showsPage = defineType({
       title: 'SEO',
       type: 'object',
       fields: [
-        defineField({name: 'metaTitle', title: 'Meta title', type: 'string'}),
+        defineField({
+          name: 'metaTitle',
+          title: 'Meta title',
+          description:
+            'Enter only the page-specific title, such as “Shows”. The website automatically appends the current formal band name.',
+          type: 'string',
+        }),
         defineField({
           name: 'metaDescription',
           title: 'Meta description',
           type: 'text',
           validation: (Rule) => Rule.max(180).warning('Keep this concise for search results.'),
+        }),
+        defineField({
+          name: 'ogImage',
+          title: 'Social share image',
+          description:
+            'Optional image used when the Shows page is shared. Independent of the Homepage and About page share images.',
+          type: 'image',
         }),
       ],
     }),

@@ -24,12 +24,17 @@ const { group } = Astro.props;
 ---
 
 <section class="month-group" aria-labelledby={group.anchorId}>
-  <h3 class="month-group__heading" id={group.anchorId}>{group.label}</h3>
+  <h3 class="month-group__heading reveal" id={group.anchorId}>{group.label}</h3>
 
-  <ol class="month-group__list">
+  {/* `role="list"` is not redundant: removing `list-style` strips the list
+      role in WebKit/VoiceOver, and this is the one place where the "1 of 4"
+      announcement is the whole reason an `ol` was chosen. */}
+  <ol class="month-group__list" role="list">
     {
-      group.events.map((event) => (
-        <li>
+      group.events.map((event, index) => (
+        // The stagger restarts each month, so a long schedule never builds up
+        // a delay that leaves later cards waiting.
+        <li class={`reveal reveal-${Math.min(index + 1, 4)}`}>
           {event.kind === "public" ? (
             <PublicShowCard event={event} headingLevel={4} variant="upcoming" />
           ) : (
@@ -71,5 +76,10 @@ const { group } = Astro.props;
     display: flex;
     flex-direction: column;
     gap: 18px;
+    /* The global reset only covers `ul`, so an `ol` would otherwise show
+       browser default numbers beside every card. The element stays an `ol`
+       and keeps `role="list"` — the order is still meaningful to assistive
+       technology, it just isn't drawn. */
+    list-style: none;
   }
 </style>

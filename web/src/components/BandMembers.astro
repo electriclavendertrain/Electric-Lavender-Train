@@ -1,0 +1,123 @@
+---
+/**
+ * "Meet the band": the ordered member grid, plus one profile dialog per
+ * member.
+ *
+ * The dialogs are rendered AFTER the grid rather than inside each card. With
+ * scripting available it makes no difference — a modal dialog moves to the top
+ * layer wherever it sits in the DOM. Without scripting it matters a lot: the
+ * `:target` fallback panel then opens as a full-width block beneath the grid
+ * instead of trying to expand inside one grid cell.
+ *
+ * Member order is the order stored in `aboutPage.members` and preserved
+ * through normalization. Nothing here sorts, filters, or reorders.
+ */
+
+import BandMemberCard from "./BandMemberCard.astro";
+import MemberProfileDialog from "./MemberProfileDialog.astro";
+import type { NormalizedBandMember } from "../sanity/normalize";
+import { aboutPageCopy } from "../data/aboutData";
+
+interface Props {
+  headingId: string;
+  kicker?: string | null;
+  heading: string;
+  body?: string | null;
+  members: readonly NormalizedBandMember[];
+}
+
+const { headingId, kicker, heading, body, members } = Astro.props;
+
+/**
+ * A dialog id derived from the member's document id. Sanity ids are
+ * URL-safe already, but anything outside the allowed set is replaced rather
+ * than trusted — an id is going into an `href` fragment and a `getElementById`
+ * lookup, and both must agree exactly.
+ */
+const dialogIdFor = (memberId: string) =>
+  `${aboutPageCopy.memberDialogIdPrefix}${memberId.replace(/[^A-Za-z0-9_-]/g, "-")}`;
+
+const closeHref = `#${headingId}`;
+---
+
+<section class="about-members" aria-labelledby={headingId}>
+  <div class="section-inner">
+    {kicker && <p class="kicker reveal">{kicker}</p>}
+    <h2 id={headingId} class="reveal reveal-1">{heading}</h2>
+    {body && <p class="about-members__body reveal reveal-2">{body}</p>}
+
+    <ul class="about-members__grid">
+      {
+        members.map((member, index) => (
+          <li class={`reveal reveal-${Math.min(index + 1, 4)}`}>
+            <BandMemberCard member={member} dialogId={dialogIdFor(member._id)} />
+          </li>
+        ))
+      }
+    </ul>
+
+    {/*
+      The dialogs deliberately carry NO `.reveal`. A modal dialog lives in the
+      top layer and is shown on demand, not on scroll — holding one at
+      `opacity: 0` waiting for an intersection it will never have would open an
+      invisible profile.
+    */}
+    {
+      members.map((member) => (
+        <MemberProfileDialog
+          member={member}
+          dialogId={dialogIdFor(member._id)}
+          closeHref={closeHref}
+        />
+      ))
+    }
+  </div>
+</section>
+
+<script>
+  import "../scripts/memberProfiles";
+</script>
+
+<style>
+  .about-members h2 {
+    margin-bottom: 18px;
+    /* The close control links back here; keep it clear of the fixed header. */
+    scroll-margin-top: 110px;
+  }
+  .about-members__body {
+    color: rgba(244, 232, 208, 0.85);
+    font-size: 1.02rem;
+    font-weight: 300;
+    max-width: 66ch;
+    margin-bottom: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .about-members__grid {
+    display: grid;
+    /* Four across where there is room, then two, then one — one DOM
+       structure reflowing, never a second copy of the markup.
+
+       CSS Grid stretches cards to the height of the tallest item in their
+       own row. At the two-column breakpoint Rachel and Hunter share the first
+       row; their longer names/roles can make that row taller than the
+       Geert/Paul row. This is content-driven layout, not a co-front-person or
+       member-hierarchy treatment. Preserve it unless the client explicitly
+       asks for equal heights across both rows. See docs/about.md §14. */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 26px;
+    margin-top: 34px;
+    list-style: none;
+  }
+
+  @media (max-width: 980px) {
+    .about-members__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 560px) {
+    .about-members__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

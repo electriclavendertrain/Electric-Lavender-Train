@@ -1,13 +1,30 @@
 ---
+/**
+ * The shared testimonial section, rendered identically on the Homepage and the
+ * About page. Only the kicker/heading differ — each page owns its own, from
+ * `homepage.testimonialsIntro` and `aboutPage.testimonialsIntro`.
+ *
+ * A source may be a person OR an establishment (venue, winery, concert series,
+ * resort). The card is built for both: an optional approved logo, the quote,
+ * the source name, an optional qualifier, and an optional link to the source's
+ * own official page.
+ *
+ * With no logo the card is text-only and finished-looking. Nothing invents a
+ * monogram or initial in place of a real mark — a fabricated logo would
+ * misrepresent a real business.
+ */
+
 import type { NormalizedTestimonial } from "../sanity/normalize";
 
 interface Props {
   kicker: string;
   heading: string;
   items: NormalizedTestimonial[];
+  /** Appended to every external link's accessible name. */
+  newTabSuffix?: string;
 }
 
-const { kicker, heading, items } = Astro.props;
+const { kicker, heading, items, newTabSuffix = " (opens in a new tab)" } = Astro.props;
 ---
 
 {
@@ -15,14 +32,48 @@ const { kicker, heading, items } = Astro.props;
     <section id="testimonials">
       <div class="section-inner">
         <p class="kicker reveal">{kicker}</p>
-        <h2 class="reveal heading">{heading}</h2>
+        <h2 class="heading reveal reveal-1">{heading}</h2>
         <div class="testi-grid">
           {items.map((testimonial, index) => (
-            <div class={`testi-card reveal reveal-${Math.min(index + 1, 4)}`} data-key={testimonial._key}>
-              <span class="quote-mark" aria-hidden="true">&ldquo;</span>
-              <p>{testimonial.quote}</p>
-              <p class="testi-attribution">{testimonial.attribution}</p>
-            </div>
+            <figure class={`testi-card reveal reveal-${Math.min(index + 1, 4)}`}>
+              {testimonial.logo && (
+                /* Decorative: the source name is rendered as text directly
+                   below, so announcing the logo too would say the same name
+                   twice. `object-fit: contain` — never a photographic crop. */
+                <img
+                  class="testi-logo"
+                  src={testimonial.logo.src}
+                  width={testimonial.logo.width}
+                  height={testimonial.logo.height}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+              <span class="quote-mark" aria-hidden="true">
+                &ldquo;
+              </span>
+              <blockquote class="testi-quote">
+                <p>{testimonial.quote}</p>
+              </blockquote>
+              <figcaption class="testi-source">
+                <span class="testi-attribution">{testimonial.sourceName}</span>
+                {testimonial.sourceContext && (
+                  <span class="testi-context">{testimonial.sourceContext}</span>
+                )}
+                {testimonial.sourceUrl && (
+                  <a
+                    class="testi-link"
+                    href={testimonial.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Visit {testimonial.sourceName}
+                    <span class="visually-hidden">{newTabSuffix}</span>
+                  </a>
+                )}
+              </figcaption>
+            </figure>
           ))}
         </div>
       </div>
@@ -46,7 +97,21 @@ const { kicker, heading, items } = Astro.props;
     padding: 36px 30px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
     position: relative;
+    display: flex;
+    flex-direction: column;
   }
+
+  /* Contained, never cropped. The box is fixed so a wide wordmark and a
+     square mark occupy the same vertical space and the cards stay aligned. */
+  .testi-logo {
+    width: auto;
+    max-width: 150px;
+    height: 42px;
+    object-fit: contain;
+    object-position: left center;
+    margin-bottom: 20px;
+  }
+
   .quote-mark {
     font-family: var(--display);
     font-size: 2.4rem;
@@ -54,18 +119,51 @@ const { kicker, heading, items } = Astro.props;
     line-height: 1;
     opacity: 0.5;
   }
-  .testi-card p {
+  .testi-quote p {
     margin: 14px 0 0;
     font-size: 0.98rem;
     color: #2b2436;
     font-weight: 400;
+    overflow-wrap: anywhere;
+  }
+
+  /* Pushes attribution to the card foot so cards of differing quote lengths
+     still line their sources up. */
+  .testi-source {
+    margin-top: auto;
+    padding-top: 18px;
   }
   .testi-attribution {
-    margin-top: 18px !important;
+    display: block;
     font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.3px;
     color: var(--purple);
+    overflow-wrap: anywhere;
+  }
+  .testi-context {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.78rem;
+    color: #5c5168;
+    overflow-wrap: anywhere;
+  }
+  .testi-link {
+    display: inline-flex;
+    align-items: center;
+    /* 44px minimum target, met by height rather than font size. */
+    min-height: 44px;
+    margin-top: 2px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--purple);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+  .testi-link:hover {
+    color: var(--burgundy);
   }
 
   @media (max-width: 900px) {

@@ -1,8 +1,13 @@
 /**
  * Scroll-triggered reveal animation and the desktop scroll-track spark.
- * Under prefers-reduced-motion, reveal targets are shown immediately
- * instead of waiting on an IntersectionObserver, matching the behavior of
- * the functional reference's useScrollReveal hook.
+ *
+ * This script only ever ADDS `.in`. It is not what makes content visible —
+ * the `.reveal` hidden state is scoped to `html.js-reveal` in `global.css` and
+ * wrapped in `prefers-reduced-motion: no-preference`, so if this file fails to
+ * load, or motion is reduced, the content was never hidden in the first place.
+ *
+ * Adding `.in` immediately under reduced motion is therefore belt-and-braces
+ * rather than the mechanism: the CSS has already opted out.
  */
 
 const prefersReducedMotion = window.matchMedia(
@@ -27,6 +32,23 @@ if (prefersReducedMotion || typeof IntersectionObserver === "undefined") {
   );
   revealEls.forEach((el) => io.observe(el));
 }
+
+/**
+ * Keyboard users can tab ahead of their own scrolling. The browser scrolls the
+ * focus target into view, but frequently not far enough to satisfy the
+ * observer's threshold above — which would leave the focus ring sitting on a
+ * block still at `opacity: 0`.
+ *
+ * Revealing on `focusin` closes that gap deterministically. `reveal-instant`
+ * tells the CSS to skip the animation, so the block does not fade in again
+ * after focus moves on. Registered unconditionally: under reduced motion, or
+ * with no `js-reveal` class, nothing was hidden and this simply does nothing.
+ */
+document.addEventListener("focusin", (event) => {
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  target.closest(".reveal:not(.in)")?.classList.add("in", "reveal-instant");
+});
 
 const spark = document.getElementById("track-spark");
 if (spark) {

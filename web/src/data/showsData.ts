@@ -37,6 +37,7 @@ export const showsPageFallback = {
     metaTitle: "Shows",
     metaDescription:
       "Upcoming and recent Electric Lavender Train performances on California's Central Coast. All times Pacific.",
+    ogImageUrl: null,
   },
 } as const;
 

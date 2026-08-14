@@ -7,21 +7,24 @@ import UpcomingShows from "../components/UpcomingShows.astro";
 import GalleryPreview from "../components/GalleryPreview.astro";
 import Testimonials from "../components/Testimonials.astro";
 import BookingCTA from "../components/BookingCTA.astro";
-import siteConfig from "../data/siteConfig";
+import { formatPageTitle } from "../data/siteConfig";
 import {
-  upcomingShowsCopy,
-  upcomingShowsEmptyStateFallback,
-  galleryCopy,
+  upcomingShowsFallback,
+  galleryIntroFallback,
   testimonialsIntroFallback,
   homepageSeoFallback,
   heroFallback,
   bandIntroFallback,
   galleryFallback,
-  testimonialsFallback,
   bookingCtaFallback,
 } from "../data/homeData";
+import { withTestimonialFallbacks } from "../data/testimonialsData";
 import { sanityClient } from "../sanity/client";
-import { HOMEPAGE_QUERY, UPCOMING_PUBLIC_EVENTS_QUERY } from "../sanity/queries";
+import {
+  HOMEPAGE_QUERY,
+  UPCOMING_PUBLIC_EVENTS_QUERY,
+  TESTIMONIALS_QUERY,
+} from "../sanity/queries";
 import {
   normalizeFeaturedMedia,
   normalizeTestimonials,
@@ -42,14 +45,17 @@ import {
 // requirement below (docs/phase3-plan.md §16).
 const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
 
-// Both queries are independent of each other and fetched in parallel.
-// Neither call is wrapped in a try/catch: a genuine failure (network,
-// auth, malformed GROQ, config) throws here and fails the build, in every
-// environment — the only case handled below is a *successful* query that
-// legitimately found no homepage document.
-const [homepage, upcomingEvents] = await Promise.all([
+// Three independent queries, fetched in parallel. None is wrapped in a
+// try/catch: a genuine failure (network, auth, malformed GROQ, config) throws
+// here and fails the build, in every environment — the only cases handled
+// below are *successful* queries that legitimately found nothing.
+//
+// TESTIMONIALS_QUERY is deliberately independent of the singleton: the same
+// documents are fetched, unchanged, by /about.
+const [homepage, upcomingEvents, rawTestimonials] = await Promise.all([
   sanityClient.fetch(HOMEPAGE_QUERY),
   sanityClient.fetch(UPCOMING_PUBLIC_EVENTS_QUERY),
+  sanityClient.fetch(TESTIMONIALS_QUERY),
 ]);
 
 if (homepage === null && isProductionDataset) {
@@ -107,31 +113,70 @@ const galleryItems: NormalizedGalleryItem[] = singletonExists
       }),
     );
 
-const testimonials = singletonExists
-  ? normalizeTestimonials(homepage.testimonials)
-  : testimonialsFallback;
+// Testimonials come from their own reusable documents and are entirely
+// independent of whether the homepage singleton exists. Use the shared
+// three-card fallback as one complete set in non-production until all three
+// live documents are valid. Production requires all three; live and
+// placeholder endorsements are never mixed in the same section.
+const testimonials = withTestimonialFallbacks(
+  normalizeTestimonials(rawTestimonials),
+  !isProductionDataset,
+);
 
-// These two editorial blocks were added after the original singleton was
-// already in use. Each falls back as one complete unit until the matching
-// Studio object is populated; individual live and fallback fields are never
-// mixed within the same block.
-const upcomingShowsEmptyState =
-  homepage?.upcomingShows?.emptyState?.title &&
+// These editorial blocks were added after the original singleton was already
+// in use. Each falls back as one complete unit while a non-production dataset
+// is populated; individual Studio and fallback fields are never mixed.
+const hasCompleteUpcomingShowsContent = Boolean(
+  homepage?.upcomingShows?.kicker &&
+  homepage.upcomingShows.heading &&
+  homepage.upcomingShows.viewAllLabel &&
+  homepage.upcomingShows.emptyState?.title &&
   homepage.upcomingShows.emptyState.message &&
-  homepage.upcomingShows.emptyState.actionLabel
-    ? homepage.upcomingShows.emptyState
-    : upcomingShowsEmptyStateFallback;
+  homepage.upcomingShows.emptyState.actionLabel,
+);
+const upcomingShowsContent = hasCompleteUpcomingShowsContent
+  ? homepage!.upcomingShows!
+  : upcomingShowsFallback;
 
+const hasCompleteGalleryIntro = Boolean(
+  homepage?.galleryIntro?.kicker &&
+  homepage.galleryIntro.heading &&
+  homepage.galleryIntro.ctaLabel,
+);
+const galleryIntro = hasCompleteGalleryIntro
+  ? homepage!.galleryIntro!
+  : galleryIntroFallback;
+
+const hasCompleteTestimonialsIntro = Boolean(
+  homepage?.testimonialsIntro?.kicker && homepage.testimonialsIntro.heading,
+);
 const testimonialsIntro =
-  homepage?.testimonialsIntro?.kicker && homepage.testimonialsIntro.heading
-  ? homepage.testimonialsIntro
+  hasCompleteTestimonialsIntro
+  ? homepage!.testimonialsIntro!
   : testimonialsIntroFallback;
+
+// A production dataset must own all required Homepage editorial content in
+// Studio. The code fallbacks are migration/development scaffolding, not a way
+// to silently publish an incomplete production singleton.
+if (
+  isProductionDataset &&
+  (!heroContent ||
+    !bandIntroContent ||
+    !bookingCtaContent ||
+    !hasCompleteUpcomingShowsContent ||
+    !hasCompleteGalleryIntro ||
+    !hasCompleteTestimonialsIntro)
+) {
+  throw new Error(
+    "The Sanity `homepage` singleton is incomplete in the production dataset. " +
+      "Complete the hero, band introduction, upcoming-shows copy, gallery heading, " +
+      "testimonial heading, and booking call to action in Studio before building for production.",
+  );
+}
 
 const events = normalizeUpcomingEvents(upcomingEvents);
 
-const title = homepage?.seo?.metaTitle
-  ? homepage.seo.metaTitle
-  : `${siteConfig.bandNameFormal} (${siteConfig.bandNameShort}) — Central Coast's Favorite Dance Band`;
+const title = formatPageTitle(homepage?.seo?.metaTitle || "Home");
 const description = homepage?.seo?.metaDescription ?? homepageSeoFallback.metaDescription;
 const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
 ---
@@ -160,19 +205,19 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
   }
 
   <UpcomingShows
-    kicker={upcomingShowsCopy.kicker}
-    heading={upcomingShowsCopy.heading}
-    viewAllLabel={upcomingShowsCopy.viewAllLabel}
+    kicker={upcomingShowsContent.kicker}
+    heading={upcomingShowsContent.heading}
+    viewAllLabel={upcomingShowsContent.viewAllLabel}
     events={events}
-    emptyStateTitle={upcomingShowsEmptyState.title}
-    emptyStateMessage={upcomingShowsEmptyState.message}
-    emptyStateActionLabel={upcomingShowsEmptyState.actionLabel}
+    emptyStateTitle={upcomingShowsContent.emptyState.title}
+    emptyStateMessage={upcomingShowsContent.emptyState.message}
+    emptyStateActionLabel={upcomingShowsContent.emptyState.actionLabel}
   />
 
   <GalleryPreview
-    kicker={galleryCopy.kicker}
-    heading={galleryCopy.heading}
-    ctaLabel={galleryCopy.ctaLabel}
+    kicker={galleryIntro.kicker}
+    heading={galleryIntro.heading}
+    ctaLabel={galleryIntro.ctaLabel}
     items={galleryItems}
   />
 

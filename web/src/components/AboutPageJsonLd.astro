@@ -1,0 +1,82 @@
+---
+/**
+ * schema.org `MusicGroup` structured data for the About page.
+ *
+ * Every value emitted is a fact that is already visible on the rendered page,
+ * or already published in the footer on every page. Nothing is inferred and
+ * nothing is filled in "because the vocabulary has a field for it":
+ *
+ * - No `foundingDate` / `foundingLocation` — never confirmed.
+ * - No `genre` — the approved copy describes the sound in prose; turning that
+ *   into a genre taxonomy would be an unsupported claim.
+ * - No `email`, `telephone`, or postal address — the site publishes none, and
+ *   this is not the place to start.
+ * - No per-member `sameAs` or `url` — member links are only emitted if the
+ *   client supplied and approved them, and none has been supplied.
+ * - No member-page `url` — `/about/<slug>` does not exist.
+ * - No `award`, `review`, or press claims.
+ *
+ * `sameAs` carries only the band accounts already verified in
+ * `siteConfig.social` and rendered in the footer of every page. Values left
+ * `null` there (YouTube, for one) stay out.
+ */
+
+import type { NormalizedBandMember } from "../sanity/normalize";
+import siteConfig from "../data/siteConfig";
+
+interface Props {
+  members: readonly NormalizedBandMember[];
+  /** The canonical URL of this page, as emitted by `BaseLayout`. */
+  pageUrl: string;
+}
+
+const { members, pageUrl } = Astro.props;
+
+const sameAs = [
+  siteConfig.social.instagram,
+  siteConfig.social.facebook,
+  siteConfig.social.youtube,
+  siteConfig.social.linktree,
+].filter((url): url is string => Boolean(url));
+
+const musicGroup = {
+  "@context": "https://schema.org",
+  "@type": "MusicGroup",
+  name: siteConfig.bandNameFormal,
+  alternateName: siteConfig.bandNameShort,
+  url: pageUrl,
+  ...(sameAs.length > 0 ? { sameAs } : {}),
+  ...(members.length > 0
+    ? {
+        member: members.map((member) => ({
+          "@type": "OrganizationRole",
+          roleName: member.role,
+          member: { "@type": "Person", name: member.name },
+        })),
+      }
+    : {}),
+};
+
+/**
+ * Identical escaping to `PublicEventJsonLd.astro`, and for the same reason:
+ * `<`, `>` and `&` can only occur inside JSON string values, never in JSON's
+ * structural syntax, so escaping them across the whole document is safe and
+ * still produces valid JSON — and a name containing `</script>` cannot close
+ * the element. U+2028/U+2029 are escaped because a JavaScript parser treats
+ * them as literal line terminators.
+ *
+ * If you touch this, keep the escaping.
+ */
+function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
+const jsonLd = serializeJsonLd(musicGroup);
+---
+
+<script type="application/ld+json" is:inline set:html={jsonLd} />

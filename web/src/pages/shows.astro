@@ -22,7 +22,7 @@ import ShowsEventGroup from "../components/ShowsEventGroup.astro";
 import PublicShowCard from "../components/PublicShowCard.astro";
 import ShowsEmptyState from "../components/ShowsEmptyState.astro";
 import PublicEventJsonLd from "../components/PublicEventJsonLd.astro";
-import siteConfig from "../data/siteConfig";
+import siteConfig, { formatPageTitle } from "../data/siteConfig";
 import { showsPageCopy, showsPageFallback } from "../data/showsData";
 import { sanityClient } from "../sanity/client";
 import {
@@ -79,10 +79,14 @@ const hasRecent = recentShows.length > 0;
 
 const metaTitle = pageContent.seo.metaTitle ?? showsPageFallback.seo.metaTitle;
 const metaDescription = pageContent.seo.metaDescription ?? showsPageFallback.seo.metaDescription;
-const title = `${metaTitle} — ${siteConfig.bandNameFormal}`;
+const title = formatPageTitle(metaTitle);
 ---
 
-<BaseLayout title={title} description={metaDescription}>
+<BaseLayout
+  title={title}
+  description={metaDescription}
+  ogImage={pageContent.seo.ogImageUrl}
+>
   {/* Upcoming public shows only — never private, never hidden, never past. */}
   <PublicEventJsonLd events={upcomingPublicShows} />
 
@@ -100,7 +104,7 @@ const title = `${metaTitle} — ${siteConfig.bandNameFormal}`;
           is never preceded by an orphaned navigation strip. */}
       <ShowsMonthNav label={showsPageCopy.monthNav.label} months={monthGroups} />
 
-      <h2 id={showsPageCopy.upcoming.headingId} class="shows-section__heading">
+      <h2 id={showsPageCopy.upcoming.headingId} class="shows-section__heading reveal">
         {pageContent.upcoming.heading}
       </h2>
 
@@ -130,14 +134,16 @@ const title = `${metaTitle} — ${siteConfig.bandNameFormal}`;
     hasRecent && (
       <section id="recent" aria-labelledby={showsPageCopy.recent.headingId}>
         <div class="section-inner">
-          {pageContent.recent.kicker && <p class="kicker">{pageContent.recent.kicker}</p>}
-          <h2 id={showsPageCopy.recent.headingId} class="shows-section__heading">
+          {pageContent.recent.kicker && (
+            <p class="kicker reveal">{pageContent.recent.kicker}</p>
+          )}
+          <h2 id={showsPageCopy.recent.headingId} class="shows-section__heading reveal">
             {pageContent.recent.heading}
           </h2>
 
-          <ol class="shows-recent-list">
-            {recentShows.map((event) => (
-              <li>
+          <ol class="shows-recent-list" role="list">
+            {recentShows.map((event, index) => (
+              <li class={`reveal reveal-${Math.min(index + 1, 4)}`}>
                 <PublicShowCard event={event} headingLevel={3} variant="recent" />
               </li>
             ))}
@@ -170,5 +176,7 @@ const title = `${metaTitle} — ${siteConfig.bandNameFormal}`;
     display: flex;
     flex-direction: column;
     gap: 18px;
+    /* See `ShowsEventGroup.astro` — the global reset covers `ul` only. */
+    list-style: none;
   }
 </style>

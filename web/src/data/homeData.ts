@@ -2,17 +2,18 @@
  * Two different kinds of homepage content live here, and they're handled
  * differently by index.astro:
  *
- * 1. Section-level interface copy that is not part of the Sanity homepage
- *    singleton (for example button labels), plus coherent fallback blocks for
- *    newly added singleton fields while an existing document is populated.
+ * 1. Coherent fallback blocks for Studio-owned Homepage sections while a
+ *    non-production dataset is being populated.
  *
  * 2. `heroFallback` / `bandIntroFallback` / `galleryFallback` /
- *    `testimonialsFallback` / `bookingCtaFallback` — used ONLY when the
- *    entire homepage singleton document is absent from the configured
- *    dataset (docs/phase3-plan.md §15). If the singleton exists but a
- *    section within it is incomplete, index.astro omits that section
- *    instead of reaching for these — never mixing real Sanity content with
- *    placeholder text in the same render.
+ *    `bookingCtaFallback` — used ONLY when the entire homepage singleton
+ *    document is absent from the configured dataset (docs/phase3-plan.md §15).
+ *    If the singleton exists but a section within it is incomplete,
+ *    index.astro omits that section instead of reaching for these — never
+ *    mixing real Sanity content with placeholder text in the same render.
+ *
+ * Shared testimonial fallbacks live in `testimonialsData.ts`, not in either
+ * page singleton's fallback block.
  *
  * There is no event fallback of any kind, anywhere, ever — see
  * `web/src/pages/index.astro` and docs/phase3-plan.md §15.
@@ -27,22 +28,21 @@ import galleryCrowd from "../assets/images/gallery/elt-10.jpg";
 import galleryDanceFloor from "../assets/images/gallery/elt-12.jpg";
 
 // ---------------------------------------------------------------------
-// Permanent section copy — not part of the Sanity schema, always used.
+// Studio-owned section fallbacks.
 // ---------------------------------------------------------------------
 
-export const upcomingShowsCopy = {
+export const upcomingShowsFallback = {
   kicker: "Where to Find Us",
   heading: "Upcoming Shows",
   viewAllLabel: "View All Shows",
+  emptyState: {
+    title: "No shows on the calendar right now",
+    message: "Check back soon, or follow along on Instagram for the latest announcements.",
+    actionLabel: "Follow Us on Instagram",
+  },
 };
 
-export const upcomingShowsEmptyStateFallback = {
-  title: "No shows on the calendar right now",
-  message: "Check back soon, or follow along on Instagram for the latest announcements.",
-  actionLabel: "Follow Us on Instagram",
-};
-
-export const galleryCopy = {
+export const galleryIntroFallback = {
   kicker: "Good Times & Great People",
   heading: "Live From the Last Show",
   ctaLabel: "View Full Gallery",
@@ -123,32 +123,6 @@ export const galleryFallback: FallbackGalleryItem[] = [
     image: galleryDanceFloor,
     alt: "Audience members dancing in front of the band.",
     caption: "Dance floor",
-  },
-];
-
-export interface FallbackTestimonial {
-  _key: string;
-  quote: string;
-  attribution: string;
-}
-
-export const testimonialsFallback: FallbackTestimonial[] = [
-  {
-    _key: "fallback-1",
-    quote:
-      "The dance floor never emptied. ELT read the room perfectly all night long.",
-    attribution: "Placeholder quote — Central Coast venue guest",
-  },
-  {
-    _key: "fallback-2",
-    quote:
-      "Exactly the energy we wanted for our event — modern, tight, and genuinely fun to watch.",
-    attribution: "Placeholder quote — private event host",
-  },
-  {
-    _key: "fallback-3",
-    quote: "Best cover band we've booked on the Central Coast, hands down.",
-    attribution: "Placeholder quote — venue booking contact",
   },
 ];
 

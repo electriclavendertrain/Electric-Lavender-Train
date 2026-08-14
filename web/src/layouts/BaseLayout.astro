@@ -8,13 +8,28 @@ interface Props {
   title?: string;
   description?: string;
   ogImage?: string | null;
+  /** Error/system pages can opt out without changing normal route metadata. */
+  noIndex?: boolean;
 }
 
 const {
   title = `${siteConfig.bandNameFormal} (${siteConfig.bandNameShort}) — Central Coast Dance Band`,
   description = siteConfig.tagline,
   ogImage = null,
+  noIndex = false,
 } = Astro.props;
+
+/**
+ * One canonical URL per route, derived here rather than passed in by each
+ * page — a page cannot forget it, and it cannot disagree with the route it is
+ * actually built at.
+ *
+ * The trailing slash is stripped (except at the root) so `/shows` and
+ * `/shows/` cannot produce two different canonical values depending on how
+ * Astro reports the pathname for a given build format.
+ */
+const canonicalPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const canonicalUrl = new URL(canonicalPath, siteConfig.siteUrl).href;
 ---
 
 <!doctype html>
@@ -27,10 +42,14 @@ const {
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+    {!noIndex && <link rel="canonical" href={canonicalUrl} />}
 
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    {!noIndex && <meta property="og:url" content={canonicalUrl} />}
+    <meta property="og:site_name" content={siteConfig.bandNameFormal} />
     {ogImage && <meta property="og:image" content={ogImage} />}
 
     <meta name="twitter:card" content={ogImage ? "summary_large_image" : "summary"} />
@@ -44,6 +63,15 @@ const {
       href="https://fonts.googleapis.com/css2?family=Ultra&family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
       rel="stylesheet"
     />
+    <script is:inline>
+      // Marks that scripting is available. `.reveal` only holds content at
+      // opacity 0 while this class is present (see global.css → "Entrance
+      // animation"), so if this script never runs — or scripting is off —
+      // every page still renders its content normally instead of blank.
+      // Inline and in <head> so it lands before first paint and nothing
+      // flashes in and back out.
+      document.documentElement.classList.add("js-reveal");
+    </script>
   </head>
   <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>

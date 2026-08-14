@@ -1,12 +1,20 @@
 import { sanityImageUrl } from "./image";
 import { isValidDateTime } from "../lib/dateFormat";
+import {
+  TEST_BIOGRAPHY_MARKER,
+} from "../data/aboutData";
 import type {
   HOMEPAGE_QUERY_RESULT,
   UPCOMING_PUBLIC_EVENTS_QUERY_RESULT,
+  ABOUT_PAGE_QUERY_RESULT,
+  TESTIMONIALS_QUERY_RESULT,
   SHOWS_PAGE_QUERY_RESULT,
   SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY_RESULT,
   SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY_RESULT,
   SHOWS_RECENT_PUBLIC_EVENTS_QUERY_RESULT,
+  SanityImageCrop,
+  SanityImageDimensions,
+  SanityImageHotspot,
 } from "./sanity.types";
 
 /**
@@ -42,9 +50,21 @@ const MAX_FEATURED_MEDIA = 6;
 /** Used for Sanity images with no hotspot, and for locally-bundled fallback images (no hotspot data at all). */
 export const DEFAULT_OBJECT_POSITION = "50% 50%";
 
-type GalleryMediaImage = NonNullable<
-  NonNullable<Homepage["featuredMedia"]>[number]["mediaItem"]["image"]
->;
+/**
+ * The shape every projected Sanity image shares: optional crop/hotspot, and an
+ * asset carrying an id plus (usually) intrinsic dimensions. Written
+ * structurally rather than derived from one query's generated type, because
+ * the gallery, the About hero, and testimonial logos all reach these helpers
+ * from three different projections.
+ */
+interface ProjectedSanityImage {
+  hotspot?: SanityImageHotspot;
+  crop?: SanityImageCrop;
+  asset?: {
+    _id: string;
+    metadata?: { dimensions?: SanityImageDimensions | null } | null;
+  } | null;
+}
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));
@@ -75,7 +95,7 @@ function clamp01(value: number): number {
  * centered on the real subject for whatever shape a given tile/breakpoint
  * actually is.
  */
-function computeObjectPosition(image: GalleryMediaImage): string {
+function computeObjectPosition(image: ProjectedSanityImage): string {
   const hotspot = image.hotspot;
   if (!hotspot) return DEFAULT_OBJECT_POSITION;
 
@@ -100,7 +120,7 @@ function computeObjectPosition(image: GalleryMediaImage): string {
  * needs to be a reasonable approximation of the served (crop-trimmed)
  * image's own aspect ratio, not pixel-perfect.
  */
-function computeCroppedAspectRatio(image: GalleryMediaImage): number {
+function computeCroppedAspectRatio(image: ProjectedSanityImage): number {
   const dimensions = image.asset?.metadata?.dimensions;
   if (!dimensions) return 1;
 
@@ -156,24 +176,92 @@ export function normalizeFeaturedMedia(
   return items;
 }
 
+/* =========================================================================
+ * Reusable testimonials — shared by the Homepage and the About page
+ * ====================================================================== */
+
+/**
+ * A source logo is a CONTAINED GRAPHIC, not a photographic crop. There is no
+ * `objectPosition` here on purpose: the component renders it with
+ * `object-fit: contain`, so a hotspot would have nothing to act on, and
+ * cropping a wordmark to fill a box is how logos get their edges sliced off.
+ */
+export interface NormalizedTestimonialLogo {
+  src: string;
+  width: number;
+  height: number;
+}
+
 export interface NormalizedTestimonial {
-  _key: string;
+  _id: string;
   quote: string;
-  attribution: string;
+  sourceName: string;
+  sourceContext: string | null;
+  sourceUrl: string | null;
+  logo: NormalizedTestimonialLogo | null;
 }
 
 const MAX_TESTIMONIALS = 3;
+const TESTIMONIAL_LOGO_WIDTH = 320;
 
+/**
+ * Keeps the first three complete testimonials in the order the query returned
+ * them (`displayOrder asc, _id asc`). The cap is re-applied here as well as in
+ * GROQ because Studio and query limits bind their own callers, not the Content
+ * API.
+ *
+ * A testimonial needs a quote and a source name; everything else is optional.
+ * A malformed optional logo is dropped on its own — it never discards an
+ * otherwise valid testimonial, and the card simply renders text-only. No
+ * substitute mark, monogram, or initial is generated: a fabricated logo would
+ * misrepresent a real establishment.
+ *
+ * `sourceUrl` is re-validated with `URL` and kept only for http/https, exactly
+ * as event links are. Nothing about a rejected quote or attribution is logged.
+ */
 export function normalizeTestimonials(
-  testimonials: Homepage["testimonials"],
+  testimonials: TESTIMONIALS_QUERY_RESULT,
 ): NormalizedTestimonial[] {
-  if (!testimonials) return [];
-  return testimonials
-    .filter(
-      (t): t is { _key: string; quote: string; attribution: string } =>
-        Boolean(t.quote && t.attribution),
-    )
-    .slice(0, MAX_TESTIMONIALS);
+  const items: NormalizedTestimonial[] = [];
+
+  for (const entry of testimonials) {
+    if (items.length >= MAX_TESTIMONIALS) break;
+
+    const quote = cleanText(entry.quote);
+    const sourceName = cleanText(entry.sourceName);
+    if (!quote || !sourceName) continue;
+
+    items.push({
+      _id: entry._id,
+      quote,
+      sourceName,
+      sourceContext: cleanText(entry.sourceContext),
+      sourceUrl: safeExternalUrl(entry.sourceUrl),
+      logo: normalizeTestimonialLogo(entry.sourceLogo),
+    });
+  }
+
+  return items;
+}
+
+function normalizeTestimonialLogo(
+  logo: TESTIMONIALS_QUERY_RESULT[number]["sourceLogo"],
+): NormalizedTestimonialLogo | null {
+  const image = logo?.image;
+  const assetId = image?.asset?._id;
+  const dimensions = image?.asset?.metadata?.dimensions;
+
+  // No resolved reference, no asset, or no intrinsic dimensions to reserve
+  // space with — omit the logo rather than ship a broken or shifting image.
+  if (!image || !assetId || !dimensions?.width || !dimensions?.height) return null;
+
+  const width = TESTIMONIAL_LOGO_WIDTH;
+  return {
+    // Width only: no `height` is passed, so Sanity never forces a crop.
+    src: sanityImageUrl(image, { width }),
+    width,
+    height: Math.round(width / (dimensions.width / dimensions.height)),
+  };
 }
 
 export interface NormalizedEventCard {
@@ -277,6 +365,354 @@ export function getOgImageUrl(ogImage: OgImage | null | undefined): string | nul
 }
 
 /* =========================================================================
+ * About page (/about)
+ *
+ * The singleton is treated as ONE editorial unit, exactly like the Shows page:
+ * anything required that is missing or malformed returns `null` for the whole
+ * document, and `about.astro` then either fails the production build or falls
+ * back as a complete block. Individual live fields are never patched with
+ * fallback values.
+ *
+ * Member objects are CONSTRUCTED FIELD BY FIELD from whitelisted values. There
+ * is no spread of a raw result anywhere here, and nothing about a rejected
+ * biography, link, or name is ever logged — a document `_id` is the only safe
+ * diagnostic.
+ * ====================================================================== */
+
+const MAX_STORY_PARAGRAPHS = 4;
+const MAX_BIOGRAPHY_PARAGRAPHS = 4;
+const MAX_MEMBER_LINKS = 6;
+/** The Experience section is defined as exactly three highlights, not "up to". */
+const REQUIRED_EXPERIENCE_HIGHLIGHTS = 3;
+const ABOUT_HERO_IMAGE_WIDTH = 1100;
+
+type AboutPage = NonNullable<ABOUT_PAGE_QUERY_RESULT>;
+type RawMemberLink = NonNullable<
+  AboutPage["members"][number]["member"]["publicLinks"]
+>[number];
+
+export type MemberLinkType = RawMemberLink["linkType"];
+
+const MEMBER_LINK_TYPES: readonly string[] = [
+  "instagram",
+  "facebook",
+  "youtube",
+  "spotify",
+  "website",
+  "other",
+];
+
+export interface NormalizedMemberLink {
+  _key: string;
+  linkType: MemberLinkType;
+  /** Editor-supplied for "other"; otherwise null and the frontend names it. */
+  label: string | null;
+  url: string;
+}
+
+export interface NormalizedBandMember {
+  _id: string;
+  name: string;
+  role: string;
+  biography: string[];
+  image: NormalizedMemberProfileImage;
+  links: NormalizedMemberLink[];
+}
+
+export interface NormalizedMemberProfileImage {
+  src: string;
+  width: number;
+  height: number;
+  objectPosition: string;
+  alt: string;
+}
+
+export interface NormalizedAboutHeroImage {
+  src: string;
+  width: number;
+  height: number;
+  objectPosition: string;
+  alt: string;
+}
+
+export interface NormalizedExperienceHighlight {
+  _key: string;
+  title: string;
+  description: string;
+}
+
+export interface NormalizedAboutPageContent {
+  intro: {
+    kicker: string | null;
+    heading: string;
+    lede: string;
+    heroImage: NormalizedAboutHeroImage;
+  };
+  story: { kicker: string | null; heading: string; paragraphs: string[] };
+  membersIntro: { kicker: string | null; heading: string; body: string | null };
+  members: NormalizedBandMember[];
+  experience: {
+    kicker: string | null;
+    heading: string;
+    introduction: string;
+    highlights: NormalizedExperienceHighlight[];
+  };
+  testimonialsIntro: { kicker: string; heading: string };
+  bookingCta: {
+    kicker: string | null;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
+  seo: {
+    metaTitle: string | null;
+    metaDescription: string | null;
+    ogImageUrl: string | null;
+  };
+}
+
+export interface NormalizeAboutOptions {
+  /**
+   * When true, a biography still carrying the development test marker
+   * invalidates the whole singleton. Set from the configured DATASET, not from
+   * Astro's build mode — a production-mode build may legitimately point at
+   * `development`.
+   */
+  rejectTestBiographies: boolean;
+}
+
+function isMemberLinkType(value: unknown): value is MemberLinkType {
+  return typeof value === "string" && MEMBER_LINK_TYPES.includes(value);
+}
+
+/**
+ * A public link survives only if its type is recognised AND its URL parses to
+ * http/https. Studio's `Rule.uri` binds the Studio UI, not the Content API, so
+ * the protocol is re-checked here — a `javascript:` href must never reach the
+ * HTML. An "other" link additionally needs a meaningful editor label, because
+ * there is no standard name the frontend could supply for it.
+ *
+ * Malformed links are dropped individually; they never invalidate the member.
+ */
+function normalizeMemberLinks(links: RawMemberLink[] | null): NormalizedMemberLink[] {
+  if (!links) return [];
+
+  const normalized: NormalizedMemberLink[] = [];
+  for (const link of links) {
+    if (normalized.length >= MAX_MEMBER_LINKS) break;
+    if (!isMemberLinkType(link.linkType)) continue;
+
+    const url = safeExternalUrl(link.url);
+    if (!url) continue;
+
+    const label = cleanText(link.label);
+    if (link.linkType === "other" && !label) continue;
+
+    normalized.push({ _key: link._key, linkType: link.linkType, label, url });
+  }
+  return normalized;
+}
+
+/**
+ * Every member must be renderable in full. A missing name, role, biography, or
+ * profile image is a content error, not a reason to quietly
+ * publish a half-built card — so this returns `null` and takes the whole
+ * singleton down with it.
+ */
+function normalizeBandMember(
+  raw: AboutPage["members"][number]["member"] | null | undefined,
+  options: NormalizeAboutOptions,
+): NormalizedBandMember | null {
+  if (!raw) return null;
+
+  const name = cleanText(raw.name);
+  const role = cleanText(raw.role);
+  if (!name || !role) return null;
+
+  const image = normalizeMemberProfileImage(raw.profileImage);
+  if (!image) return null;
+
+  const biography = (raw.biography ?? [])
+    .map(cleanText)
+    .filter((paragraph): paragraph is string => paragraph !== null)
+    .slice(0, MAX_BIOGRAPHY_PARAGRAPHS);
+
+  if (biography.length === 0) return null;
+  if (
+    options.rejectTestBiographies &&
+    biography.some((paragraph) => paragraph.includes(TEST_BIOGRAPHY_MARKER))
+  ) {
+    return null;
+  }
+
+  return {
+    _id: raw._id,
+    name,
+    role,
+    biography,
+    image,
+    links: normalizeMemberLinks(raw.publicLinks),
+  };
+}
+
+const MEMBER_PROFILE_IMAGE_WIDTH = 900;
+
+function normalizeMemberProfileImage(
+  profileImage: AboutPage["members"][number]["member"]["profileImage"] | null | undefined,
+): NormalizedMemberProfileImage | null {
+  const image = profileImage?.image;
+  const assetId = image?.asset?._id;
+  const alt = cleanText(profileImage?.alt);
+  if (!image || !assetId || !alt) return null;
+
+  const width = MEMBER_PROFILE_IMAGE_WIDTH;
+  return {
+    src: sanityImageUrl(image, { width }),
+    width,
+    height: Math.round(width / computeCroppedAspectRatio(image)),
+    objectPosition: computeObjectPosition(image),
+    alt,
+  };
+}
+
+/**
+ * The About hero photograph must resolve to a real asset AND carry alt text.
+ * This is the page's identity image; publishing it without a description would
+ * leave the page's most prominent element unreadable to some visitors, so a
+ * missing alt is a build-stopping problem rather than a silently empty
+ * attribute.
+ *
+ * Width only, like the gallery — Sanity applies the editor's manual crop but
+ * forces no aspect ratio, and the hotspot is handed to CSS `object-position`
+ * so the browser performs exactly one crop into whatever shape the responsive
+ * frame actually is.
+ */
+function normalizeAboutHeroImage(
+  heroImage: AboutPage["intro"]["heroImage"] | null | undefined,
+): NormalizedAboutHeroImage | null {
+  const image = heroImage?.image;
+  const assetId = image?.asset?._id;
+  const alt = cleanText(heroImage?.alt);
+  if (!image || !assetId || !alt) return null;
+
+  const width = ABOUT_HERO_IMAGE_WIDTH;
+  return {
+    src: sanityImageUrl(image, { width }),
+    width,
+    height: Math.round(width / computeCroppedAspectRatio(image)),
+    objectPosition: computeObjectPosition(image),
+    alt,
+  };
+}
+
+export function normalizeAboutPageContent(
+  page: ABOUT_PAGE_QUERY_RESULT,
+  options: NormalizeAboutOptions,
+): NormalizedAboutPageContent | null {
+  if (!page) return null;
+
+  const introHeading = cleanText(page.intro?.heading);
+  const introLede = cleanText(page.intro?.lede);
+  const heroImage = normalizeAboutHeroImage(page.intro?.heroImage);
+
+  const storyHeading = cleanText(page.story?.heading);
+  const storyParagraphs = (page.story?.paragraphs ?? [])
+    .map(cleanText)
+    .filter((paragraph): paragraph is string => paragraph !== null)
+    .slice(0, MAX_STORY_PARAGRAPHS);
+
+  const membersIntroHeading = cleanText(page.membersIntro?.heading);
+
+  // Order and `_key` come straight from the stored array; capping and
+  // filtering never reorder, and a dropped entry is fatal rather than skipped.
+  const members: NormalizedBandMember[] = [];
+  for (const entry of page.members ?? []) {
+    const member = normalizeBandMember(entry?.member, options);
+    if (!member) {
+      members.length = 0;
+      break;
+    }
+    members.push(member);
+  }
+
+  const experienceHeading = cleanText(page.experience?.heading);
+  const experienceIntroduction = cleanText(page.experience?.introduction);
+  const highlights: NormalizedExperienceHighlight[] = [];
+  for (const highlight of page.experience?.highlights ?? []) {
+    if (highlights.length >= REQUIRED_EXPERIENCE_HIGHLIGHTS) break;
+    const title = cleanText(highlight?.title);
+    const description = cleanText(highlight?.description);
+    if (!title || !description) continue;
+    highlights.push({ _key: highlight._key, title, description });
+  }
+
+  const testimonialsKicker = cleanText(page.testimonialsIntro?.kicker);
+  const testimonialsHeading = cleanText(page.testimonialsIntro?.heading);
+
+  const bookingHeading = cleanText(page.bookingCta?.heading);
+  const bookingBody = cleanText(page.bookingCta?.body);
+  const bookingCtaLabel = cleanText(page.bookingCta?.ctaLabel);
+
+  if (
+    !introHeading ||
+    !introLede ||
+    !heroImage ||
+    !storyHeading ||
+    storyParagraphs.length === 0 ||
+    !membersIntroHeading ||
+    members.length === 0 ||
+    !experienceHeading ||
+    !experienceIntroduction ||
+    highlights.length !== REQUIRED_EXPERIENCE_HIGHLIGHTS ||
+    !testimonialsKicker ||
+    !testimonialsHeading ||
+    !bookingHeading ||
+    !bookingBody ||
+    !bookingCtaLabel
+  ) {
+    return null;
+  }
+
+  return {
+    intro: {
+      kicker: cleanText(page.intro?.kicker),
+      heading: introHeading,
+      lede: introLede,
+      heroImage,
+    },
+    story: {
+      kicker: cleanText(page.story?.kicker),
+      heading: storyHeading,
+      paragraphs: storyParagraphs,
+    },
+    membersIntro: {
+      kicker: cleanText(page.membersIntro?.kicker),
+      heading: membersIntroHeading,
+      body: cleanText(page.membersIntro?.body),
+    },
+    members,
+    experience: {
+      kicker: cleanText(page.experience?.kicker),
+      heading: experienceHeading,
+      introduction: experienceIntroduction,
+      highlights,
+    },
+    testimonialsIntro: { kicker: testimonialsKicker, heading: testimonialsHeading },
+    bookingCta: {
+      kicker: cleanText(page.bookingCta?.kicker),
+      heading: bookingHeading,
+      body: bookingBody,
+      ctaLabel: bookingCtaLabel,
+    },
+    seo: {
+      metaTitle: cleanText(page.seo?.metaTitle),
+      metaDescription: cleanText(page.seo?.metaDescription),
+      ogImageUrl: getOgImageUrl(page.seo?.ogImage),
+    },
+  };
+}
+
+/* =========================================================================
  * Shows page (/shows)
  *
  * A discriminated union, not one loose event shape. `kind` is the
@@ -350,7 +786,7 @@ export interface NormalizedShowsPageContent {
   recent: { kicker: string | null; heading: string };
   emptyState: { title: string; message: string; actionLabel: string };
   bookingCta: { kicker: string | null; heading: string; body: string; ctaLabel: string };
-  seo: { metaTitle: string | null; metaDescription: string | null };
+  seo: { metaTitle: string | null; metaDescription: string | null; ogImageUrl: string | null };
 }
 
 /**
@@ -418,6 +854,7 @@ export function normalizeShowsPageContent(
     seo: {
       metaTitle: cleanText(page.seo?.metaTitle),
       metaDescription: cleanText(page.seo?.metaDescription),
+      ogImageUrl: getOgImageUrl(page.seo?.ogImage),
     },
   };
 }

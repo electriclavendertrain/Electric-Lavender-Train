@@ -1,0 +1,215 @@
+---
+/**
+ * /about — who the band is, what a performance is like, and how to book one.
+ *
+ * This is the only file on this route that touches Sanity. It fetches, hands
+ * the raw results straight to normalization, and passes plain objects down; no
+ * component below it knows Sanity exists.
+ *
+ * Everything here runs once, at `astro build`. Nothing is fetched in the
+ * browser, so there are no loading states and none are needed.
+ */
+
+import { getImage } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import AboutHero from "../components/AboutHero.astro";
+import AboutStory from "../components/AboutStory.astro";
+import BandMembers from "../components/BandMembers.astro";
+import AboutExperience from "../components/AboutExperience.astro";
+import AboutPageJsonLd from "../components/AboutPageJsonLd.astro";
+import Testimonials from "../components/Testimonials.astro";
+import BookingCTA from "../components/BookingCTA.astro";
+import siteConfig, { formatPageTitle } from "../data/siteConfig";
+import {
+  aboutPageCopy,
+  aboutPageFallback,
+  aboutHeroFallbackImage,
+  aboutHeroFallbackAlt,
+  memberProfileFallbackAssets,
+} from "../data/aboutData";
+import { withTestimonialFallbacks } from "../data/testimonialsData";
+import { sanityClient } from "../sanity/client";
+import { ABOUT_PAGE_QUERY, TESTIMONIALS_QUERY } from "../sanity/queries";
+import {
+  normalizeAboutPageContent,
+  normalizeTestimonials,
+  DEFAULT_OBJECT_POSITION,
+  type NormalizedAboutPageContent,
+} from "../sanity/normalize";
+
+// Which policy applies is decided by the configured DATASET, not by Astro's
+// build mode — a production-mode build may legitimately point at
+// `development` (a staging preview), and that must not trip the strict
+// requirements below.
+const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
+
+// Two independent queries, fetched in parallel. Neither is wrapped in a
+// try/catch, deliberately and consistently with the other two routes: a
+// genuine failure — network, auth, malformed GROQ, bad config — throws here
+// and fails the build in every environment.
+//
+// TESTIMONIALS_QUERY is the same query the homepage runs, fetched
+// independently. Neither page's testimonials depend on the other's singleton.
+const [rawAboutPage, rawTestimonials] = await Promise.all([
+  sanityClient.fetch(ABOUT_PAGE_QUERY),
+  sanityClient.fetch(TESTIMONIALS_QUERY),
+]);
+
+// In production, placeholder biographies are rejected outright — which takes
+// the whole singleton down and fails the build below, rather than publishing
+// Lorem Ipsum as if it were a band member's story.
+const normalizedAboutPage = normalizeAboutPageContent(rawAboutPage, {
+  rejectTestBiographies: isProductionDataset,
+});
+
+if (normalizedAboutPage === null && isProductionDataset) {
+  throw new Error(
+    "The Sanity `aboutPage` singleton is missing or incomplete in the production dataset. " +
+      "Every member must resolve with a name, role, profile photo and a real biography " +
+      "(no `[TEST — CLIENT BIO REQUIRED]` text), the hero image must have alt text, and the " +
+      "story, experience and booking sections must be complete. " +
+      "Publish the About Page in Sanity Studio before building for production — see docs/about.md §11.",
+  );
+}
+
+/**
+ * The development fallback is ONE complete block and is allowed only outside
+ * production. Individual live fields are never patched with fallback values:
+ * if the singleton exists but is incomplete, normalization returns null and
+ * this whole object is used instead, so real content and placeholder copy are
+ * never mixed in the same render.
+ *
+ * The hero image is composed here rather than stored in `aboutData.ts` because
+ * a locally-bundled asset has to go through `astro:assets` to get its final
+ * URL and dimensions — the same shape `index.astro` uses for its gallery
+ * fallback.
+ */
+let pageContent: NormalizedAboutPageContent;
+
+if (normalizedAboutPage) {
+  pageContent = normalizedAboutPage;
+} else {
+  const optimizedHero = await getImage({ src: aboutHeroFallbackImage, width: 1100 });
+  pageContent = {
+    ...aboutPageFallback,
+    intro: {
+      ...aboutPageFallback.intro,
+      heroImage: {
+        src: optimizedHero.src,
+        width: Number(optimizedHero.attributes.width ?? 1100),
+        height: Number(optimizedHero.attributes.height ?? 825),
+        objectPosition: DEFAULT_OBJECT_POSITION,
+        alt: aboutHeroFallbackAlt,
+      },
+    },
+    members: await Promise.all(
+      aboutPageFallback.members.map(async (member) => {
+        const fallbackAsset = memberProfileFallbackAssets[member.profileImageFallbackKey];
+        const optimized = await getImage({ src: fallbackAsset.src, width: 900 });
+        return {
+          _id: member._id,
+          name: member.name,
+          role: member.role,
+          biography: member.biography,
+          image: {
+            src: optimized.src,
+            width: Number(optimized.attributes.width ?? fallbackAsset.src.width),
+            height: Number(optimized.attributes.height ?? fallbackAsset.src.height),
+            alt: fallbackAsset.alt,
+            objectPosition: fallbackAsset.objectPosition,
+          },
+          // No member public links are invented for fallback content. The link
+          // area omits itself cleanly until approved URLs exist in Studio.
+          links: [],
+        };
+      }),
+    ),
+    seo: {
+      metaTitle: aboutPageFallback.seo.metaTitle,
+      metaDescription: aboutPageFallback.seo.metaDescription,
+      // Deliberately null: the About page's share image is its own field and
+      // never inherits the homepage's.
+      ogImageUrl: null,
+    },
+  };
+}
+
+// Shared with the homepage. Use the same three-card fallback as one complete
+// set in non-production until all three live documents are valid. Production
+// requires all three; never mix live and placeholder endorsements.
+const testimonials = withTestimonialFallbacks(
+  normalizeTestimonials(rawTestimonials),
+  !isProductionDataset,
+);
+
+const title = formatPageTitle(pageContent.seo.metaTitle ?? "About");
+const description = pageContent.seo.metaDescription ?? siteConfig.tagline;
+
+// Matches what BaseLayout emits as this page's canonical URL, so the
+// structured data and the `<link rel="canonical">` cannot disagree.
+const pageUrl = new URL(siteConfig.routes.about, siteConfig.siteUrl).href;
+---
+
+<BaseLayout title={title} description={description} ogImage={pageContent.seo.ogImageUrl}>
+  {/*
+    Set before first paint, and only when modal dialogs are actually usable.
+    While this class is absent, `MemberProfileDialog`'s `:target` rules keep
+    every profile reachable — so a deep link never flashes the fallback panel,
+    and an unsupported browser never loses the biographies.
+  */}
+  <script is:inline>
+    if (
+      typeof HTMLDialogElement !== "undefined" &&
+      typeof HTMLDialogElement.prototype.showModal === "function"
+    ) {
+      document.documentElement.classList.add("js-dialogs");
+    }
+  </script>
+
+  <AboutPageJsonLd members={pageContent.members} pageUrl={pageUrl} />
+
+  <AboutHero
+    kicker={pageContent.intro.kicker}
+    heading={pageContent.intro.heading}
+    lede={pageContent.intro.lede}
+    image={pageContent.intro.heroImage}
+  />
+
+  <AboutStory
+    headingId={aboutPageCopy.storyHeadingId}
+    kicker={pageContent.story.kicker}
+    heading={pageContent.story.heading}
+    paragraphs={pageContent.story.paragraphs}
+  />
+
+  <BandMembers
+    headingId={aboutPageCopy.membersHeadingId}
+    kicker={pageContent.membersIntro.kicker}
+    heading={pageContent.membersIntro.heading}
+    body={pageContent.membersIntro.body}
+    members={pageContent.members}
+  />
+
+  <AboutExperience
+    headingId={aboutPageCopy.experienceHeadingId}
+    kicker={pageContent.experience.kicker}
+    heading={pageContent.experience.heading}
+    introduction={pageContent.experience.introduction}
+    highlights={pageContent.experience.highlights}
+  />
+
+  <Testimonials
+    kicker={pageContent.testimonialsIntro.kicker}
+    heading={pageContent.testimonialsIntro.heading}
+    items={testimonials}
+    newTabSuffix={aboutPageCopy.newTabSuffix}
+  />
+
+  <BookingCTA
+    kicker={pageContent.bookingCta.kicker}
+    heading={pageContent.bookingCta.heading}
+    body={pageContent.bookingCta.body}
+    ctaLabel={pageContent.bookingCta.ctaLabel}
+    balancedKicker={true}
+  />
+</BaseLayout>

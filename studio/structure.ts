@@ -1,19 +1,47 @@
 import type {StructureResolver} from 'sanity/structure'
+import {BlockquoteIcon} from '@sanity/icons/Blockquote'
 import {CalendarIcon} from '@sanity/icons/Calendar'
+import {HomeIcon} from '@sanity/icons/Home'
+import {ImagesIcon} from '@sanity/icons/Images'
+import {UsersIcon} from '@sanity/icons/Users'
 
 export const structure: StructureResolver = (S) =>
   S.list()
     .title('Content')
     .items([
+      // Page singletons — each opens its one fixed document by id. There is
+      // no "+ create" for these; see SINGLETON_TYPES in sanity.config.ts.
       S.listItem()
         .title('Homepage')
         .id('homepage')
+        .icon(HomeIcon)
         .child(S.document().schemaType('homepage').documentId('homepage')),
+      S.listItem()
+        .title('About Page')
+        .id('aboutPage')
+        .icon(UsersIcon)
+        .child(S.document().schemaType('aboutPage').documentId('aboutPage')),
       S.listItem()
         .title('Shows Page')
         .id('showsPage')
         .icon(CalendarIcon)
         .child(S.document().schemaType('showsPage').documentId('showsPage')),
+      S.divider(),
+      // Reusable content — ordinary documents, created and deleted freely.
+      S.listItem()
+        .title('Band Members')
+        .id('bandMembers')
+        .icon(UsersIcon)
+        .child(S.documentTypeList('bandMember').title('Band Members')),
+      S.listItem()
+        .title('Testimonials')
+        .id('testimonials')
+        .icon(BlockquoteIcon)
+        .child(
+          S.documentTypeList('testimonial')
+            .title('Testimonials')
+            .defaultOrdering([{field: 'displayOrder', direction: 'asc'}]),
+        ),
       S.divider(),
       S.listItem()
         .title('Events')
@@ -76,5 +104,6 @@ export const structure: StructureResolver = (S) =>
       S.listItem()
         .title('Media Library')
         .id('mediaLibrary')
+        .icon(ImagesIcon)
         .child(S.documentTypeList('mediaItem').title('Media Library')),
     ])

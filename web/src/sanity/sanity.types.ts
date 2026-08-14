@@ -15,6 +15,13 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: schema.json
+export type SanityImageAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
+
 export type ShowsPage = {
   _id: string;
   _type: "showsPage";
@@ -38,72 +45,6 @@ export type ShowsPage = {
     message: string;
     actionLabel: string;
   };
-  bookingCta: {
-    kicker?: string;
-    heading: string;
-    body: string;
-    ctaLabel: string;
-  };
-  seo?: {
-    metaTitle?: string;
-    metaDescription?: string;
-  };
-};
-
-export type MediaItemReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "mediaItem";
-};
-
-export type SanityImageAssetReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
-};
-
-export type Homepage = {
-  _id: string;
-  _type: "homepage";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  hero: {
-    eyebrow?: string;
-    headline: string;
-    subcopy?: string;
-  };
-  heroVideo?: MediaItemReference;
-  bandIntro: {
-    kicker?: string;
-    heading: string;
-    paragraphs: Array<string>;
-    ctaLabel?: string;
-  };
-  featuredMedia?: Array<
-    {
-      _key: string;
-    } & MediaItemReference
-  >;
-  upcomingShows: {
-    emptyState: {
-      title: string;
-      message: string;
-      actionLabel: string;
-    };
-  };
-  testimonialsIntro: {
-    kicker: string;
-    heading: string;
-  };
-  testimonials?: Array<{
-    quote: string;
-    attribution: string;
-    _type: "testimonial";
-    _key: string;
-  }>;
   bookingCta: {
     kicker?: string;
     heading: string;
@@ -137,6 +78,176 @@ export type SanityImageHotspot = {
   y: number;
   height: number;
   width: number;
+};
+
+export type MediaItemReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "mediaItem";
+};
+
+export type BandMemberReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "bandMember";
+};
+
+export type AboutPage = {
+  _id: string;
+  _type: "aboutPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  intro: {
+    kicker?: string;
+    heading: string;
+    lede: string;
+    heroImage: MediaItemReference;
+  };
+  story: {
+    kicker?: string;
+    heading: string;
+    paragraphs: Array<string>;
+  };
+  membersIntro: {
+    kicker?: string;
+    heading: string;
+    body?: string;
+  };
+  members: Array<
+    {
+      _key: string;
+    } & BandMemberReference
+  >;
+  experience: {
+    kicker?: string;
+    heading: string;
+    introduction: string;
+    highlights: Array<{
+      title: string;
+      description: string;
+      _type: "experienceHighlight";
+      _key: string;
+    }>;
+  };
+  testimonialsIntro: {
+    kicker: string;
+    heading: string;
+  };
+  bookingCta: {
+    kicker?: string;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    ogImage?: {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    };
+  };
+};
+
+export type Homepage = {
+  _id: string;
+  _type: "homepage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  hero: {
+    eyebrow?: string;
+    headline: string;
+    subcopy?: string;
+  };
+  heroVideo?: MediaItemReference;
+  bandIntro: {
+    kicker?: string;
+    heading: string;
+    paragraphs: Array<string>;
+    ctaLabel?: string;
+  };
+  featuredMedia?: Array<
+    {
+      _key: string;
+    } & MediaItemReference
+  >;
+  galleryIntro: {
+    kicker: string;
+    heading: string;
+    ctaLabel: string;
+  };
+  upcomingShows: {
+    kicker: string;
+    heading: string;
+    viewAllLabel: string;
+    emptyState: {
+      title: string;
+      message: string;
+      actionLabel: string;
+    };
+  };
+  testimonialsIntro: {
+    kicker: string;
+    heading: string;
+  };
+  bookingCta: {
+    kicker?: string;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
+  seo?: {
+    metaTitle?: string;
+    metaDescription?: string;
+    ogImage?: {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    };
+  };
+};
+
+export type Testimonial = {
+  _id: string;
+  _type: "testimonial";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  quote: string;
+  sourceName: string;
+  sourceContext?: string;
+  sourceLogo?: MediaItemReference;
+  sourceUrl?: string;
+  displayOrder: number;
+};
+
+export type BandMember = {
+  _id: string;
+  _type: "bandMember";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name: string;
+  role: string;
+  profileImage: MediaItemReference;
+  biography: Array<string>;
+  publicLinks?: Array<{
+    linkType:
+      "instagram" | "facebook" | "youtube" | "spotify" | "website" | "other";
+    label?: string;
+    url: string;
+    _type: "publicLink";
+    _key: string;
+  }>;
 };
 
 export type MediaItem = {
@@ -288,12 +399,16 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
-  | ShowsPage
-  | MediaItemReference
   | SanityImageAssetReference
-  | Homepage
+  | ShowsPage
   | SanityImageCrop
   | SanityImageHotspot
+  | MediaItemReference
+  | BandMemberReference
+  | AboutPage
+  | Homepage
+  | Testimonial
+  | BandMember
   | MediaItem
   | Event
   | Slug
@@ -308,7 +423,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: HOMEPAGE_QUERY
-// Query: *[_type == "homepage" && _id == "homepage"][0]{    hero,    heroVideo->{ videoUrl, videoProvider },    bandIntro,    featuredMedia[]{      _key,      "mediaItem": @->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{              dimensions            }          }        }      }    },    upcomingShows{ emptyState{ title, message, actionLabel } },    testimonialsIntro{ kicker, heading },    testimonials[]{ _key, quote, attribution },    bookingCta,    seo  }
+// Query: *[_type == "homepage" && _id == "homepage"][0]{    hero,    heroVideo->{ videoUrl, videoProvider },    bandIntro,    featuredMedia[]{      _key,      "mediaItem": @->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{              dimensions            }          }        }      }    },    upcomingShows{      kicker,      heading,      viewAllLabel,      emptyState{ title, message, actionLabel }    },    galleryIntro{ kicker, heading, ctaLabel },    testimonialsIntro{ kicker, heading },    bookingCta,    seo  }
 export type HOMEPAGE_QUERY_RESULT = {
   hero: {
     eyebrow?: string;
@@ -346,21 +461,24 @@ export type HOMEPAGE_QUERY_RESULT = {
     };
   }> | null;
   upcomingShows: {
+    kicker: string;
+    heading: string;
+    viewAllLabel: string;
     emptyState: {
       title: string;
       message: string;
       actionLabel: string;
     };
   };
+  galleryIntro: {
+    kicker: string;
+    heading: string;
+    ctaLabel: string;
+  };
   testimonialsIntro: {
     kicker: string;
     heading: string;
   };
-  testimonials: Array<{
-    _key: string;
-    quote: string;
-    attribution: string;
-  }> | null;
   bookingCta: {
     kicker?: string;
     heading: string;
@@ -381,6 +499,142 @@ export type HOMEPAGE_QUERY_RESULT = {
 } | null;
 
 // Source: ../web/src/sanity/queries.ts
+// Variable: TESTIMONIALS_QUERY
+// Query: *[_type == "testimonial"]  | order(displayOrder asc, _id asc)[0...3] {    _id,    quote,    sourceName,    sourceContext,    sourceUrl,    displayOrder,    sourceLogo->{      _id,      title,      alt,      image{        ...,        asset->{          _id,          metadata{ dimensions }        }      }    }  }
+export type TESTIMONIALS_QUERY_RESULT = Array<{
+  _id: string;
+  quote: string;
+  sourceName: string;
+  sourceContext: string | null;
+  sourceUrl: string | null;
+  displayOrder: number;
+  sourceLogo: {
+    _id: string;
+    title: string;
+    alt: string | null;
+    image: {
+      asset: {
+        _id: string;
+        metadata: {
+          dimensions: SanityImageDimensions | null;
+        } | null;
+      } | null;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    } | null;
+  } | null;
+}>;
+
+// Source: ../web/src/sanity/queries.ts
+// Variable: ABOUT_PAGE_QUERY
+// Query: *[_type == "aboutPage" && _id == "aboutPage"][0]{    intro{      kicker,      heading,      lede,      heroImage->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{ dimensions }          }        }      }    },    story{ kicker, heading, paragraphs },    membersIntro{ kicker, heading, body },    members[]{      _key,      "member": @->{        _id,        name,        role,        profileImage->{          _id,          title,          alt,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        },        biography,        publicLinks[]{ _key, linkType, label, url }      }    },    experience{      kicker,      heading,      introduction,      highlights[]{ _key, title, description }    },    testimonialsIntro{ kicker, heading },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription, ogImage }  }
+export type ABOUT_PAGE_QUERY_RESULT = {
+  intro: {
+    kicker: string | null;
+    heading: string;
+    lede: string;
+    heroImage: {
+      _id: string;
+      title: string;
+      alt: string | null;
+      image: {
+        asset: {
+          _id: string;
+          metadata: {
+            dimensions: SanityImageDimensions | null;
+          } | null;
+        } | null;
+        media?: unknown;
+        hotspot?: SanityImageHotspot;
+        crop?: SanityImageCrop;
+        _type: "image";
+      } | null;
+    };
+  };
+  story: {
+    kicker: string | null;
+    heading: string;
+    paragraphs: Array<string>;
+  };
+  membersIntro: {
+    kicker: string | null;
+    heading: string;
+    body: string | null;
+  };
+  members: Array<{
+    _key: string;
+    member: {
+      _id: string;
+      name: string;
+      role: string;
+      profileImage: {
+        _id: string;
+        title: string;
+        alt: string | null;
+        image: {
+          asset: {
+            _id: string;
+            metadata: {
+              dimensions: SanityImageDimensions | null;
+            } | null;
+          } | null;
+          media?: unknown;
+          hotspot?: SanityImageHotspot;
+          crop?: SanityImageCrop;
+          _type: "image";
+        } | null;
+      };
+      biography: Array<string>;
+      publicLinks: Array<{
+        _key: string;
+        linkType:
+          | "facebook"
+          | "instagram"
+          | "other"
+          | "spotify"
+          | "website"
+          | "youtube";
+        label: string | null;
+        url: string;
+      }> | null;
+    };
+  }>;
+  experience: {
+    kicker: string | null;
+    heading: string;
+    introduction: string;
+    highlights: Array<{
+      _key: string;
+      title: string;
+      description: string;
+    }>;
+  };
+  testimonialsIntro: {
+    kicker: string;
+    heading: string;
+  };
+  bookingCta: {
+    kicker: string | null;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
+  seo: {
+    metaTitle: string | null;
+    metaDescription: string | null;
+    ogImage: {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    } | null;
+  } | null;
+} | null;
+
+// Source: ../web/src/sanity/queries.ts
 // Variable: UPCOMING_PUBLIC_EVENTS_QUERY
 // Query: *[_type == "event"    && visibility == "public"    && status == "scheduled"    && coalesce(endDateTime, startDateTime) >= now()  ] | order(startDateTime asc) [0...3] {    _id, title, slug, startDateTime, endDateTime,    venue, location, externalEventUrl  }
 export type UPCOMING_PUBLIC_EVENTS_QUERY_RESULT = Array<{
@@ -396,7 +650,7 @@ export type UPCOMING_PUBLIC_EVENTS_QUERY_RESULT = Array<{
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: SHOWS_PAGE_QUERY
-// Query: *[_type == "showsPage" && _id == "showsPage"][0]{    intro{ kicker, heading, paragraphs },    upcoming{ heading },    recent{ kicker, heading },    emptyState{ title, message, actionLabel },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription }  }
+// Query: *[_type == "showsPage" && _id == "showsPage"][0]{    intro{ kicker, heading, paragraphs },    upcoming{ heading },    recent{ kicker, heading },    emptyState{ title, message, actionLabel },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription, ogImage }  }
 export type SHOWS_PAGE_QUERY_RESULT = {
   intro: {
     kicker: string | null;
@@ -424,6 +678,13 @@ export type SHOWS_PAGE_QUERY_RESULT = {
   seo: {
     metaTitle: string | null;
     metaDescription: string | null;
+    ogImage: {
+      asset?: SanityImageAssetReference;
+      media?: unknown;
+      hotspot?: SanityImageHotspot;
+      crop?: SanityImageCrop;
+      _type: "image";
+    } | null;
   } | null;
 } | null;
 
@@ -473,9 +734,11 @@ export type SHOWS_RECENT_PUBLIC_EVENTS_QUERY_RESULT = Array<{
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_type == "homepage" && _id == "homepage"][0]{\n    hero,\n    heroVideo->{ videoUrl, videoProvider },\n    bandIntro,\n    featuredMedia[]{\n      _key,\n      "mediaItem": @->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{\n              dimensions\n            }\n          }\n        }\n      }\n    },\n    upcomingShows{ emptyState{ title, message, actionLabel } },\n    testimonialsIntro{ kicker, heading },\n    testimonials[]{ _key, quote, attribution },\n    bookingCta,\n    seo\n  }\n': HOMEPAGE_QUERY_RESULT;
+    '\n  *[_type == "homepage" && _id == "homepage"][0]{\n    hero,\n    heroVideo->{ videoUrl, videoProvider },\n    bandIntro,\n    featuredMedia[]{\n      _key,\n      "mediaItem": @->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{\n              dimensions\n            }\n          }\n        }\n      }\n    },\n    upcomingShows{\n      kicker,\n      heading,\n      viewAllLabel,\n      emptyState{ title, message, actionLabel }\n    },\n    galleryIntro{ kicker, heading, ctaLabel },\n    testimonialsIntro{ kicker, heading },\n    bookingCta,\n    seo\n  }\n': HOMEPAGE_QUERY_RESULT;
+    '\n  *[_type == "testimonial"]\n  | order(displayOrder asc, _id asc)[0...3] {\n    _id,\n    quote,\n    sourceName,\n    sourceContext,\n    sourceUrl,\n    displayOrder,\n    sourceLogo->{\n      _id,\n      title,\n      alt,\n      image{\n        ...,\n        asset->{\n          _id,\n          metadata{ dimensions }\n        }\n      }\n    }\n  }\n': TESTIMONIALS_QUERY_RESULT;
+    '\n  *[_type == "aboutPage" && _id == "aboutPage"][0]{\n    intro{\n      kicker,\n      heading,\n      lede,\n      heroImage->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{ dimensions }\n          }\n        }\n      }\n    },\n    story{ kicker, heading, paragraphs },\n    membersIntro{ kicker, heading, body },\n    members[]{\n      _key,\n      "member": @->{\n        _id,\n        name,\n        role,\n        profileImage->{\n          _id,\n          title,\n          alt,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        },\n        biography,\n        publicLinks[]{ _key, linkType, label, url }\n      }\n    },\n    experience{\n      kicker,\n      heading,\n      introduction,\n      highlights[]{ _key, title, description }\n    },\n    testimonialsIntro{ kicker, heading },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': ABOUT_PAGE_QUERY_RESULT;
     '\n  *[_type == "event"\n    && visibility == "public"\n    && status == "scheduled"\n    && coalesce(endDateTime, startDateTime) >= now()\n  ] | order(startDateTime asc) [0...3] {\n    _id, title, slug, startDateTime, endDateTime,\n    venue, location, externalEventUrl\n  }\n': UPCOMING_PUBLIC_EVENTS_QUERY_RESULT;
-    '\n  *[_type == "showsPage" && _id == "showsPage"][0]{\n    intro{ kicker, heading, paragraphs },\n    upcoming{ heading },\n    recent{ kicker, heading },\n    emptyState{ title, message, actionLabel },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription }\n  }\n': SHOWS_PAGE_QUERY_RESULT;
+    '\n  *[_type == "showsPage" && _id == "showsPage"][0]{\n    intro{ kicker, heading, paragraphs },\n    upcoming{ heading },\n    recent{ kicker, heading },\n    emptyState{ title, message, actionLabel },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': SHOWS_PAGE_QUERY_RESULT;
     '\n  *[\n    _type == "event"\n    && visibility == "public"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) >= now()\n  ]\n  | order(startDateTime asc, _id asc) {\n    _id,\n    "kind": "public",\n    status,\n    startDateTime,\n    endDateTime,\n    title,\n    venue,\n    location,\n    description,\n    externalEventUrl\n  }\n': SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY_RESULT;
     '\n  *[\n    _type == "event"\n    && visibility == "busyOnly"\n    && status == "scheduled"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) >= now()\n  ]\n  | order(startDateTime asc, _id asc) {\n    _id,\n    "kind": "private",\n    startDateTime,\n    endDateTime\n  }\n': SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY_RESULT;
     '\n  *[\n    _type == "event"\n    && visibility == "public"\n    && status == "scheduled"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) < now()\n  ]\n  | order(startDateTime desc, _id asc) [0...12] {\n    _id,\n    "kind": "public",\n    status,\n    startDateTime,\n    endDateTime,\n    title,\n    venue,\n    location,\n    description,\n    externalEventUrl\n  }\n': SHOWS_RECENT_PUBLIC_EVENTS_QUERY_RESULT;

@@ -1,0 +1,375 @@
+---
+/**
+ * One member's full profile, in a native `<dialog>`.
+ *
+ * ## Why a native dialog, and how it degrades
+ *
+ * With scripting available, `memberProfiles.ts` calls `showModal()`. The
+ * platform then supplies, for free and correctly: the top layer, the backdrop,
+ * inert background content, Escape-to-dismiss, and focus moved inside. None of
+ * that is reimplemented here.
+ *
+ * With scripting unavailable — or on a browser without `showModal` — the card's
+ * control is still an ordinary `<a href="#member-profile-…">`, so activating it
+ * navigates to this element's fragment, and the `:target` rule at the bottom of
+ * this file reveals the same profile as an inline panel. The close control is
+ * an ordinary link back to the section heading, so it dismisses the panel by
+ * navigating away from the fragment. The biographies are therefore reachable
+ * either way; they are never locked behind an enhancement that did not load.
+ *
+ * `memberProfiles.ts` adds `.js-dialogs` to `<html>` only after confirming
+ * `showModal` exists, and the `:target` fallback is scoped to
+ * `html:not(.js-dialogs)` — so exactly one of the two behaviors is ever live.
+ *
+ * There is one DOM structure at every breakpoint. The card and this dialog are
+ * a summary and its detail, not a mobile copy and a desktop copy.
+ */
+
+import type { NormalizedBandMember } from "../sanity/normalize";
+import { aboutPageCopy } from "../data/aboutData";
+
+interface Props {
+  member: NormalizedBandMember;
+  dialogId: string;
+  /** Where the close control navigates when scripting is unavailable. */
+  closeHref: string;
+}
+
+const { member, dialogId, closeHref } = Astro.props;
+
+const titleId = `${dialogId}-title`;
+
+/**
+ * Known link types are named by the frontend so the wording stays consistent
+ * and cannot be turned into something misleading. "Other" has no standard
+ * name, so it uses the editor's label — which normalization already requires.
+ */
+const linkLabel = (link: NormalizedBandMember["links"][number]) =>
+  link.linkType === "other"
+    ? (link.label ?? aboutPageCopy.memberLinksLabel)
+    : aboutPageCopy.linkTypeLabels[link.linkType];
+---
+
+{/*
+  Dismissal is Escape plus the explicit close control. Click-outside ("light
+  dismiss") is deliberately NOT implemented, and both ways of adding it were
+  tried and rejected:
+
+  - A JS handler comparing `event.target` to the dialog cannot work here. That
+    trick only holds when the dialog box fills the viewport; this one is sized
+    to its panel, so a click beside it lands on inert background content and
+    produces no event on the dialog at all.
+  - `closedby="any"` asks the platform for it declaratively, but in the Chrome
+    version tested (151) adding it stopped Escape from closing the dialog
+    entirely. Escape is a requirement; light dismiss is a convenience. Revisit
+    if that behavior changes.
+*/}
+<dialog id={dialogId} class="member-dialog" aria-labelledby={titleId} data-member-dialog>
+  <div class="member-dialog__panel">
+    <a class="member-dialog__close" href={closeHref} data-member-dialog-close>
+      <span aria-hidden="true">&times;</span>
+      <span class="visually-hidden">
+        {aboutPageCopy.memberDialogCloseLabel}
+        {member.name}
+        {aboutPageCopy.memberDialogCloseSuffix}
+      </span>
+    </a>
+
+    <div class="member-dialog__scroll">
+      <div class="member-dialog__header">
+        <div class="member-dialog__frame">
+          {/* Same URL as the card's image, so the browser reuses one download
+              rather than fetching a second copy of a large photograph. */}
+          <img
+            src={member.image.src}
+            width={member.image.width}
+            height={member.image.height}
+            alt={member.image.alt}
+            loading="lazy"
+            decoding="async"
+            style={`--focal-point: ${member.image.objectPosition}`}
+          />
+        </div>
+
+        <div class="member-dialog__identity">
+          <h3 class="member-dialog__name" id={titleId}>{member.name}</h3>
+          <p class="member-dialog__role">{member.role}</p>
+        </div>
+      </div>
+
+      <div class="member-dialog__bio">
+        {member.biography.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+
+      {/* Omitted entirely when a member has no approved links. Nothing is
+          invented to fill the space. */}
+      {
+        member.links.length > 0 && (
+          <div class="member-dialog__links">
+            <h4 class="member-dialog__links-title">{aboutPageCopy.memberLinksLabel}</h4>
+            <ul class="member-dialog__links-list">
+              {member.links.map((link) => (
+                <li>
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    {linkLabel(link)}
+                    {/* The member's name makes each link unique in a screen
+                        reader's link list, where a dozen bare "Instagram"
+                        entries would be indistinguishable. */}
+                    <span class="visually-hidden">
+                      {` — ${member.name}${aboutPageCopy.newTabSuffix}`}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</dialog>
+
+<style is:global>
+  /* Global rather than scoped because two rules below key off a class on
+     <html>, which Astro's scoping would rewrite into a selector that can never
+     match. Every class here is namespaced `member-dialog*`. */
+
+  /* Locks background scroll while a dialog is modal. `showModal()` supplies
+     inertness and the backdrop, but not a scroll lock, in every browser. */
+  html.member-dialog-open {
+    overflow: hidden;
+  }
+
+  .member-dialog {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--warm-white);
+    width: min(680px, calc(100vw - 32px));
+    max-width: 100%;
+    max-height: min(88dvh, 900px);
+    overflow: visible;
+    /*
+     * Restores the centering that `global.css`'s universal
+     * `* { margin: 0 }` reset removes. A modal dialog is centered by the UA
+     * stylesheet with `inset: 0` + `margin: auto`; zeroing the margin leaves
+     * `inset: 0` intact and pins the dialog to the top-left corner. Without
+     * this line the profile opens in the corner of the screen.
+     */
+    margin: auto;
+    /* Clears the fixed site header if the fallback panel is jumped to. */
+    scroll-margin-top: 110px;
+  }
+
+  /*
+   * Scoped to `[open]` — an unqualified `display` here would override the UA's
+   * `dialog:not([open]) { display: none }` and render every profile inline.
+   *
+   * The flex chain from here down to `.member-dialog__scroll` is what makes
+   * internal scrolling actually work. The dialog is the only element with a
+   * definite height constraint, so the panel and the scroll area must inherit
+   * it by *flexing*, not by percentage: a percentage `max-height` resolves
+   * against an auto-height containing block as `none`, which silently let the
+   * panel grow past the dialog and clip its overflow with no way to scroll to
+   * it. `min-height: 0` at each level is required — flex items refuse to
+   * shrink below their content size without it.
+   */
+  .member-dialog[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .member-dialog::backdrop {
+    background: rgba(11, 11, 18, 0.82);
+    backdrop-filter: blur(6px);
+  }
+
+  .member-dialog__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid rgba(160, 123, 239, 0.35);
+    border-radius: 20px;
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.4), rgba(11, 11, 18, 0.97));
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+  }
+
+  /* The scroll container is INSIDE the panel, so long biographies scroll
+     within the dialog instead of pushing content past the bottom of a
+     viewport-height panel where it could never be reached. */
+  .member-dialog__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 32px;
+    /* Keeps text clear of the close control. */
+    padding-right: 68px;
+  }
+
+  .member-dialog__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px minimum target. */
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--warm-white);
+    background: rgba(11, 11, 18, 0.7);
+    border: 1px solid rgba(160, 123, 239, 0.4);
+    transition: background 0.25s var(--ease), color 0.25s var(--ease),
+      border-color 0.25s var(--ease);
+  }
+  .member-dialog__close:hover {
+    color: var(--black);
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  .member-dialog__header {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 26px;
+  }
+
+  .member-dialog__frame {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(160, 123, 239, 0.3);
+  }
+  .member-dialog__frame img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    object-position: var(--focal-point, 50% 50%);
+  }
+
+  .member-dialog__name {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--warm-white);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+  .member-dialog__role {
+    margin-top: 6px;
+    font-size: 0.92rem;
+    color: var(--lavender-soft);
+    overflow-wrap: anywhere;
+  }
+
+  .member-dialog__bio p {
+    color: rgba(244, 232, 208, 0.85);
+    font-size: 1rem;
+    font-weight: 300;
+    margin-bottom: 16px;
+    overflow-wrap: anywhere;
+  }
+  .member-dialog__bio p:last-child {
+    margin-bottom: 0;
+  }
+
+  .member-dialog__links {
+    margin-top: 26px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(160, 123, 239, 0.2);
+  }
+  .member-dialog__links-title {
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .member-dialog__links-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+  }
+  .member-dialog__links-list a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-size: 0.78rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--lavender-soft);
+    background: rgba(160, 123, 239, 0.1);
+    border: 1px solid rgba(160, 123, 239, 0.35);
+    overflow-wrap: anywhere;
+    transition: background 0.3s var(--ease), border-color 0.3s var(--ease),
+      color 0.3s var(--ease);
+  }
+  .member-dialog__links-list a:hover {
+    color: var(--warm-white);
+    background: rgba(160, 123, 239, 0.22);
+    border-color: var(--lavender);
+  }
+
+  /* ---------------------------------------------------------------------
+     No-script fallback.
+     Active only while `.js-dialogs` is absent from <html>, i.e. when the
+     dialog script did not run or `showModal` is unavailable. The same profile
+     renders as an ordinary inline panel beneath the member grid.
+     ------------------------------------------------------------------ */
+  html:not(.js-dialogs) .member-dialog:target {
+    display: block;
+    position: static;
+    inset: auto;
+    width: 100%;
+    max-width: 100%;
+    max-height: none;
+    margin: 28px 0 0;
+  }
+  html:not(.js-dialogs) .member-dialog:target .member-dialog__panel {
+    flex: none;
+    max-height: none;
+    overflow: visible;
+  }
+  html:not(.js-dialogs) .member-dialog:target .member-dialog__scroll {
+    flex: none;
+    overflow: visible;
+  }
+
+  @media (max-width: 640px) {
+    .member-dialog {
+      /* Near-full-screen on small viewports, with enough inset that the panel
+         still reads as a panel and the page behind it stays visible.
+         `dvh` only — see the note on `.member-dialog[open]` for why a
+         percentage here does not work. */
+      width: calc(100vw - 20px);
+      max-height: 92dvh;
+    }
+    .member-dialog__scroll {
+      padding: 24px 20px 28px;
+      padding-top: 64px;
+    }
+    .member-dialog__header {
+      grid-template-columns: 1fr;
+      gap: 18px;
+      justify-items: start;
+    }
+    .member-dialog__frame {
+      width: min(220px, 60%);
+    }
+  }
+</style>

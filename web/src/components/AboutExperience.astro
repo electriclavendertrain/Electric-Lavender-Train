@@ -1,0 +1,95 @@
+---
+/**
+ * "The ELT Experience" — the bridge between knowing who the band is and
+ * wanting to book them. It answers three questions in order: what does ELT
+ * sound like, what does a performance feel like, and what kind of room suits
+ * the band.
+ *
+ * The three highlights are modeled by MEANING, not by column count. They are a
+ * list of three named ideas that happens to lay out as three columns on a wide
+ * screen and one on a narrow one; nothing in the content model refers to
+ * columns, and changing the layout would not change the content.
+ */
+
+interface Props {
+  headingId: string;
+  kicker?: string | null;
+  heading: string;
+  introduction: string;
+  highlights: readonly { _key: string; title: string; description: string }[];
+}
+
+const { headingId, kicker, heading, introduction, highlights } = Astro.props;
+---
+
+<section class="about-experience" aria-labelledby={headingId}>
+  <div class="section-inner">
+    {kicker && <p class="kicker reveal">{kicker}</p>}
+    <h2 id={headingId} class="reveal reveal-1">{heading}</h2>
+    <p class="about-experience__intro reveal reveal-2">{introduction}</p>
+
+    <ul class="about-experience__grid">
+      {
+        highlights.map((highlight, index) => (
+          <li class={`about-experience__card reveal reveal-${Math.min(index + 1, 4)}`}>
+            <h3 class="about-experience__title">{highlight.title}</h3>
+            <p class="about-experience__description">{highlight.description}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .about-experience h2 {
+    margin-bottom: 22px;
+  }
+  .about-experience__intro {
+    color: rgba(244, 232, 208, 0.85);
+    font-size: 1.02rem;
+    font-weight: 300;
+    max-width: 66ch;
+    overflow-wrap: anywhere;
+  }
+
+  .about-experience__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 26px;
+    margin-top: 44px;
+    list-style: none;
+  }
+
+  .about-experience__card {
+    padding: 30px;
+    border-radius: 18px;
+    border: 1px solid rgba(160, 123, 239, 0.25);
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.18), rgba(11, 11, 18, 0.4));
+  }
+  .about-experience__title {
+    font-size: 0.78rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 14px;
+    overflow-wrap: anywhere;
+  }
+  .about-experience__description {
+    color: rgba(244, 232, 208, 0.82);
+    font-size: 0.98rem;
+    font-weight: 300;
+    overflow-wrap: anywhere;
+  }
+
+  /* Two columns would leave a stranded third card, and three narrow columns
+     below this width make the descriptions unreadably thin — so it goes
+     straight to one. */
+  @media (max-width: 900px) {
+    .about-experience__grid {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+  }
+</style>

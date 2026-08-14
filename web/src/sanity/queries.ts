@@ -26,11 +26,140 @@ export const HOMEPAGE_QUERY = defineQuery(`
         }
       }
     },
-    upcomingShows{ emptyState{ title, message, actionLabel } },
+    upcomingShows{
+      kicker,
+      heading,
+      viewAllLabel,
+      emptyState{ title, message, actionLabel }
+    },
+    galleryIntro{ kicker, heading, ctaLabel },
     testimonialsIntro{ kicker, heading },
-    testimonials[]{ _key, quote, attribution },
     bookingCta,
     seo
+  }
+`)
+
+/* -------------------------------------------------------------------------
+ * Reusable testimonials
+ *
+ * Deliberately NOT part of either page singleton. The Homepage and the About
+ * page each fetch this query independently and render the same three cards in
+ * the same order, while keeping their own section headings
+ * (`homepage.testimonialsIntro` / `aboutPage.testimonialsIntro`).
+ *
+ * `homepage.testimonials` — the old page-nested array — is no longer selected
+ * anywhere. Its development values were migrated to reusable documents,
+ * explicitly cleared from the singleton, and the retired schema field removed.
+ * ---------------------------------------------------------------------- */
+
+/**
+ * The first three testimonials by display order, with `_id` as the
+ * deterministic tiebreaker for documents sharing an order value. The cap lives
+ * in the query so neither page can accidentally render a fourth, and it is
+ * re-applied during normalization because a raw API write can store anything.
+ *
+ * `sourceLogo` is dereferenced explicitly and treated as a contained graphic,
+ * not a photographic crop — no crop/hotspot is requested for it.
+ */
+export const TESTIMONIALS_QUERY = defineQuery(`
+  *[_type == "testimonial"]
+  | order(displayOrder asc, _id asc)[0...3] {
+    _id,
+    quote,
+    sourceName,
+    sourceContext,
+    sourceUrl,
+    displayOrder,
+    sourceLogo->{
+      _id,
+      title,
+      alt,
+      image{
+        ...,
+        asset->{
+          _id,
+          metadata{ dimensions }
+        }
+      }
+    }
+  }
+`)
+
+/* -------------------------------------------------------------------------
+ * About page (/about)
+ *
+ * One fixed-id singleton query. Members are ordered references, dereferenced
+ * here so the page makes a single round trip — the order stored in
+ * `aboutPage.members` is the render order, and only the members selected there
+ * are fetched.
+ *
+ * Only PUBLIC member fields are projected. `bandMember` has no private contact
+ * field to select in the first place, and none may be added
+ * (docs/developer-guide.md §9) — but note that a public dataset means GROQ
+ * omission is not access control. The guarantee is that nothing private is
+ * stored, not that this projection hides it.
+ * ---------------------------------------------------------------------- */
+
+/**
+ * The About page singleton by fixed `_id`.
+ *
+ * `heroImage->` and `members[]{"member": @->}` follow the same dereference
+ * shapes the homepage already uses: a single direct reference takes `->`, and
+ * an array whose elements ARE references takes `@->` with a projection alias.
+ * `_key` is preserved on every array so list keys stay stable.
+ */
+export const ABOUT_PAGE_QUERY = defineQuery(`
+  *[_type == "aboutPage" && _id == "aboutPage"][0]{
+    intro{
+      kicker,
+      heading,
+      lede,
+      heroImage->{
+        _id,
+        title,
+        alt,
+        image{
+          ...,
+          asset->{
+            _id,
+            metadata{ dimensions }
+          }
+        }
+      }
+    },
+    story{ kicker, heading, paragraphs },
+    membersIntro{ kicker, heading, body },
+    members[]{
+      _key,
+      "member": @->{
+        _id,
+        name,
+        role,
+        profileImage->{
+          _id,
+          title,
+          alt,
+          image{
+            ...,
+            asset->{
+              _id,
+              metadata{ dimensions }
+            }
+          }
+        },
+        biography,
+        publicLinks[]{ _key, linkType, label, url }
+      }
+    },
+    experience{
+      kicker,
+      heading,
+      introduction,
+      highlights[]{ _key, title, description }
+    },
+    testimonialsIntro{ kicker, heading },
+    bookingCta{ kicker, heading, body, ctaLabel },
+    seo{ metaTitle, metaDescription, ogImage }
   }
 `)
 
@@ -84,7 +213,7 @@ export const SHOWS_PAGE_QUERY = defineQuery(`
     recent{ kicker, heading },
     emptyState{ title, message, actionLabel },
     bookingCta{ kicker, heading, body, ctaLabel },
-    seo{ metaTitle, metaDescription }
+    seo{ metaTitle, metaDescription, ogImage }
   }
 `)
 

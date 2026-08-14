@@ -5,6 +5,17 @@ import {schemaTypes} from './schemaTypes'
 import {eventTemplates} from './schemaTypes/templates'
 import {structure} from './structure'
 
+/**
+ * Page singletons: exactly one document each, at a fixed `_id`, opened only
+ * through their fixed Structure entry. They are stripped from both the
+ * initial-value templates and the global "+" Create menu so a duplicate page
+ * document cannot be created from the Studio UI.
+ *
+ * `bandMember` and `testimonial` are deliberately NOT here — they are
+ * ordinary reusable documents with Sanity-generated ids.
+ */
+const SINGLETON_TYPES = ['homepage', 'aboutPage', 'showsPage']
+
 export default defineConfig({
   name: 'default',
   title: 'elt-sanity',
@@ -22,10 +33,7 @@ export default defineConfig({
     templates: (prev) =>
       [
         ...prev.filter(
-          (item) =>
-            item.schemaType !== 'homepage' &&
-            item.schemaType !== 'showsPage' &&
-            item.schemaType !== 'event',
+          (item) => !SINGLETON_TYPES.includes(item.schemaType) && item.schemaType !== 'event',
         ),
         ...eventTemplates,
       ],
@@ -36,9 +44,7 @@ export default defineConfig({
     // global "+" Create menu, independent of the templates filtering above.
     newDocumentOptions: (prev, {creationContext}) => {
       if (creationContext.type === 'global') {
-        return prev.filter(
-          (item) => item.templateId !== 'homepage' && item.templateId !== 'showsPage',
-        )
+        return prev.filter((item) => !SINGLETON_TYPES.includes(item.templateId))
       }
       return prev
     },

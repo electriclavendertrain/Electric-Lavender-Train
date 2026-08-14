@@ -6,6 +6,9 @@ export const homepage = defineType({
   type: 'document',
   initialValue: {
     upcomingShows: {
+      kicker: 'Where to Find Us',
+      heading: 'Upcoming Shows',
+      viewAllLabel: 'View All Shows',
       emptyState: {
         title: 'No shows on the calendar right now',
         message:
@@ -13,11 +16,17 @@ export const homepage = defineType({
         actionLabel: 'Follow Us on Instagram',
       },
     },
+    galleryIntro: {
+      kicker: 'Good Times & Great People',
+      heading: 'Live From the Last Show',
+      ctaLabel: 'View Full Gallery',
+    },
     testimonialsIntro: {
       kicker: 'What People Are Saying',
       heading: 'Straight From the Dance Floor',
     },
     seo: {
+      metaTitle: 'Home',
       metaDescription:
         'Electric Lavender Train brings high-energy live dance music to weddings, parties, breweries, festivals, and events across California’s Central Coast.',
     },
@@ -108,11 +117,59 @@ export const homepage = defineType({
       validation: (Rule) => Rule.max(6),
     }),
     defineField({
+      name: 'galleryIntro',
+      title: 'Gallery section heading',
+      description:
+        'Homepage copy shown above the selected gallery images. The gallery images themselves are chosen in “Featured gallery images”.',
+      type: 'object',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'kicker',
+          title: 'Small label above heading',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'ctaLabel',
+          title: 'Button text',
+          description: 'Links to the Media & Merch page.',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+      ],
+    }),
+    defineField({
       name: 'upcomingShows',
       title: 'Upcoming shows section',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [
+        defineField({
+          name: 'kicker',
+          title: 'Small label above heading',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'viewAllLabel',
+          title: 'View all shows button text',
+          description: 'Links to the Shows page.',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
         defineField({
           name: 'emptyState',
           title: 'No upcoming shows message',
@@ -146,7 +203,9 @@ export const homepage = defineType({
     }),
     defineField({
       name: 'testimonialsIntro',
-      title: 'Testimonials section heading',
+      title: 'Testimonials heading (Homepage)',
+      description:
+        'This controls only the Homepage section heading. Testimonial quotes, sources, logos, links, and display order are managed in “Testimonials” in the Studio sidebar and are shared with the About page.',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [
@@ -163,36 +222,6 @@ export const homepage = defineType({
           validation: (Rule) => Rule.required(),
         }),
       ],
-    }),
-    defineField({
-      name: 'testimonials',
-      title: 'Testimonials',
-      description: 'Up to three testimonials.',
-      type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'object',
-          name: 'testimonial',
-          fields: [
-            defineField({
-              name: 'quote',
-              title: 'Quote',
-              type: 'text',
-              validation: (Rule) => Rule.required(),
-            }),
-            defineField({
-              name: 'attribution',
-              title: 'Attribution',
-              type: 'string',
-              validation: (Rule) => Rule.required(),
-            }),
-          ],
-          preview: {
-            select: {title: 'quote', subtitle: 'attribution'},
-          },
-        }),
-      ],
-      validation: (Rule) => Rule.max(3),
     }),
     defineField({
       name: 'bookingCta',
@@ -230,7 +259,13 @@ export const homepage = defineType({
       title: 'SEO',
       type: 'object',
       fields: [
-        defineField({name: 'metaTitle', title: 'Meta title', type: 'string'}),
+        defineField({
+          name: 'metaTitle',
+          title: 'Meta title',
+          description:
+            'Enter only the page-specific title, such as “Home”. The website automatically appends the current formal band name.',
+          type: 'string',
+        }),
         defineField({
           name: 'metaDescription',
           title: 'Meta description',
@@ -243,7 +278,7 @@ export const homepage = defineType({
           name: 'ogImage',
           title: 'Social share image',
           description:
-            'Used for link previews on social media and messaging apps. It does not appear in the visible page content.',
+            'Optional image used when the Homepage is shared. It does not appear in visible page content, and the About and Shows pages have their own independent share-image fields.',
           type: 'image',
         }),
       ],
