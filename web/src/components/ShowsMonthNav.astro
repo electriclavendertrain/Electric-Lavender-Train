@@ -26,7 +26,7 @@ const { label, months } = Astro.props;
 
 {
   months.length > 0 && (
-    <div class="month-nav-shell" data-month-nav-shell>
+    <div class="month-nav-shell reveal" data-month-nav-shell>
       <nav class="month-nav" aria-label={label} data-month-nav>
         <ul class="month-nav__list">
           {months.map((month) => (

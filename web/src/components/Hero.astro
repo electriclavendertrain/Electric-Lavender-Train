@@ -21,8 +21,14 @@ const videoTitle = `${siteConfig.bandNameFormal} — Featured Video`;
 
 <section class="hero" id="home">
   <div class="hero-overlay"></div>
+  {/*
+    `intro-enter` on each piece rather than the block, so the hero steps in on
+    the same shared stagger every other section uses. Above the fold, so it
+    runs on load rather than waiting for a scroll observer — same animation,
+    different trigger (global.css → "Entrance animation").
+  */}
   <div class="hero-content">
-    <div class="hero-media reveal in">
+    <div class="hero-media intro-enter">
       {
         hasVideo ? (
           <button
@@ -45,10 +51,10 @@ const videoTitle = `${siteConfig.bandNameFormal} — Featured Video`;
         )
       }
     </div>
-    {displayEyebrow && <p class="eyebrow reveal in reveal-1">{displayEyebrow}</p>}
-    <h1 class="reveal in reveal-2">{headline}</h1>
-    {subcopy && <p class="sub reveal in reveal-3">{subcopy}</p>}
-    <div class="hero-buttons reveal in reveal-4">
+    {displayEyebrow && <p class="eyebrow intro-enter intro-enter-1">{displayEyebrow}</p>}
+    <h1 class="intro-enter intro-enter-2">{headline}</h1>
+    {subcopy && <p class="sub intro-enter intro-enter-3">{subcopy}</p>}
+    <div class="hero-buttons intro-enter intro-enter-4">
       <a href={siteConfig.routes.bookingForm} class="btn btn-primary">Book Us</a>
       <a href={siteConfig.routes.shows} class="btn btn-outline">Upcoming Shows</a>
     </div>
