@@ -232,7 +232,14 @@ section::after {
 .cta::after {
   content: none;
 }
-.about::after {
+.about::after,
+.media-intro::after,
+.featured-video::after,
+.media-gallery::after {
+  /* Keep component-owned/constrained sections on the exact same full-bleed
+     divider geometry as the rest of the site. The color, gradient, glow,
+     thickness, and stacking still come from the single `section::after`
+     definition above. */
   left: 50%;
   right: auto;
   width: 100vw;
@@ -437,4 +444,111 @@ h2 {
     width: 100%;
     justify-content: center;
   }
+}
+
+/* ---------- Click-to-play video trigger ----------
+ *
+ * Shared presentation primitive for every click-to-play YouTube embed on the
+ * site — currently the Homepage hero (`Hero.astro`) and the Media & Merch
+ * featured video (`FeaturedVideo.astro`). One definition here means the two
+ * players cannot visually drift apart: a change to the overlay, float
+ * motion, or activated-iframe treatment only has to happen once.
+ *
+ * Each caller supplies exactly two intentional differences as its OWN
+ * scoped, page-specific CSS: the wrapper's `max-width` (560px on the
+ * Homepage, ~900px on Media & Merch) and, where wanted, extra clearance
+ * above the trigger — everything else (button reset, logo treatment, play
+ * icon, hover/focus, the pre-activation float, and the activated iframe's
+ * size/shadow) lives here as the single shared source of truth. Any other
+ * difference must be an explicit, documented variant in the caller's own
+ * `<style>` block — never a second copy of these rules.
+ *
+ * `heroVideo.ts` (the shared click-to-play script) gives every activated
+ * iframe the same `video-trigger__iframe` class unconditionally — with the
+ * presentation shared, there is no need for each caller to request its own
+ * scoped iframe class name any more.
+ */
+.video-trigger-wrapper {
+  position: relative;
+}
+
+/* Just the float animation, reusable on either the plain logo image (no
+   video configured — Hero.astro's static state) or the trigger button
+   (video configured) — whichever is the "floating unit." Honors
+   `prefers-reduced-motion` via the sitewide blanket override above, which
+   collapses this animation's duration to near-zero rather than a rule
+   declared here. */
+.video-float {
+  animation: videoTriggerFloat 7s ease-in-out infinite;
+}
+@keyframes videoTriggerFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.video-trigger {
+  position: relative;
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: block;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 14px;
+}
+
+/* The complete, uncropped ELT logo — width only, height auto, so the
+   browser never crops or stretches it regardless of which caller's own
+   intrinsic image width is requested. */
+.video-trigger__logo {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 0 40px rgba(160, 123, 239, 0.35))
+    drop-shadow(0 10px 40px rgba(0, 0, 0, 0.5));
+  border-radius: 14px;
+}
+
+.video-trigger__play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--warm-white);
+  background: rgba(11, 11, 18, 0.38);
+  border-radius: 14px;
+  transition: background 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.video-trigger__play svg {
+  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.6));
+}
+.video-trigger:hover .video-trigger__play,
+.video-trigger:focus-visible .video-trigger__play {
+  background: rgba(11, 11, 18, 0.55);
+}
+.video-trigger:hover .video-trigger__play svg,
+.video-trigger:focus-visible .video-trigger__play svg {
+  transform: scale(1.1);
+}
+
+/* Set by heroVideo.ts on activation. The trigger button (and its
+   `.video-float` animation) is removed from the DOM at that point, so the
+   iframe is naturally stationary with no extra rule needed to "stop" it. */
+.video-trigger-wrapper.is-playing .video-trigger__iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 14px;
+  box-shadow: 0 0 40px rgba(160, 123, 239, 0.35), 0 10px 40px rgba(0, 0, 0, 0.5);
 }

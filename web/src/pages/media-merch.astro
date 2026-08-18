@@ -1,0 +1,236 @@
+---
+/**
+ * /media-merch — photos, an optional featured video, and inquiry-only
+ * merchandise.
+ *
+ * This is the only file on this route that touches Sanity. It fetches,
+ * hands the raw result straight to normalization, and passes plain objects
+ * down; no component below it knows Sanity exists. Everything here runs
+ * once, at `astro build` — nothing is fetched in the browser.
+ */
+
+import { getImage } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MediaIntro from "../components/MediaIntro.astro";
+import FeaturedVideo from "../components/FeaturedVideo.astro";
+import MediaGallery from "../components/MediaGallery.astro";
+import MerchGrid from "../components/MerchGrid.astro";
+import BookingCTA from "../components/BookingCTA.astro";
+import siteConfig, { formatPageTitle, contactInquiryHref } from "../data/siteConfig";
+import { mediaPageCopy, mediaPageFallback, galleryFallback, merchFallback } from "../data/mediaData";
+import { getYouTubeVideoId } from "../lib/youtube";
+import { sanityClient } from "../sanity/client";
+import { MEDIA_PAGE_QUERY } from "../sanity/queries";
+import {
+  normalizeMediaPageContent,
+  DEFAULT_OBJECT_POSITION,
+  type NormalizedMediaPageContent,
+  type NormalizedGalleryPhoto,
+  type NormalizedMerchItem,
+} from "../sanity/normalize";
+
+// Which policy applies is decided by the configured DATASET, not by Astro's
+// build mode — a production-mode build may legitimately point at
+// `development` (a staging preview), and that must not trip the strict
+// requirements below. Matches every other route's convention exactly.
+const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
+
+const rawMediaPage = await sanityClient.fetch(MEDIA_PAGE_QUERY);
+
+// The curated gallery/merch selections get strict, item-level validation in
+// production (see normalize.ts's module doc comment on this section) — any
+// invalid selected entry fails the whole build there, and is silently
+// dropped everywhere else.
+const normalizedMediaPage = normalizeMediaPageContent(rawMediaPage, {
+  strict: isProductionDataset,
+});
+
+if (normalizedMediaPage === null && isProductionDataset) {
+  throw new Error(
+    "The Sanity `mediaPage` singleton is missing or incomplete in the production dataset. " +
+      "The page introduction and inquiry call-to-action must be complete; every selected " +
+      "gallery photo must resolve with an image, alt text, a known category, and (if supplied) " +
+      "a valid credit URL; and every selected merchandise item must have a name and description " +
+      "with no `[TEST — CLIENT PRODUCT REQUIRED]` marker and a resolvable image if one is " +
+      "supplied. Publish the Media & Merch Page in Sanity Studio before building for " +
+      "production — see docs/media-merch.md.",
+  );
+}
+
+/**
+ * The development fallback is ONE complete block, used only when the whole
+ * singleton is absent — never patched field by field onto partial live
+ * content. It includes a clearly `[TEST — CLIENT VIDEO REQUIRED]`-marked
+ * featured video (see `mediaData.ts`'s module doc comment) — this branch is
+ * structurally unreachable once `PUBLIC_SANITY_DATASET` is `production`
+ * (the `throw` above already fired by the time execution could reach here),
+ * and a valid LIVE `mediaPage` with no featured video takes the entirely
+ * separate `normalizeFeaturedVideo` path below, which returns `null` and
+ * omits the section — this fixture can never substitute for that.
+ */
+let pageContent: NormalizedMediaPageContent;
+
+// Mirrors normalize.ts's GALLERY_THUMB_WIDTH / GALLERY_LIGHTBOX_WIDTH: two
+// bounded sizes, never a third undisplayed one, and never the unbounded
+// original — matching the live Sanity path exactly (docs/media-merch.md §13).
+const FALLBACK_THUMB_WIDTH = 700;
+const FALLBACK_LIGHTBOX_WIDTH = 1600;
+
+if (normalizedMediaPage) {
+  pageContent = normalizedMediaPage;
+} else {
+  const galleryItems: NormalizedGalleryPhoto[] = await Promise.all(
+    galleryFallback.map(async (item) => {
+      const [thumb, full] = await Promise.all([
+        getImage({ src: item.image, width: FALLBACK_THUMB_WIDTH }),
+        getImage({ src: item.image, width: FALLBACK_LIGHTBOX_WIDTH }),
+      ]);
+      const thumbWidth = Number(thumb.attributes.width ?? FALLBACK_THUMB_WIDTH);
+      const thumbHeight = Number(thumb.attributes.height ?? thumbWidth);
+      const fullWidth = Number(full.attributes.width ?? FALLBACK_LIGHTBOX_WIDTH);
+      const fullHeight = Number(full.attributes.height ?? fullWidth);
+      return {
+        _key: item._key,
+        title: item.alt,
+        alt: item.alt,
+        category: item.category,
+        thumbnail: {
+          src: thumb.src,
+          width: thumbWidth,
+          height: thumbHeight,
+          objectPosition: DEFAULT_OBJECT_POSITION,
+        },
+        full: { src: full.src, width: fullWidth, height: fullHeight },
+        credit: item.credit,
+      };
+    }),
+  );
+
+  const merchItems: NormalizedMerchItem[] = [];
+  for (const item of merchFallback) {
+    let image: NormalizedMerchItem["image"] = null;
+    if (item.image && item.alt) {
+      const optimized = await getImage({ src: item.image, width: 640 });
+      const width = Number(optimized.attributes.width ?? 640);
+      const height = Number(optimized.attributes.height ?? width);
+      image = { src: optimized.src, width, height, objectPosition: DEFAULT_OBJECT_POSITION, alt: item.alt };
+    }
+    merchItems.push({
+      _id: item._id,
+      name: item.name,
+      description: item.description,
+      image,
+      priceDisplay: item.priceDisplay,
+      availabilityNote: item.availabilityNote,
+    });
+  }
+
+  pageContent = {
+    intro: mediaPageFallback.intro,
+    featuredVideo: {
+      kicker: mediaPageFallback.featuredVideo.kicker,
+      heading: mediaPageFallback.featuredVideo.heading,
+      videoUrl: mediaPageFallback.featuredVideo.videoUrl,
+      title: mediaPageFallback.featuredVideo.title,
+    },
+    gallery: {
+      kicker: mediaPageFallback.gallery.kicker,
+      heading: mediaPageFallback.gallery.heading,
+      body: mediaPageFallback.gallery.body,
+      items: galleryItems,
+      // The development fallback stays photo-only, deliberately — gallery
+      // videos are exercised with local fixtures/mocks during verification,
+      // never seeded into this permanent fallback (no Sanity write either
+      // way). An empty selection is a fully valid, unchanged state.
+      videos: [],
+      hasPerformance: galleryItems.some((item) => item.category === "performance"),
+      hasVenueCrowd: galleryItems.some((item) => item.category === "venue-crowd"),
+      hasVideos: false,
+    },
+    merch: {
+      kicker: mediaPageFallback.merch.kicker,
+      heading: mediaPageFallback.merch.heading,
+      body: mediaPageFallback.merch.body,
+      items: merchItems,
+    },
+    bookingCta: mediaPageFallback.bookingCta,
+    seo: {
+      metaTitle: mediaPageFallback.seo.metaTitle,
+      metaDescription: mediaPageFallback.seo.metaDescription,
+      // Deliberately null: this page's share image is its own field and
+      // never inherits another route's.
+      ogImageUrl: null,
+    },
+  };
+}
+
+// `normalizeFeaturedVideo` (like `getHeroVideoUrl`) only resolves presence;
+// the actual YouTube-id validation happens here, at the same layer
+// `Hero.astro` already does it at. A malformed or non-YouTube URL safely
+// resolves to "no video" — the whole section is omitted below, never a
+// "coming soon" placeholder.
+const featuredVideoId = pageContent.featuredVideo
+  ? getYouTubeVideoId(pageContent.featuredVideo.videoUrl)
+  : null;
+// A real Studio-provided title takes priority; the fallback string only
+// covers a missing/unresolved mediaItem title, never a hardcoded stand-in
+// for approved metadata (§3 — mirrors how `index.astro` resolves Hero's).
+const featuredVideoTitle =
+  pageContent.featuredVideo?.title ?? `${siteConfig.bandNameFormal} — Featured Video`;
+
+const title = formatPageTitle(pageContent.seo.metaTitle ?? "Media & Merch");
+const description = pageContent.seo.metaDescription ?? siteConfig.tagline;
+
+// Merchandise inquiries are an internal Contact-page email flow, not
+// Instagram — see docs/contact-booking.md and docs/media-merch.md §8. This
+// is an ordinary internal link: no new tab, no external-link notice.
+const inquiryHref = contactInquiryHref("merch");
+---
+
+<BaseLayout title={title} description={description} ogImage={pageContent.seo.ogImageUrl}>
+  <MediaIntro
+    kicker={pageContent.intro.kicker}
+    heading={pageContent.intro.heading}
+    lede={pageContent.intro.lede}
+  />
+
+  {
+    pageContent.featuredVideo && featuredVideoId && (
+      <FeaturedVideo
+        kicker={pageContent.featuredVideo.kicker}
+        heading={pageContent.featuredVideo.heading}
+        videoId={featuredVideoId}
+        videoTitle={featuredVideoTitle}
+      />
+    )
+  }
+
+  <MediaGallery
+    headingId={mediaPageCopy.gallery.headingId}
+    kicker={pageContent.gallery.kicker}
+    heading={pageContent.gallery.heading}
+    body={pageContent.gallery.body}
+    items={pageContent.gallery.items}
+    videos={pageContent.gallery.videos}
+    hasPerformance={pageContent.gallery.hasPerformance}
+    hasVenueCrowd={pageContent.gallery.hasVenueCrowd}
+    hasVideos={pageContent.gallery.hasVideos}
+  />
+
+  <MerchGrid
+    headingId={mediaPageCopy.merch.headingId}
+    kicker={pageContent.merch.kicker}
+    heading={pageContent.merch.heading}
+    body={pageContent.merch.body}
+    items={pageContent.merch.items}
+  />
+
+  <BookingCTA
+    kicker={pageContent.bookingCta.kicker}
+    heading={pageContent.bookingCta.heading}
+    body={pageContent.bookingCta.body}
+    ctaLabel={pageContent.bookingCta.ctaLabel}
+    balancedKicker={true}
+    href={inquiryHref}
+  />
+</BaseLayout>

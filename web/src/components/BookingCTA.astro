@@ -9,9 +9,32 @@ interface Props {
   /** Adds a matching rule before the centered kicker. Off by default so
    * existing uses keep their approved appearance. */
   balancedKicker?: boolean;
+  /**
+   * Where the button goes. Defaults to the shared booking-form destination,
+   * so every existing caller (Homepage, Shows, About) keeps its current
+   * behavior with no changes. The Media & Merch page is the first caller to
+   * override this, passing the verified Instagram URL.
+   */
+  href?: string;
+  /**
+   * Marks `href` as an external destination: opens in a new tab and appends
+   * the standard visually-hidden new-tab notice to the accessible name,
+   * matching every other external link in the project (Footer, Testimonials,
+   * member links). Off by default — the existing booking-form destination is
+   * an internal route and must not gain `target="_blank"`.
+   */
+  isExternal?: boolean;
 }
 
-const { kicker, heading, body, ctaLabel, balancedKicker = false } = Astro.props;
+const {
+  kicker,
+  heading,
+  body,
+  ctaLabel,
+  balancedKicker = false,
+  href = siteConfig.routes.bookingForm,
+  isExternal = false,
+} = Astro.props;
 ---
 
 <section class="cta" id="contact">
@@ -24,8 +47,14 @@ const { kicker, heading, body, ctaLabel, balancedKicker = false } = Astro.props;
   )}
   <h2 class="reveal reveal-1">{heading}</h2>
   <p class="reveal reveal-2">{body}</p>
-  <a href={siteConfig.routes.bookingForm} class="btn btn-primary reveal reveal-3">
+  <a
+    href={href}
+    class="btn btn-primary reveal reveal-3"
+    target={isExternal ? "_blank" : undefined}
+    rel={isExternal ? "noopener noreferrer" : undefined}
+  >
     {ctaLabel}
+    {isExternal && <span class="visually-hidden"> (opens in a new tab)</span>}
   </a>
 </section>
 

@@ -1,0 +1,185 @@
+---
+/**
+ * Third-party notices — font name/package/version/license/attribution/
+ * source for the two self-hosted fonts (Jost, Ultra), plus why the files
+ * are distributed. A real Astro route (not a raw `public/` HTML file) so
+ * `/third-party-notices/` reliably resolves the same way every other page
+ * on this site does — an earlier version of this page lived directly under
+ * `public/third-party-notices/index.html`, which Astro's own dev/preview
+ * server does not auto-resolve for a directory-style request (confirmed:
+ * `/third-party-notices/` 404'd while `/third-party-notices/index.html`
+ * worked), a portability risk on some static hosts too.
+ *
+ * The actual license TEXT files stay as raw, unprocessed `public/` assets
+ * (`web/public/third-party-notices/{jost,ultra}/LICENSE.txt`) — that part
+ * genuinely should bypass Astro's page-rendering pipeline, and doesn't hit
+ * the same directory-index problem since each is requested as an exact
+ * filename, never a bare directory path.
+ */
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { formatPageTitle } from "../../data/siteConfig";
+
+const title = formatPageTitle("Third-Party Notices");
+const description =
+  "License and attribution notices for third-party font files self-hosted by this website.";
+---
+
+<BaseLayout title={title} description={description} noIndex={true}>
+  <section class="notices">
+    <div class="section-inner intro-enter">
+      <p class="kicker">Legal</p>
+      <h1>Third-Party Notices</h1>
+      <p class="notices__lede">
+        This site self-hosts two open-source font families rather than loading them from a
+        third-party font CDN at request time. The files themselves live in this site's own build
+        output; this page records where they came from and under what license.
+      </p>
+
+      <table class="notices__table">
+        <caption>Jost</caption>
+        <tbody>
+          <tr><th>Font name</th><td>Jost</td></tr>
+          <tr><th>Installed package</th><td><code>@fontsource/jost</code></td></tr>
+          <tr><th>Package version</th><td>5.3.0 (font version v20)</td></tr>
+          <tr><th>License</th><td>SIL Open Font License, Version 1.1</td></tr>
+          <tr>
+            <th>Copyright attribution</th>
+            <td>
+              Copyright 2020 The Jost Project Authors
+              (<a href="https://github.com/indestructible-type/Jost">github.com/indestructible-type/Jost</a>).
+              Jost-Italic[wght].ttf: Copyright 2020 The Jost Project Authors
+              (<a href="https://github.com/indestructible-type/Jost">github.com/indestructible-type/Jost</a>).
+            </td>
+          </tr>
+          <tr>
+            <th>Source</th>
+            <td><a href="https://github.com/google/fonts">github.com/google/fonts</a>, distributed via Fontsource</td>
+          </tr>
+          <tr>
+            <th>Full license text</th>
+            <td><a href="/third-party-notices/jost/LICENSE.txt">/third-party-notices/jost/LICENSE.txt</a></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="notices__table">
+        <caption>Ultra</caption>
+        <tbody>
+          <tr><th>Font name</th><td>Ultra</td></tr>
+          <tr><th>Installed package</th><td><code>@fontsource/ultra</code></td></tr>
+          <tr><th>Package version</th><td>5.3.0 (font version v25)</td></tr>
+          <tr><th>License</th><td>Apache License, Version 2.0</td></tr>
+          <tr>
+            <th>Copyright attribution</th>
+            <td>
+              Copyright (c) 2010 by Brian J. Bonislawsky DBA Astigmatic (AOETI). All rights
+              reserved. Available under the Apache 2.0 license.
+            </td>
+          </tr>
+          <tr>
+            <th>Source</th>
+            <td><a href="https://github.com/google/fonts">github.com/google/fonts</a>, distributed via Fontsource</td>
+          </tr>
+          <tr>
+            <th>Full license text</th>
+            <td><a href="/third-party-notices/ultra/LICENSE.txt">/third-party-notices/ultra/LICENSE.txt</a></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 class="notices__why-heading">Why these files are distributed</h2>
+      <p class="notices__why">
+        Both licenses (SIL OFL 1.1 for Jost, Apache 2.0 for Ultra) explicitly permit bundling and
+        redistribution as part of a larger work, which is what self-hosting a font in this site's
+        own build output does. The two license files linked above are copied verbatim from the
+        installed Fontsource packages' own <code>LICENSE</code> file, unmodified. Only the specific
+        weights/styles actually used on this site are included in the build — see
+        <code>web/src/layouts/BaseLayout.astro</code> for the exact font imports.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .notices {
+    padding-top: 150px;
+  }
+  @media (max-width: 900px) {
+    .notices {
+      padding-top: 120px;
+    }
+  }
+  .notices h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-bottom: 10px;
+  }
+  .notices__lede {
+    max-width: 70ch;
+    color: rgba(244, 232, 208, 0.85);
+    line-height: 1.75;
+    margin-bottom: 40px;
+  }
+  .notices__table {
+    width: 100%;
+    max-width: 74ch;
+    border-collapse: collapse;
+    margin-bottom: 32px;
+  }
+  .notices__table caption {
+    text-align: left;
+    font-family: var(--display);
+    font-size: 1.15rem;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .notices__table th,
+  .notices__table td {
+    text-align: left;
+    padding: 8px 14px 8px 0;
+    border-bottom: 1px solid rgba(160, 123, 239, 0.15);
+    font-size: 0.9rem;
+    vertical-align: top;
+    color: rgba(244, 232, 208, 0.85);
+  }
+  .notices__table th {
+    width: 180px;
+    color: rgba(244, 232, 208, 0.55);
+    font-weight: 500;
+  }
+  .notices__table a,
+  .notices__why a {
+    color: var(--lavender-soft);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .notices__table a:hover,
+  .notices__why a:hover {
+    color: var(--gold);
+  }
+  .notices__table code,
+  .notices__why code {
+    background: rgba(160, 123, 239, 0.12);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+  .notices__why-heading {
+    font-family: var(--display);
+    font-size: 1.1rem;
+    color: var(--warm-white);
+    margin-bottom: 12px;
+  }
+  .notices__why {
+    max-width: 74ch;
+    color: rgba(244, 232, 208, 0.75);
+    line-height: 1.7;
+    font-size: 0.92rem;
+  }
+
+  @media (max-width: 700px) {
+    .notices__table th {
+      width: 130px;
+    }
+  }
+</style>

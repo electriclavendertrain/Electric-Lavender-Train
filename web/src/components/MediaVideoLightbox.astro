@@ -1,0 +1,115 @@
+---
+/**
+ * One gallery video's player, in a native `<dialog>` — reuses the exact
+ * shell CSS classes `MediaLightbox.astro` already defines globally
+ * (`.gallery-lightbox`, `.gallery-lightbox__panel`, `.gallery-lightbox__scroll`,
+ * `.gallery-lightbox__viewport`, `.gallery-lightbox__meta`,
+ * `.gallery-lightbox__caption`, `.gallery-lightbox__credit`,
+ * `.gallery-lightbox__close`) rather than duplicating that layout — the
+ * definite-height dialog / flexible viewport / natural-height metadata
+ * structure that keeps a photo's caption visible without scrolling applies
+ * identically here, so the video's title and credit stay visible together
+ * with the player on open. Only the CONTENTS of the viewport differ (an
+ * empty video frame instead of an `<img>`), styled below.
+ *
+ * Unlike `MediaLightbox.astro`, this dialog has no no-script `:target`
+ * fallback path — see `mediaGallery.ts`'s "Gallery video dialogs" doc
+ * comment for why (there is nothing a script-free fallback could put
+ * inside it). Without scripting, the gallery tile that opens this dialog
+ * is a real external link straight to YouTube instead
+ * (`MediaGallery.astro`), and this dialog is simply never opened. The close
+ * control here is therefore a plain `<button>` (calls `dialog.close()`),
+ * not a link back to a URL fragment like the photo lightbox's.
+ *
+ * The frame (`[data-video-frame]`) starts and ends every open/close cycle
+ * EMPTY — `mediaGallery.ts` injects a freshly-built iframe into it only
+ * after this specific video's tile is activated, and removes that iframe
+ * again on close (so playback actually stops, and the same video can be
+ * played again later). No iframe with a populated `src` is ever present in
+ * the initial HTML, even while this dialog is closed.
+ */
+
+import { mediaPageCopy } from "../data/mediaData";
+import type { NormalizedGalleryVideo } from "../sanity/normalize";
+
+interface Props {
+  video: NormalizedGalleryVideo;
+  dialogId: string;
+}
+
+const { video, dialogId } = Astro.props;
+const captionId = `${dialogId}-caption`;
+---
+
+<dialog
+  id={dialogId}
+  class="gallery-lightbox"
+  aria-labelledby={captionId}
+  data-gallery-video-lightbox
+>
+  <div class="gallery-lightbox__panel">
+    <button type="button" class="gallery-lightbox__close" data-gallery-video-close>
+      <span aria-hidden="true">&times;</span>
+      <span class="visually-hidden">
+        {mediaPageCopy.gallery.lightboxCloseLabel} {mediaPageCopy.gallery.lightboxCloseVideoSuffix}
+      </span>
+    </button>
+
+    <div class="gallery-lightbox__scroll">
+      <div class="gallery-lightbox__viewport">
+        {/* Populated on open, emptied on close — see the module doc comment. */}
+        <div class="gallery-video-lightbox__frame" data-video-frame></div>
+      </div>
+      <div class="gallery-lightbox__meta">
+        <p class="gallery-lightbox__caption" id={captionId}>{video.title}</p>
+        {
+          video.credit && (
+            <p class="gallery-lightbox__credit">
+              <span class="visually-hidden">{mediaPageCopy.gallery.videoCreditPrefix}</span>
+              {video.credit.url ? (
+                <a href={video.credit.url} target="_blank" rel="noopener noreferrer">
+                  {video.credit.label}
+                  <span class="visually-hidden">{mediaPageCopy.newTabSuffix}</span>
+                </a>
+              ) : (
+                video.credit.label
+              )}
+            </p>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<style is:global>
+  /* Namespaced to `gallery-video-lightbox*`; the shell classes above
+     (`.gallery-lightbox*`) are shared with, and defined once by,
+     `MediaLightbox.astro`. */
+
+  /*
+   * A 16:9 box that fits whatever space `.gallery-lightbox__viewport`
+   * (flexible, already shrunk to the room left after the metadata below
+   * reserves its own natural height) actually has available — the same
+   * "transferred size" CSS behavior that lets `object-fit: contain` fit an
+   * `<img>` into a box, applied here without an image: `width: 100%` plus
+   * `aspect-ratio` computes a preferred height, and `max-height: 100%`
+   * caps that height while the browser re-derives the width through the
+   * same ratio, so the frame never overflows either axis.
+   */
+  .gallery-video-lightbox__frame {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(11, 11, 18, 0.6);
+  }
+
+  .gallery-video-lightbox__iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>

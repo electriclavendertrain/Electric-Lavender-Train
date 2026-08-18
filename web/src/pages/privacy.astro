@@ -1,0 +1,228 @@
+---
+/**
+ * Privacy Policy — a notice describing this site's actual data practices,
+ * not legal advice given to the visitor. Internal notes on legal review,
+ * governing-law language, and entity status live in
+ * docs/content-rights-checklist.md, not on this public page.
+ *
+ * Identifies the operator as "The Electric Lavender Train" only — no LLC,
+ * corporate, or registered-entity status is claimed anywhere on this page,
+ * because nothing in this repository verifies one.
+ */
+
+import LegalPage from "../layouts/LegalPage.astro";
+import siteConfig, { formatPageTitle } from "../data/siteConfig";
+
+const title = formatPageTitle("Privacy Policy");
+const description = `How ${siteConfig.bandNameFormal} collects, uses, and protects information submitted through this website.`;
+const email = siteConfig.contact.email;
+---
+
+<LegalPage
+  title={title}
+  description={description}
+  kicker="Legal"
+  heading="Privacy Policy"
+  effectiveDate="August 15, 2026"
+>
+  <p>
+    This website is operated by The Electric Lavender Train (“we,” “us,” or “our”). This Privacy
+    Policy explains what information we collect through this website, why we collect it, who we
+    share it with, and the choices you have.
+  </p>
+
+  <h2>Information you provide to us</h2>
+  <p>
+    This site has three inquiry forms on the <a href={siteConfig.routes.contactBooking}>Contact
+    & Booking</a> page: <strong>Booking Inquiry</strong>, <strong>Merch Inquiry</strong>, and 
+    <strong> Other</strong>. What you submit depends on which form you use:
+  </p>
+  <ul>
+    <li>
+      <strong>Booking Inquiry:</strong> name and email (required); phone, organization or venue,
+      preferred date, and estimated audience size (optional); event type and event location
+      (required — location asks only for “city and venue, if known,” not a street address); event
+      details (required).
+    </li>
+    <li>
+      <strong>Merch Inquiry:</strong> name, email, and the merchandise item you're asking about
+      (required); quantity/size/other details (optional); your message (required).
+    </li>
+    <li><strong>Other:</strong> name, email, and subject (required); your message (required).</li>
+  </ul>
+  <p>
+    Every field on these forms is plain text. There are no file uploads anywhere on this site, and
+    we ask that you not include payment card numbers, government identification numbers, or
+    medical information in any of these forms — a reminder to that effect appears directly above
+    the forms themselves.
+  </p>
+  <p>
+    If you email us directly at <a href={`mailto:${email}`}>{email}</a> instead of using a form,
+    that message and whatever you choose to include in it is handled the same way any email is
+    handled by Gmail/Google, described further below.
+  </p>
+
+  <h2>Information collected automatically</h2>
+  <p>
+    When you submit one of the forms above, our form-delivery provider, <strong>Formspree</strong>,
+    may automatically receive standard technical information along with your submission — such as
+    your IP address, browser and device information, the time of submission, and the page that
+    referred you to the form. This is typical of how web forms function and is not something we
+    configure separately; it comes from Formspree's own processing of the request. We do not use
+    this technical information to build an advertising profile of you.
+  </p>
+  <p>
+    This website's hosting provider (expected to be Netlify, though the final choice of host may
+    change before launch) may also log standard web-server access information — such as IP
+    address, requested pages, and timestamps — as part of ordinary hosting operations, independent
+    of anything you submit through a form.
+  </p>
+
+  <h2>How we use your information</h2>
+  <p>We use the information you submit to:</p>
+  <ul>
+    <li>Respond to booking, merchandise, and general inquiries;</li>
+    <li>Communicate with you about an inquiry or, where applicable, a confirmed booking;</li>
+    <li>Identify and prevent spam and abusive submissions; and</li>
+    <li>Maintain records reasonably necessary for our business, accounting, or legal purposes.</li>
+  </ul>
+  <p>
+    We do <strong>not</strong> sell your information, and we do not use inquiry information for
+    behavioral advertising.
+  </p>
+
+  <h2>Service providers we use</h2>
+  <p>The following third-party services are involved in operating this website and handling inquiries:</p>
+  <ul>
+    <li><strong>Formspree</strong> — receives, processes, and may store the contents of form submissions, and delivers them to us by email. Formspree has its own privacy practices, which you can review at their website.</li>
+    <li><strong>Gmail / Google</strong> — the email service where inquiry notifications and any direct emails to <a href={`mailto:${email}`}>{email}</a> are received and stored.</li>
+    <li><strong>Our website host</strong> — serves the website itself and may log standard access information as described above.</li>
+    <li><strong>Sanity</strong> — the content platform used to manage and publish this website's public editorial content (such as band photos, event listings, and merchandise descriptions). Sanity does not receive or store anything you submit through the contact forms.</li>
+    <li><strong>YouTube</strong> — used to embed video content on this site, including the featured video and the Media &amp; Merch gallery videos. See “Embedded YouTube videos” below.</li>
+  </ul>
+
+  <h2>Marketing communications</h2>
+  <p>
+    We do not automatically add anyone who submits an inquiry to a marketing or newsletter list. If
+    we ever introduce email marketing in the future, we will only send it to people who have given a
+    separate, explicit, unchecked opt-in specifically for that purpose — never simply because they
+    once submitted a booking, merchandise, or general inquiry.
+  </p>
+
+  <h2>Analytics and advertising</h2>
+  <p>
+    At launch, this website does not use Google Analytics, Meta Pixel, or any other analytics,
+    advertising, or remarketing tracking technology. If that changes in the future, this Privacy
+    Policy — and, where required, our approach to cookie consent — will be updated first.
+  </p>
+
+  <h2>Cookies and similar technologies</h2>
+  <p>
+    We do not configure analytics cookies, behavioral-advertising cookies, or remarketing trackers of
+    any kind on this website. We are not able to promise that no cookie or similar local storage will
+    ever be set by any part of this site or the third-party services it embeds — for example, YouTube
+    may set its own cookies once you choose to activate an embedded video, as part of its own normal
+    operation (see below) — but nothing along those lines is configured by us, and we do not use
+    cookies to build an advertising profile of visitors.
+  </p>
+
+  <h2>Embedded YouTube videos</h2>
+  <p>
+    YouTube videos on this site — including the featured video and the videos in the Media &amp;
+    Merch photo/video gallery — are embedded using YouTube's privacy-enhanced mode
+    (<code>youtube-nocookie.com</code>), and the video player itself is never loaded until you
+    actively click to play it — simply visiting a page with an embedded video does not load anything
+    from YouTube. Once you choose to play a video, you're interacting directly with YouTube's own
+    player, which YouTube (owned by Google) operates according to its own privacy policy and terms.
+    YouTube may show advertising within the embedded player. YouTube states that advertising shown
+    through privacy-enhanced mode is non-personalized — we report that as YouTube's own stated
+    behavior, not as our own guarantee of how Google's systems actually operate. YouTube still
+    processes information about your interaction with the activated player according to its own
+    practices, which we do not control or fully disclose. To be clear, this is entirely separate
+    from the "no analytics, behavioral advertising, or remarketing trackers" statement above, which
+    describes what <em>we</em> configure on this website — it does not, and could not, override how
+    YouTube's own embedded product behaves once activated.
+  </p>
+
+  <h2>Data retention</h2>
+  <p>
+    We generally retain inquiry information for up to 12 months after our last interaction with
+    you. We may retain certain information longer when reasonably necessary to complete a booking,
+    maintain business or financial records, resolve a dispute, enforce an agreement, or comply with
+    legal obligations. Spam and unnecessary information may be deleted sooner. Deletion under this
+    policy is a manual review-and-remove process, not an automated one.
+  </p>
+
+  <h2>Your rights and choices</h2>
+  <p>
+    You may request access to, correction of, or deletion of information you've submitted to us by
+    emailing <a href={`mailto:${email}`}>{email}</a>. What we can do depends on where the information
+    lives:
+  </p>
+  <ul>
+    <li>
+      <strong>Submissions stored in our Formspree account</strong> and <strong>notifications and
+      conversations in our Gmail account</strong> are ours to locate and delete, and we will do so
+      for a valid request (subject to the retention exceptions above — e.g. records tied to a
+      confirmed booking).
+    </li>
+    <li>
+      <strong>Any spreadsheet or other export</strong> we've made from the above is likewise ours to
+      delete, and is held to the same retention rules as the original.
+    </li>
+    <li>
+      <strong>Provider-controlled security logs, records we're legally required to keep, and
+      backups</strong> our providers retain as part of their own disaster-recovery practices are
+      outside our direct control — we can ask our providers to remove them, but cannot guarantee
+      the exact timing of that deletion.
+    </li>
+  </ul>
+
+  <h2>Security</h2>
+  <p>
+    We take reasonable steps to protect information submitted through this website, including
+    relying on our providers' own security practices (such as Formspree's and Google's). No method
+    of transmission or storage over the internet is completely secure, and we cannot guarantee
+    absolute security.
+  </p>
+
+  <h2>Children's privacy</h2>
+  <p>
+    This website and its forms are not directed to children under 13, and we do not knowingly
+    collect personal information from children under 13. If you believe a child has submitted
+    information to us, please contact us at <a href={`mailto:${email}`}>{email}</a> so we can
+    address it.
+  </p>
+
+  <h2>California privacy disclosures</h2>
+  <p>
+    For California residents: the categories of personal information we collect are limited to
+    what's described above — identifiers (name, email, phone if provided) and the content of your
+    inquiry. We do not sell this information, and we share it only with the service providers
+    listed above, for the purposes described above — not for cross-context behavioral advertising.
+    This website does not currently respond differently to browser "Do Not Track" signals or other
+    cross-site tracking opt-out signals, because it does not engage in cross-site tracking or
+    behavioral advertising in the first place. We will note the date of any material change to this
+    policy at the top of this page.
+  </p>
+
+  <h2>International visitors</h2>
+  <p>
+    This website is operated from, and primarily intended for visitors in, the United States. If
+    you access this site from outside the United States, your information may be transferred to
+    and processed in the United States or other countries where our service providers operate,
+    which may have different data protection laws than your home country.
+  </p>
+
+  <h2>Changes to this policy</h2>
+  <p>
+    We may update this Privacy Policy from time to time. Material changes will be reflected by
+    updating the effective date at the top of this page. We encourage you to review this page
+    periodically.
+  </p>
+
+  <h2>Contact us</h2>
+  <p>
+    Questions about this Privacy Policy, or requests regarding your information, can be sent to <a href={`mailto:${email}`}>{email}</a>.
+  </p>
+</LegalPage>

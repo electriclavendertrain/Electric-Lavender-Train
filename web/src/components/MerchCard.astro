@@ -1,0 +1,143 @@
+---
+/**
+ * One merchandise item: optional image or a polished text-only state,
+ * required name and description, optional display-only price/availability
+ * text, and an inquiry-only action that links into the Contact page's
+ * merchandise inquiry form (`?inquiry=merch&item=…#contact-forms`) — an
+ * ordinary internal link, not Instagram. See docs/contact-booking.md and
+ * docs/media-merch.md §8.
+ *
+ * Deliberately absent, and never to be added here: add-to-cart, buy-now,
+ * checkout, quantity, size/variant selection, SKU, inventory, a numeric
+ * commerce price, a currency code, shipping, tax, discounts, accounts, or
+ * order/payment processing. This card cannot imply a working store — see
+ * `mediaPageCopy.merch.noCommerceNotice` in `MerchGrid.astro`, which states
+ * that boundary once for the whole section rather than per card.
+ */
+
+import { contactInquiryHref } from "../data/siteConfig";
+import { mediaPageCopy } from "../data/mediaData";
+import type { NormalizedMerchItem } from "../sanity/normalize";
+
+interface Props {
+  item: NormalizedMerchItem;
+}
+
+const { item } = Astro.props;
+const inquiryHref = contactInquiryHref("merch", item.name);
+---
+
+<article class="merch-card">
+  {
+    item.image && (
+      <div class="merch-card__frame">
+        <img
+          src={item.image.src}
+          width={item.image.width}
+          height={item.image.height}
+          alt={item.image.alt}
+          loading="lazy"
+          decoding="async"
+          style={`--focal-point: ${item.image.objectPosition}`}
+        />
+      </div>
+    )
+  }
+
+  <div class="merch-card__body">
+    <h3 class="merch-card__name">{item.name}</h3>
+    <p class="merch-card__description">{item.description}</p>
+
+    {item.priceDisplay && <p class="merch-card__price">{item.priceDisplay}</p>}
+    {item.availabilityNote && <p class="merch-card__availability">{item.availabilityNote}</p>}
+
+    <a class="merch-card__cta" href={inquiryHref}>
+      {mediaPageCopy.merch.inquiryLabelPrefix} {item.name}
+    </a>
+  </div>
+</article>
+
+<style>
+  .merch-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.18), rgba(11, 11, 18, 0.4));
+    border: 1px solid rgba(160, 123, 239, 0.25);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: transform 0.35s var(--ease), border-color 0.35s, box-shadow 0.35s;
+  }
+  .merch-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--lavender);
+    box-shadow: 0 20px 44px rgba(90, 62, 123, 0.35);
+  }
+  .merch-card:focus-within {
+    border-color: var(--lavender);
+  }
+
+  .merch-card__frame {
+    position: relative;
+    background: rgba(11, 11, 18, 0.6);
+  }
+  .merch-card__frame img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    object-position: var(--focal-point, 50% 50%);
+  }
+
+  .merch-card__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex: 1 1 auto;
+    gap: 8px;
+    padding: 22px 22px 24px;
+  }
+  .merch-card__name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--warm-white);
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+  .merch-card__description {
+    font-size: 0.9rem;
+    color: rgba(244, 232, 208, 0.75);
+    overflow-wrap: anywhere;
+  }
+  .merch-card__price {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--gold);
+    overflow-wrap: anywhere;
+  }
+  .merch-card__availability {
+    font-size: 0.8rem;
+    color: rgba(244, 232, 208, 0.6);
+    overflow-wrap: anywhere;
+  }
+
+  .merch-card__cta {
+    display: inline-flex;
+    align-items: center;
+    /* 44px minimum target, met by height rather than font size. */
+    min-height: 44px;
+    margin-top: auto;
+    padding-top: 12px;
+    font-size: 0.78rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--lavender-soft);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+  .merch-card__cta:hover {
+    color: var(--gold);
+  }
+</style>

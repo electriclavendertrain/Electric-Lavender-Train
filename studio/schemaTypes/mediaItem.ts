@@ -1,4 +1,5 @@
 import {defineField, defineType} from 'sanity'
+import {getYouTubeVideoId} from './youtube'
 
 type MediaItemDoc = {
   mediaType?: 'image' | 'video'
@@ -111,6 +112,8 @@ export const mediaItem = defineType({
     defineField({
       name: 'videoUrl',
       title: 'Video URL',
+      description:
+        'For YouTube: paste a normal YouTube watch or share link (for example, https://www.youtube.com/watch?v=… or https://youtu.be/…). A privacy-enhanced embed link (https://www.youtube-nocookie.com/embed/…) also works if that is what you have, but you never need to convert one yourself — the public website always plays the video in YouTube’s privacy-enhanced mode once a visitor clicks play, no matter which valid link is entered here. For Vimeo, use a normal vimeo.com link. For another external video, use any valid https:// link.',
       type: 'url',
       hidden: ({document}) => !isVideo(document),
       validation: (Rule) =>
@@ -119,18 +122,29 @@ export const mediaItem = defineType({
           if (!isVideo(document as Record<string, unknown>)) return true
           if (!value) return 'Required for video media items'
 
-          let hostname: string
+          let parsed: URL
           try {
-            hostname = new URL(value).hostname.replace(/^www\./, '')
+            parsed = new URL(value)
           } catch {
             return 'Must be a valid URL'
           }
+          const hostname = parsed.hostname.replace(/^www\./, '')
 
           const provider = document?.videoProvider
           if (provider === 'youtube') {
+            // Not just "is this a YouTube host" — the URL must actually
+            // resolve to a playable 11-character video ID, the same check
+            // (and the same accepted URL shapes) the public site uses to
+            // decide whether to render a play control at all. A channel,
+            // playlist, search, or profile URL shares a YouTube hostname
+            // with a real video URL but has no video to extract, and would
+            // otherwise publish successfully while quietly never playing
+            // anything on the live site. See `./youtube.ts`'s doc comment
+            // for why this check is duplicated rather than imported from
+            // `web/`.
             return (
-              ['youtube.com', 'm.youtube.com', 'youtu.be'].includes(hostname) ||
-              'Must be a YouTube URL'
+              getYouTubeVideoId(value) !== null ||
+              'Must be a playable YouTube video link — a channel, playlist, search, or profile link is not accepted. Paste a normal watch/share link (youtube.com/watch?v=…, youtu.be/…) or a privacy-enhanced embed link (youtube-nocookie.com/embed/…).'
             )
           }
           if (provider === 'vimeo') {
@@ -152,6 +166,53 @@ export const mediaItem = defineType({
       hidden: ({document}) => !isVideo(document),
       // Required-ness for the "other" provider is enforced on `videoProvider`
       // above — a custom rule here would only ever produce a warning.
+    }),
+    defineField({
+      name: 'category',
+      title: 'Gallery category',
+      description:
+        'Optional. Groups this image under the Media & Merch gallery filters (Performances / Venue & Crowd). Leave unset for "uncategorized" — it still appears in "All" but not under either named filter.',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Performances', value: 'performance'},
+          {title: 'Venue & Crowd', value: 'venue-crowd'},
+        ],
+        layout: 'dropdown',
+      },
+      hidden: ({document}) => !isImage(document),
+    }),
+    defineField({
+      name: 'creditLine',
+      title: 'Media credit',
+      description:
+        'Optional. The exact approved public attribution text for this photo or video (e.g. "Photo by Jane Doe" or "Video by Jane Doe"). Use only wording the source has approved — never invented or reworded here. A credit is separate from rights permission and does not by itself prove this site has permission to use the media.',
+      type: 'string',
+      hidden: ({document}) => !isImage(document) && !isVideo(document),
+    }),
+    defineField({
+      name: 'creditUrl',
+      title: 'Media credit link',
+      description:
+        'Optional. Only meaningful when Media credit above is filled in — add a Media credit first.',
+      type: 'url',
+      hidden: ({document}) => !isImage(document) && !isVideo(document),
+      /**
+       * Anchored on this primitive `url` field, not the `creditLine` string it
+       * depends on, purely because "URL requires a sibling to be set" reads
+       * more naturally here — both are primitive fields, so either placement
+       * would emit at `error` level (docs/developer-guide.md §5).
+       */
+      validation: (Rule) =>
+        Rule.uri({scheme: ['http', 'https']}).custom((value, context) => {
+          if (!value) return true
+          const document = context.document as Record<string, unknown> | undefined
+          const creditLine = document?.creditLine
+          if (typeof creditLine !== 'string' || creditLine.trim().length === 0) {
+            return 'Add a Media credit above before adding a credit link.'
+          }
+          return true
+        }),
     }),
   ],
   preview: {

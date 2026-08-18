@@ -1,0 +1,63 @@
+---
+/**
+ * /contact-booking — booking, merch, and other inquiries, each a real
+ * submittable form delivered via Formspree (one project, three separately
+ * configurable endpoints — see `web/src/lib/formDelivery.ts`), with a
+ * direct `mailto:` link kept as an always-available fallback.
+ *
+ * No Sanity singleton is fetched here — every field, label, and inquiry
+ * type is a fixed product decision (see `contactData.ts`'s module doc
+ * comment), not editorial content. This is therefore the one content route
+ * that touches no Sanity query at all.
+ *
+ * Static and Astro-first, like every other route: nothing is fetched in the
+ * browser, and the one piece of real interactivity (the inquiry switcher +
+ * form submission) is a single page-specific script, `contactForms.ts`.
+ */
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ContactIntro from "../components/ContactIntro.astro";
+import ContactForms from "../components/ContactForms.astro";
+import siteConfig, { formatPageTitle, isContactEmailConfigured } from "../data/siteConfig";
+import { contactCopy } from "../data/contactData";
+
+// Same configured-DATASET convention as every other route (not Astro's
+// build mode) — see docs/developer-guide.md §10.
+const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
+// A real email-shape check, not merely "is this non-null" — a blank or
+// malformed value must not satisfy launch readiness either.
+const emailConfigured = isContactEmailConfigured();
+
+// This route has no Sanity content to be missing or incomplete — the one
+// thing that can make it unsafe to publish is a production build going out
+// with no real, usable destination for the forms it invites visitors to
+// fill in and now actually submit.
+if (isProductionDataset && !emailConfigured) {
+  throw new Error(
+    "The Contact & Booking page cannot build for the production dataset while " +
+      "`siteConfig.contact.email` is missing or not a valid email address. Confirm the " +
+      "public booking/contact email with the client and set it in " +
+      "`web/src/data/siteConfig.ts` — this guard passes automatically once " +
+      "`isContactEmailConfigured()` is true. See docs/client-questions.md and " +
+      "docs/contact-booking.md.",
+  );
+}
+
+const title = formatPageTitle(contactCopy.intro.heading);
+const description = contactCopy.intro.lede;
+---
+
+<BaseLayout title={title} description={description}>
+  <ContactIntro
+    kicker={contactCopy.intro.kicker}
+    heading={contactCopy.intro.heading}
+    lede={contactCopy.intro.lede}
+    explanation={contactCopy.intro.explanation}
+  />
+
+  <ContactForms
+    headingId={contactCopy.headingId}
+    emailConfigured={emailConfigured}
+    contactEmail={siteConfig.contact.email}
+  />
+</BaseLayout>

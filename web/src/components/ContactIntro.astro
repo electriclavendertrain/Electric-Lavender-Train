@@ -1,0 +1,59 @@
+---
+/**
+ * The Contact & Booking page's opening block, and the page's only `<h1>`.
+ * Same compact-intro treatment as `MediaIntro.astro` / `ShowsIntro.astro`:
+ * clears the fixed header with top padding, uses `.intro-enter` because it
+ * is above the fold.
+ */
+
+interface Props {
+  kicker?: string | null;
+  heading: string;
+  lede: string;
+  explanation: string;
+}
+
+const { kicker, heading, lede, explanation } = Astro.props;
+---
+
+<section class="contact-intro">
+  <div class="section-inner intro-enter">
+    {kicker && <p class="kicker">{kicker}</p>}
+    <h1>{heading}</h1>
+    <p class="contact-intro__lede">{lede}</p>
+    <p class="contact-intro__explanation">{explanation}</p>
+  </div>
+</section>
+
+<style>
+  .contact-intro {
+    padding-top: 150px;
+  }
+
+  .contact-intro h1 {
+    font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+    margin-bottom: 22px;
+  }
+
+  .contact-intro__lede {
+    color: rgba(244, 232, 208, 0.9);
+    font-size: 1.05rem;
+    font-weight: 300;
+    max-width: 62ch;
+    margin-bottom: 14px;
+  }
+
+  .contact-intro__explanation {
+    max-width: 62ch;
+    font-size: 0.92rem;
+    color: rgba(244, 232, 208, 0.75);
+    border-left: 2px solid rgba(200, 168, 107, 0.55);
+    padding-left: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .contact-intro {
+      padding-top: 120px;
+    }
+  }
+</style>

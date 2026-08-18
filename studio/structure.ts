@@ -3,6 +3,8 @@ import {BlockquoteIcon} from '@sanity/icons/Blockquote'
 import {CalendarIcon} from '@sanity/icons/Calendar'
 import {HomeIcon} from '@sanity/icons/Home'
 import {ImagesIcon} from '@sanity/icons/Images'
+import {PlayIcon} from '@sanity/icons/Play'
+import {TagIcon} from '@sanity/icons/Tag'
 import {UsersIcon} from '@sanity/icons/Users'
 
 export const structure: StructureResolver = (S) =>
@@ -26,6 +28,11 @@ export const structure: StructureResolver = (S) =>
         .id('showsPage')
         .icon(CalendarIcon)
         .child(S.document().schemaType('showsPage').documentId('showsPage')),
+      S.listItem()
+        .title('Media & Merch Page')
+        .id('mediaPage')
+        .icon(PlayIcon)
+        .child(S.document().schemaType('mediaPage').documentId('mediaPage')),
       S.divider(),
       // Reusable content — ordinary documents, created and deleted freely.
       S.listItem()
@@ -42,6 +49,11 @@ export const structure: StructureResolver = (S) =>
             .title('Testimonials')
             .defaultOrdering([{field: 'displayOrder', direction: 'asc'}]),
         ),
+      S.listItem()
+        .title('Merchandise')
+        .id('merchItems')
+        .icon(TagIcon)
+        .child(S.documentTypeList('merchItem').title('Merchandise')),
       S.divider(),
       S.listItem()
         .title('Events')

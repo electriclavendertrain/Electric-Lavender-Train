@@ -1,0 +1,456 @@
+---
+/**
+ * The curated media gallery: category/video filters (progressive
+ * enhancement) plus a grid of photo and video thumbnails, each opening a
+ * native-dialog lightbox.
+ *
+ * `items` (photos) and `videos` are each already normalized in their own
+ * Sanity-stored order — two independent single sources of truth (see
+ * `normalize.ts`'s "Media & Merch page" module doc comment). This component
+ * never sorts, filters at build time, or drops anything; every normalized
+ * item is always in the DOM. Ordering rule, enforced purely by DOM order
+ * below: **all photos first (their own order), then all videos (their own
+ * order)** — this is what makes the "All" filter show photos-then-videos
+ * without any client-side sorting, and it's also why the "Videos" filter
+ * (which only toggles `hidden`, never reorders) naturally shows videos in
+ * exactly `gallery.videos` order.
+ *
+ * Filter buttons for "Performances" / "Venue & Crowd" render only when at
+ * least one normalized photo actually uses that category; "Videos" renders
+ * only when at least one normalized video exists — `hasPerformance` /
+ * `hasVenueCrowd` / `hasVideos` are computed once in `normalize.ts` so this
+ * component does not need four duplicate arrays to decide. A video's
+ * `data-gallery-category="video"` value is code-owned (never an editor
+ * choice) and is disjoint from the two photo category values, so a video
+ * can never match a photo-category filter and a photo can never match
+ * "Videos" — the same `hidden`-toggling filter script handles all of it.
+ *
+ * Without JavaScript: the filter controls stay hidden (see
+ * `.media-gallery__filters` below), every photo and video stays visible,
+ * every photo thumbnail's `href="#gallery-photo-…"` still opens that
+ * photo's `:target` fallback panel in `MediaLightbox.astro`, and every
+ * video tile is a real external link straight to YouTube (`video.watchUrl`,
+ * `target="_blank"`) — see `MediaVideoLightbox.astro` and
+ * `mediaGallery.ts` for why a video has no local no-script fallback.
+ */
+
+import { Image } from "astro:assets";
+import eltLogo from "../assets/images/elt-logo.jpg";
+import MediaLightbox from "./MediaLightbox.astro";
+import MediaVideoLightbox from "./MediaVideoLightbox.astro";
+import { mediaPageCopy } from "../data/mediaData";
+import type { NormalizedGalleryPhoto, NormalizedGalleryVideo } from "../sanity/normalize";
+
+interface Props {
+  headingId: string;
+  kicker?: string | null;
+  heading: string | null;
+  body?: string | null;
+  items: NormalizedGalleryPhoto[];
+  videos: NormalizedGalleryVideo[];
+  hasPerformance: boolean;
+  hasVenueCrowd: boolean;
+  hasVideos: boolean;
+}
+
+const {
+  headingId,
+  kicker,
+  heading,
+  body,
+  items,
+  videos,
+  hasPerformance,
+  hasVenueCrowd,
+  hasVideos,
+} = Astro.props;
+
+const dialogIdFor = (key: string) => `gallery-photo-${key.replace(/[^A-Za-z0-9_-]/g, "-")}`;
+const videoDialogIdFor = (key: string) => `gallery-video-${key.replace(/[^A-Za-z0-9_-]/g, "-")}`;
+const closeHref = `#${headingId}`;
+
+const filters = [
+  { value: "all", label: mediaPageCopy.gallery.allFilterLabel },
+  ...(hasPerformance
+    ? [{ value: "performance", label: mediaPageCopy.gallery.categoryLabels.performance }]
+    : []),
+  ...(hasVenueCrowd
+    ? [{ value: "venue-crowd", label: mediaPageCopy.gallery.categoryLabels["venue-crowd"] }]
+    : []),
+  ...(hasVideos ? [{ value: "video", label: mediaPageCopy.gallery.videoFilterLabel }] : []),
+];
+---
+
+{
+  heading && (items.length > 0 || videos.length > 0) && (
+    <>
+      <section class="media-gallery" aria-labelledby={headingId}>
+        <div class="section-inner">
+          {kicker && <p class="kicker reveal">{kicker}</p>}
+          <h2 id={headingId} class="reveal reveal-1">
+            {heading}
+          </h2>
+          {body && <p class="media-gallery__body reveal reveal-2">{body}</p>}
+
+          {filters.length > 1 && (
+            <div
+              class="media-gallery__filters"
+              data-gallery-filters
+              role="group"
+              aria-label={mediaPageCopy.gallery.filterGroupLabel}
+            >
+              {filters.map((filter, index) => (
+                <button
+                  type="button"
+                  class="media-gallery__filter"
+                  data-gallery-filter={filter.value}
+                  data-gallery-filter-label={filter.label}
+                  aria-pressed={index === 0 ? "true" : "false"}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <p class="visually-hidden" role="status" data-gallery-status />
+
+          <ul class="media-gallery__grid reveal reveal-3">
+            {items.map((item) => {
+              const dialogId = dialogIdFor(item._key);
+              return (
+                <li
+                  class="media-gallery__cell"
+                  data-gallery-category={item.category ?? "uncategorized"}
+                >
+                  <figure class="media-gallery__figure">
+                    <a
+                      class="media-gallery__item"
+                      href={`#${dialogId}`}
+                      data-gallery-lightbox-open={dialogId}
+                    >
+                      <span class="visually-hidden">View larger: </span>
+                      <img
+                        src={item.thumbnail.src}
+                        width={item.thumbnail.width}
+                        height={item.thumbnail.height}
+                        alt={item.alt}
+                        loading="lazy"
+                        decoding="async"
+                        style={`--focal-point: ${item.thumbnail.objectPosition}`}
+                      />
+                      <span class="media-gallery__zoom" aria-hidden="true">
+                        +
+                      </span>
+                    </a>
+                    {item.credit && (
+                      <figcaption class="media-gallery__credit">
+                        <span class="visually-hidden">{mediaPageCopy.gallery.photoCreditPrefix}</span>
+                        {item.credit.url ? (
+                          <a href={item.credit.url} target="_blank" rel="noopener noreferrer">
+                            {item.credit.label}
+                            <span class="visually-hidden">{mediaPageCopy.newTabSuffix}</span>
+                          </a>
+                        ) : (
+                          item.credit.label
+                        )}
+                      </figcaption>
+                    )}
+                  </figure>
+                </li>
+              );
+            })}
+            {videos.map((video) => {
+              const dialogId = videoDialogIdFor(video._key);
+              return (
+                <li class="media-gallery__cell" data-gallery-category="video">
+                  <figure class="media-gallery__figure">
+                    <a
+                      class="media-gallery__item media-gallery__item--video"
+                      href={video.watchUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-gallery-video-open={dialogId}
+                      data-video-id={video.videoId}
+                      data-video-title={video.title}
+                    >
+                      <span class="visually-hidden">{mediaPageCopy.gallery.playVideoLabelPrefix}</span>
+                      {video.poster ? (
+                        <img
+                          src={video.poster.src}
+                          width={video.poster.width}
+                          height={video.poster.height}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          style={`--focal-point: ${video.poster.objectPosition}`}
+                        />
+                      ) : (
+                        <Image
+                          class="media-gallery__video-fallback"
+                          src={eltLogo}
+                          alt=""
+                          width={700}
+                          loading="lazy"
+                        />
+                      )}
+                      <span class="media-gallery__play" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </span>
+                      <span class="media-gallery__video-title">{video.title}</span>
+                      <span class="visually-hidden">{mediaPageCopy.gallery.videoNewTabSuffix}</span>
+                    </a>
+                    {video.credit && (
+                      <figcaption class="media-gallery__credit">
+                        <span class="visually-hidden">{mediaPageCopy.gallery.videoCreditPrefix}</span>
+                        {video.credit.url ? (
+                          <a href={video.credit.url} target="_blank" rel="noopener noreferrer">
+                            {video.credit.label}
+                            <span class="visually-hidden">{mediaPageCopy.newTabSuffix}</span>
+                          </a>
+                        ) : (
+                          video.credit.label
+                        )}
+                      </figcaption>
+                    )}
+                  </figure>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>
+
+      {items.map((item) => (
+        <MediaLightbox item={item} dialogId={dialogIdFor(item._key)} closeHref={closeHref} />
+      ))}
+      {videos.map((video) => (
+        <MediaVideoLightbox video={video} dialogId={videoDialogIdFor(video._key)} />
+      ))}
+
+      <script>
+        import "../scripts/mediaGallery";
+      </script>
+    </>
+  )
+}
+
+<style>
+  .media-gallery h2 {
+    /* The filter buttons and grid link back here via `closeHref`; keep it
+       clear of the fixed header. */
+    scroll-margin-top: 110px;
+  }
+  .media-gallery__body {
+    color: rgba(244, 232, 208, 0.85);
+    font-size: 1.02rem;
+    font-weight: 300;
+    max-width: 66ch;
+    margin-top: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  /* Hidden until `mediaGallery.ts` confirms it can wire the buttons up — a
+     script failure or unavailability leaves every photo visible with no
+     dead controls in the tab order. */
+  .media-gallery__filters {
+    display: none;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+  }
+  .media-gallery__filters.is-active {
+    display: flex;
+  }
+  .media-gallery__filter {
+    display: inline-flex;
+    align-items: center;
+    /* 44px minimum target, met by height rather than font size. */
+    min-height: 44px;
+    padding: 10px 22px;
+    border-radius: 24px;
+    font-size: 0.78rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--lavender-soft);
+    background: rgba(160, 123, 239, 0.08);
+    border: 1.5px solid rgba(160, 123, 239, 0.35);
+    cursor: pointer;
+    transition: background 0.3s var(--ease), border-color 0.3s var(--ease),
+      color 0.3s var(--ease);
+  }
+  .media-gallery__filter:hover {
+    border-color: var(--lavender);
+    color: var(--warm-white);
+  }
+  /* State is communicated by `aria-pressed` to assistive tech; this
+     checkmark is a shape/fill cue for sighted users so the active filter is
+     never conveyed by color alone. `::before` content is not reliably
+     announced, which is correct here — it would otherwise double up with
+     `aria-pressed`. */
+  .media-gallery__filter[aria-pressed="true"] {
+    color: var(--black);
+    background: var(--lavender-soft);
+    border-color: var(--lavender-soft);
+  }
+  .media-gallery__filter[aria-pressed="true"]::before {
+    content: "✓ ";
+  }
+
+  .media-gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-top: 34px;
+    list-style: none;
+  }
+  .media-gallery__cell[hidden] {
+    display: none;
+  }
+
+  .media-gallery__figure {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .media-gallery__item {
+    position: relative;
+    display: block;
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  }
+  .media-gallery__item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Each photo's own Sanity hotspot, propagated by normalize.ts. */
+    object-position: var(--focal-point, 50% 50%);
+    transition: transform 0.5s var(--ease), filter 0.5s var(--ease);
+    filter: saturate(0.85) brightness(0.92);
+  }
+  .media-gallery__zoom {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: var(--warm-white);
+    background: rgba(11, 11, 18, 0.35);
+    opacity: 0;
+    transition: opacity 0.35s var(--ease);
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .media-gallery__item:hover img {
+      transform: scale(1.06);
+      filter: saturate(1) brightness(1);
+    }
+    .media-gallery__item:hover .media-gallery__zoom {
+      opacity: 1;
+    }
+  }
+
+  .media-gallery__credit {
+    font-size: 0.74rem;
+    color: rgba(244, 232, 208, 0.55);
+    overflow-wrap: anywhere;
+  }
+  .media-gallery__credit a {
+    color: rgba(244, 232, 208, 0.55);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .media-gallery__credit a:hover {
+    color: var(--lavender-soft);
+  }
+
+  @media (max-width: 900px) {
+    .media-gallery__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .media-gallery__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* ---------------------------------------------------------------------
+     Gallery video tiles — visually belong to the same grid as a photo tile
+     (same square cell, same rounded corners/shadow), but deliberately do
+     NOT use the large floating `.video-trigger` treatment (that stays
+     reserved for the featured video) — only the same play-icon shape,
+     scaled down, so a visitor recognizes it as "the same kind of play
+     control" without the tile looking like a second featured video.
+     ------------------------------------------------------------------ */
+  .media-gallery__item--video {
+    cursor: pointer;
+  }
+  .media-gallery__item .media-gallery__video-fallback {
+    /* Beats the generic `.media-gallery__item img` rule above by having two
+       classes (higher specificity) — the complete, uncropped ELT logo,
+       letterboxed rather than cropped like a real poster photo would be. */
+    object-fit: contain;
+    padding: 18%;
+    background: rgba(11, 11, 18, 0.55);
+    filter: none;
+  }
+
+  /* Always visible (never hover-only, unlike the photo `.media-gallery__zoom`
+     badge) — this is the cue that distinguishes a video tile from a photo
+     one at a glance, including on touch devices with no hover at all. */
+  .media-gallery__play {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--warm-white);
+    background: rgba(11, 11, 18, 0.28);
+    pointer-events: none;
+    transition: background 0.3s var(--ease);
+  }
+  .media-gallery__play svg {
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+    transition: transform 0.3s var(--ease);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .media-gallery__item--video:hover .media-gallery__play {
+      background: rgba(11, 11, 18, 0.4);
+    }
+    .media-gallery__item--video:hover .media-gallery__play svg {
+      transform: scale(1.12);
+    }
+  }
+
+  /* The video's own title, always visible (this is the "referenced
+     mediaItem.title visibly displayed" requirement) — same dark scrim/
+     contrast reasoning as `GalleryPreview.astro`'s `.g-cap`. */
+  .media-gallery__video-title {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    z-index: 2;
+    padding: 5px 9px;
+    border-radius: 7px;
+    background: rgba(11, 11, 18, 0.72);
+    color: var(--cream);
+    font-size: 0.72rem;
+    line-height: 1.3;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+</style>

@@ -1,0 +1,94 @@
+---
+/**
+ * Editorial, inquiry-only merchandise. Omits entirely when there are no
+ * valid selected items — "no merchandise selected" is a legitimate, silent
+ * empty state, never an error or a placeholder grid.
+ *
+ * `mediaPageCopy.merch.noCommerceNotice` is rendered once here, for the
+ * whole section, rather than editable in Sanity: it is the sentence that
+ * defines the site's no-commerce boundary, and only the heading/body above
+ * it are editor-controlled (docs/media-merch.md §"Editable vs. protected").
+ */
+
+import MerchCard from "./MerchCard.astro";
+import { mediaPageCopy } from "../data/mediaData";
+import type { NormalizedMerchItem } from "../sanity/normalize";
+
+interface Props {
+  headingId: string;
+  kicker?: string | null;
+  heading: string | null;
+  body?: string | null;
+  items: NormalizedMerchItem[];
+}
+
+const { headingId, kicker, heading, body, items } = Astro.props;
+---
+
+{
+  heading && items.length > 0 && (
+    <section class="merch-grid" aria-labelledby={headingId}>
+      <div class="section-inner">
+        {kicker && <p class="kicker reveal">{kicker}</p>}
+        <h2 id={headingId} class="reveal reveal-1">
+          {heading}
+        </h2>
+        {body && <p class="merch-grid__body reveal reveal-2">{body}</p>}
+        <p class="merch-grid__notice reveal reveal-2">{mediaPageCopy.merch.noCommerceNotice}</p>
+
+        <ul class="merch-grid__list reveal reveal-3">
+          {items.map((item) => (
+            <li>
+              <MerchCard item={item} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .merch-grid__body {
+    color: rgba(244, 232, 208, 0.85);
+    font-size: 1.02rem;
+    font-weight: 300;
+    max-width: 66ch;
+    margin-top: 12px;
+    overflow-wrap: anywhere;
+  }
+  .merch-grid__notice {
+    max-width: 62ch;
+    margin-top: 16px;
+    font-size: 0.88rem;
+    color: rgba(244, 232, 208, 0.7);
+    border-left: 2px solid rgba(200, 168, 107, 0.55);
+    padding-left: 16px;
+  }
+
+  .merch-grid__list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 26px;
+    margin-top: 34px;
+    list-style: none;
+    align-items: stretch;
+  }
+  .merch-grid__list > li {
+    display: flex;
+  }
+  .merch-grid__list > li > :global(.merch-card) {
+    width: 100%;
+  }
+
+  @media (max-width: 980px) {
+    .merch-grid__list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 560px) {
+    .merch-grid__list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

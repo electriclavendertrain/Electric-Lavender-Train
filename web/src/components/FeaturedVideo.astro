@@ -1,0 +1,107 @@
+---
+/**
+ * The Media & Merch page's optional featured video. Rendered only when
+ * `media-merch.astro` has already resolved a valid YouTube video id — this
+ * component never decides that for itself and never renders a "coming soon"
+ * placeholder for a missing/invalid one; the section simply does not exist.
+ *
+ * Click-to-play, exactly like the Homepage hero, and sharing its exact
+ * presentation and motion via the `.video-trigger*` primitive in
+ * `global.css` (the same code-owned ELT logo, play-icon overlay,
+ * hover/focus treatment, rounded corners, drop-shadow, and pre-activation
+ * float — see that primitive's doc comment for why the float lives on the
+ * trigger button itself, and why no extra rule is needed to stop it on
+ * activation). `prefers-reduced-motion` is honored the same way: the
+ * sitewide blanket override in `global.css` collapses the shared
+ * `.video-float` animation's duration to near-zero, not a rule declared
+ * here.
+ *
+ * The two intentional differences from the Homepage, expressed as this
+ * component's own scoped CSS rather than anything shared: this frame keeps
+ * its own larger ~900px maximum width rather than the Homepage's 560px, and
+ * (a deliberate product decision, not an oversight) its trigger sits with
+ * extra clearance below the section heading. Both players stay
+ * independently sized and independently wired to their own Sanity reference
+ * (`homepage.heroVideo` vs. `mediaPage.featuredVideo.video`) — nothing here
+ * asserts or requires that they reference the same `mediaItem`, only that
+ * they're allowed to.
+ *
+ * Reuses `heroVideo.ts` unchanged via the same `data-video-*` attribute
+ * contract (see that file's doc comment) — no second click-to-play script.
+ */
+
+import { mediaPageCopy } from "../data/mediaData";
+import VideoTrigger from "./VideoTrigger.astro";
+
+interface Props {
+  kicker?: string | null;
+  heading?: string | null;
+  videoId: string;
+  /** The selected video's own title when available, otherwise a safe
+   * neutral fallback — resolved by the caller (`media-merch.astro`),
+   * mirroring how `index.astro` resolves `Hero.astro`'s `videoTitle`. */
+  videoTitle: string;
+}
+
+const { kicker, heading, videoId, videoTitle } = Astro.props;
+
+const displayHeading = heading ?? mediaPageCopy.featuredVideo.defaultHeading;
+---
+
+<section class="featured-video" aria-labelledby="featured-video-heading">
+  <div class="section-inner">
+    {kicker && <p class="kicker reveal">{kicker}</p>}
+    <h2 id="featured-video-heading" class="reveal reveal-1">{displayHeading}</h2>
+
+    <div class="featured-video__frame video-trigger-wrapper reveal reveal-2" data-video-wrapper>
+      <VideoTrigger
+        videoId={videoId}
+        videoTitle={videoTitle}
+        playLabel={mediaPageCopy.featuredVideo.playLabel}
+        width={900}
+        loading="lazy"
+      />
+    </div>
+  </div>
+</section>
+
+<script>
+  import "../scripts/heroVideo";
+</script>
+
+<style>
+  /* Noticeably more clearance above this section than the sitewide 110px/
+     80px default (see `section` in global.css) — the same responsive
+     top-clearance values already established for this page's own intro
+     (`MediaIntro.astro`) and the Contact page's intro, reused here rather
+     than a new one-off number. */
+  .featured-video {
+    padding-top: 150px;
+  }
+  @media (max-width: 900px) {
+    .featured-video {
+      padding-top: 120px;
+    }
+  }
+
+  /* Explicit size variant: this player's own larger max-width, in place of
+     the Homepage hero's 560px — the one intentional layout difference the
+     shared `.video-trigger*` primitive in global.css doesn't decide. */
+  .featured-video__frame {
+    max-width: 900px;
+    margin: 50px auto;
+  }
+
+  /* Explicit spacing variant: extra clearance between the section heading
+     and the trigger itself, on top of the section's own top padding above —
+     a deliberate product decision for this page only, so it lives here
+     rather than in the shared `.video-trigger` rule (which would also push
+     the Homepage hero's trigger down). `:global()` is required here: since
+     `.video-trigger` is now rendered by the separate `VideoTrigger.astro`
+     component (not inline in this file), Astro's scoped-CSS attribute
+     selector wouldn't otherwise match it — a plain scoped selector silently
+     stopped working the moment the trigger markup was extracted. */
+  .featured-video__frame :global(.video-trigger) {
+    margin-top: 50px;
+  }
+</style>

@@ -1,0 +1,318 @@
+---
+/**
+ * One gallery photo's full-size view, in a native `<dialog>` — the same
+ * progressive-enhancement pattern proven by `MemberProfileDialog.astro`,
+ * reused here with a gallery-specific namespace (`gallery-lightbox`,
+ * `data-gallery-lightbox*`, `.js-gallery-lightbox`) rather than the About
+ * page's member-dialog one, so the two features stay independently
+ * legible even though they never appear on the same route.
+ *
+ * With scripting available, `mediaGallery.ts` calls `showModal()`, which
+ * supplies the top layer, backdrop, background inertness, Escape-to-dismiss,
+ * and focus entry — none of that is reimplemented here.
+ *
+ * Without scripting — or on a browser with no `showModal` — the thumbnail's
+ * control is an ordinary `<a href="#gallery-photo-…">`, so activating it
+ * navigates to this element's fragment, and the `:target` rule at the bottom
+ * of this file reveals the same photo as an inline panel. The close control
+ * is an ordinary link back to the gallery heading, so it dismisses the panel
+ * by navigating away from the fragment. Every photo is reachable either way.
+ *
+ * No previous/next navigation in this phase, and no click-outside dismissal
+ * — the project has already tried and rejected `closedby="any"` (stopped
+ * Escape from working in Chrome 151; see `docs/about.md` §4). Escape plus
+ * this explicit close control are the dismissal paths.
+ */
+
+import { mediaPageCopy } from "../data/mediaData";
+import type { NormalizedGalleryPhoto } from "../sanity/normalize";
+
+interface Props {
+  item: NormalizedGalleryPhoto;
+  dialogId: string;
+  /** Where the close control navigates when scripting is unavailable. */
+  closeHref: string;
+}
+
+const { item, dialogId, closeHref } = Astro.props;
+const captionId = `${dialogId}-caption`;
+---
+
+<dialog id={dialogId} class="gallery-lightbox" aria-labelledby={captionId} data-gallery-lightbox>
+  <div class="gallery-lightbox__panel">
+    <a class="gallery-lightbox__close" href={closeHref} data-gallery-lightbox-close>
+      <span aria-hidden="true">&times;</span>
+      <span class="visually-hidden">
+        {mediaPageCopy.gallery.lightboxCloseLabel} {mediaPageCopy.gallery.lightboxClosePhotoSuffix}
+      </span>
+    </a>
+
+    <div class="gallery-lightbox__scroll">
+      {/* The flexible region: shrinks to whatever height is left after the
+          metadata below reserves its natural size, so the image is always
+          fully visible — never the reverse. See the CSS for the full
+          explanation of why this needs a definite dialog height. */}
+      <div class="gallery-lightbox__viewport">
+        {/* Same alt text as the thumbnail — this is the same photo, larger. */}
+        <img
+          class="gallery-lightbox__image"
+          src={item.full.src}
+          width={item.full.width}
+          height={item.full.height}
+          alt={item.alt}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div class="gallery-lightbox__meta">
+        <p class="gallery-lightbox__caption" id={captionId}>{item.title}</p>
+        {
+          item.credit && (
+            <p class="gallery-lightbox__credit">
+              <span class="visually-hidden">{mediaPageCopy.gallery.photoCreditPrefix}</span>
+              {item.credit.url ? (
+                <a href={item.credit.url} target="_blank" rel="noopener noreferrer">
+                  {item.credit.label}
+                  <span class="visually-hidden">{mediaPageCopy.newTabSuffix}</span>
+                </a>
+              ) : (
+                item.credit.label
+              )}
+            </p>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<style is:global>
+  /* Global rather than scoped — two rules below key off a class on <html>,
+     which Astro's scoping would rewrite into a selector that can never
+     match. Every class here is namespaced `gallery-lightbox*`. */
+
+  html.gallery-lightbox-open {
+    overflow: hidden;
+  }
+
+  /*
+   * The whole no-scroll layout depends on the dialog having a DEFINITE
+   * height (not a max-height cap on otherwise auto-sized content). With only
+   * a `max-height`, the box grows to fit its content — including a portrait
+   * image with no height ceiling of its own — and only THEN gets clipped,
+   * which is exactly how the caption used to end up below the fold. With a
+   * real `height`, the flex chain below can give the image viewport a
+   * concrete "remaining space" to shrink into, and the image is asked to
+   * fit that space rather than dictate it.
+   */
+  .gallery-lightbox {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--warm-white);
+    width: min(1100px, calc(100vw - 32px));
+    max-width: 100%;
+    height: min(90dvh, 950px);
+    overflow: visible;
+    /* Restores the centering `global.css`'s universal `* { margin: 0 }`
+       reset removes — see docs/developer-guide.md §7A / §20. Without this,
+       every lightbox opens pinned to the top-left corner. */
+    margin: auto;
+  }
+
+  /* Scoped to `[open]` — unqualified, this would override the UA's
+     `dialog:not([open]) { display: none }` and render every photo inline. */
+  .gallery-lightbox[open] {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gallery-lightbox::backdrop {
+    background: rgba(11, 11, 18, 0.85);
+    backdrop-filter: blur(6px);
+  }
+
+  .gallery-lightbox__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(160, 123, 239, 0.35);
+    border-radius: 20px;
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.35), rgba(11, 11, 18, 0.97));
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+  }
+
+  /*
+   * A flex COLUMN containing the image viewport and the metadata, in that
+   * order. `overflow-y: auto` here is a safety net for hypothetical
+   * pathologically long future caption/credit text, not the mechanism this
+   * layout relies on — for every real image, the viewport below shrinks to
+   * exactly the space left after the metadata's natural height is reserved,
+   * so the two together never exceed this container and scrolling never
+   * actually triggers. Top padding (56px) clears the absolutely-positioned
+   * close control (44px tall, 12px inset) so it never overlaps the image.
+   */
+  .gallery-lightbox__scroll {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 56px 32px 28px;
+  }
+
+  /*
+   * The image viewport: `flex: 1 1 0` is this file's `minmax(0, 1fr)` — it
+   * claims all remaining vertical space after `.gallery-lightbox__meta`
+   * below takes its natural height, and `min-height: 0` is what allows it to
+   * shrink below the image's intrinsic size in the first place (without it,
+   * a flex item refuses to shrink past its content's natural size, and
+   * we're back to the image dictating the height instead of fitting it).
+   * Centers the image both ways so it reads as "framed," not stretched into
+   * a corner.
+   */
+  .gallery-lightbox__viewport {
+    flex: 1 1 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /*
+   * The complete, uncropped image, scaled to fit whatever box the viewport
+   * above actually has available — both axes constrained, `object-fit:
+   * contain` so the browser (not the CDN, not this file) performs the one
+   * necessary fit calculation and never crops. `width`/`height` stay `auto`
+   * so the intrinsic aspect ratio drives the fit; `max-width`/`max-height`
+   * are the actual constraint.
+   */
+  .gallery-lightbox__image {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+
+  /*
+   * Metadata: OUTSIDE the flexible viewport, sized to its own content
+   * (`flex: 0 0 auto`) — this is what the image viewport's `1fr` is
+   * measured against. Always visible on open; never overlaid on the image,
+   * never clamped or truncated.
+   */
+  .gallery-lightbox__meta {
+    flex: 0 0 auto;
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  .gallery-lightbox__caption {
+    font-size: 0.95rem;
+    color: var(--warm-white);
+    overflow-wrap: anywhere;
+  }
+
+  .gallery-lightbox__credit {
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: rgba(244, 232, 208, 0.65);
+    overflow-wrap: anywhere;
+  }
+  .gallery-lightbox__credit a {
+    color: rgba(244, 232, 208, 0.65);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .gallery-lightbox__credit a:hover {
+    color: var(--lavender-soft);
+  }
+
+  .gallery-lightbox__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 44px minimum target. */
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--warm-white);
+    background: rgba(11, 11, 18, 0.7);
+    border: 1px solid rgba(160, 123, 239, 0.4);
+    transition: background 0.25s var(--ease), color 0.25s var(--ease),
+      border-color 0.25s var(--ease);
+  }
+  .gallery-lightbox__close:hover {
+    color: var(--black);
+    background: var(--gold);
+    border-color: var(--gold);
+  }
+
+  /* ---------------------------------------------------------------------
+     No-script fallback. Active only while `.js-gallery-lightbox` is absent
+     from <html> — i.e. the gallery script did not run or `showModal` is
+     unavailable. Reveals the same photo as an ordinary inline panel in
+     normal document flow — the no-scroll viewport-fit constraint above is a
+     modal-dialog concern only; a static inline panel is free to be as tall
+     as its content and let the PAGE scroll normally, so every flex/height
+     constraint from the modal layout is reset back to natural block sizing
+     here, including the new image-viewport region.
+     ------------------------------------------------------------------ */
+  html:not(.js-gallery-lightbox) .gallery-lightbox:target {
+    display: block;
+    position: static;
+    inset: auto;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    margin: 20px 0 0;
+  }
+  html:not(.js-gallery-lightbox) .gallery-lightbox:target .gallery-lightbox__panel {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+  html:not(.js-gallery-lightbox) .gallery-lightbox:target .gallery-lightbox__scroll {
+    display: block;
+    height: auto;
+    overflow: visible;
+    padding: 32px;
+  }
+  html:not(.js-gallery-lightbox) .gallery-lightbox:target .gallery-lightbox__viewport {
+    display: block;
+    overflow: visible;
+  }
+  html:not(.js-gallery-lightbox) .gallery-lightbox:target .gallery-lightbox__image {
+    max-width: 100%;
+    max-height: none;
+    width: auto;
+    height: auto;
+  }
+  html:not(.js-gallery-lightbox) .gallery-lightbox:target .gallery-lightbox__meta {
+    margin-top: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .gallery-lightbox {
+      width: calc(100vw - 20px);
+      height: min(92dvh, 950px);
+    }
+    .gallery-lightbox__scroll {
+      padding: 64px 20px 24px;
+    }
+  }
+</style>

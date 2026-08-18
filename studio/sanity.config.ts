@@ -11,10 +11,10 @@ import {structure} from './structure'
  * initial-value templates and the global "+" Create menu so a duplicate page
  * document cannot be created from the Studio UI.
  *
- * `bandMember` and `testimonial` are deliberately NOT here — they are
- * ordinary reusable documents with Sanity-generated ids.
+ * `bandMember`, `testimonial`, and `merchItem` are deliberately NOT here —
+ * they are ordinary reusable documents with Sanity-generated ids.
  */
-const SINGLETON_TYPES = ['homepage', 'aboutPage', 'showsPage']
+const SINGLETON_TYPES = ['homepage', 'aboutPage', 'showsPage', 'mediaPage']
 
 export default defineConfig({
   name: 'default',

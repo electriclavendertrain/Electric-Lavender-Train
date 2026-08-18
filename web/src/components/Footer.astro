@@ -51,12 +51,28 @@ const year = new Date().getFullYear();
     <div class="footer-col">
       <h2>Contact</h2>
       <span>{siteConfig.location}</span>
+      {
+        siteConfig.contact.email && (
+          <a
+            href={`mailto:${siteConfig.contact.email}`}
+            aria-label={`Email ${siteConfig.bandNameFormal} at ${siteConfig.contact.email}`}
+            class="footer-email"
+          >
+            {siteConfig.contact.email}
+          </a>
+        )
+      }
       <a href={siteConfig.routes.bookingForm}>Booking Inquiries &rarr;</a>
     </div>
   </div>
 
   <div class="footer-bottom">
-    <span>&copy; {year} {siteConfig.bandNameFormal}. All rights reserved.</span>
+    <span>&copy; {year} {siteConfig.bandNameFormal}</span>
+    <nav class="footer-legal" aria-label="Legal">
+      <a href={siteConfig.routes.privacy}>Privacy Policy</a>
+      <a href={siteConfig.routes.terms}>Terms of Use</a>
+      <a href={siteConfig.routes.accessibility}>Accessibility</a>
+    </nav>
     <span>Site in progress — placeholder content marked for replacement.</span>
   </div>
 </footer>
@@ -122,12 +138,31 @@ const year = new Date().getFullYear();
   .footer-col a,
   .footer-col span {
     display: block;
+    /* Padding (not just line-height) brings the clickable/tappable area to
+       WCAG 2.2 SC 2.5.8's real 24x24px Target Size (Minimum) — these are
+       plain stacked list links, not inline prose, so they don't qualify for
+       the criterion's "Inline" exception the way a link inside a sentence
+       does (see .contact-forms__jit-privacy in ContactForms.astro for that
+       case). 44px is used elsewhere on this site as a stronger internal
+       goal for primary controls, not because WCAG AA requires it here. */
+    padding: 3px 0;
     font-size: 0.88rem;
     color: rgba(244, 232, 208, 0.75);
-    margin-bottom: 11px;
+    margin-bottom: 8px;
     transition: color 0.25s;
   }
   .footer-col a:hover {
+    color: var(--lavender-soft);
+  }
+  /* The public email is deliberately conspicuous — gold, not the muted
+     default link color other footer links use — since this is the site's
+     primary always-available contact method. */
+  .footer-email {
+    color: var(--gold);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .footer-email:hover {
     color: var(--lavender-soft);
   }
 
@@ -139,10 +174,35 @@ const year = new Date().getFullYear();
     border-top: 1px solid rgba(160, 123, 239, 0.1);
     display: flex;
     justify-content: space-between;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 12px 24px;
     font-size: 0.78rem;
     color: rgba(244, 232, 208, 0.4);
+  }
+  .footer-legal {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 18px;
+  }
+  .footer-legal a {
+    /* See the WCAG target-size note on .footer-col a above — same reasoning. */
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    color: rgba(244, 232, 208, 0.55);
+    transition: color 0.25s;
+  }
+  .footer-legal a:hover {
+    color: var(--lavender-soft);
+  }
+
+  @media (max-width: 560px) {
+    .footer-bottom {
+      flex-direction: column;
+      align-items: flex-start;
+    }
   }
 
   @media (max-width: 860px) {

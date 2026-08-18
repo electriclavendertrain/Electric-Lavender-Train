@@ -7,7 +7,7 @@ import UpcomingShows from "../components/UpcomingShows.astro";
 import GalleryPreview from "../components/GalleryPreview.astro";
 import Testimonials from "../components/Testimonials.astro";
 import BookingCTA from "../components/BookingCTA.astro";
-import { formatPageTitle } from "../data/siteConfig";
+import siteConfig, { formatPageTitle } from "../data/siteConfig";
 import {
   upcomingShowsFallback,
   galleryIntroFallback,
@@ -33,6 +33,7 @@ import {
   isBandIntroComplete,
   isBookingCtaComplete,
   getHeroVideoUrl,
+  getHeroVideoTitle,
   getOgImageUrl,
   DEFAULT_OBJECT_POSITION,
   type NormalizedGalleryItem,
@@ -95,6 +96,8 @@ const bookingCtaContent = singletonExists
 // Hero.astro's own (Phase 2.5-approved, untouched) validation renders the
 // static logo for null exactly as it always has.
 const heroVideoUrl = getHeroVideoUrl(homepage?.heroVideo);
+const heroVideoTitle =
+  getHeroVideoTitle(homepage?.heroVideo) ?? `${siteConfig.bandNameFormal} — Featured Video`;
 
 const galleryItems: NormalizedGalleryItem[] = singletonExists
   ? normalizeFeaturedMedia(homepage.featuredMedia)
@@ -189,6 +192,7 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
         headline={heroContent.headline}
         subcopy={heroContent.subcopy}
         videoUrl={heroVideoUrl}
+        videoTitle={heroVideoTitle}
       />
     )
   }

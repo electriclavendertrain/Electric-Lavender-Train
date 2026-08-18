@@ -7,7 +7,7 @@ import {defineQuery} from 'groq'
 export const HOMEPAGE_QUERY = defineQuery(`
   *[_type == "homepage" && _id == "homepage"][0]{
     hero,
-    heroVideo->{ videoUrl, videoProvider },
+    heroVideo->{ videoUrl, videoProvider, title },
     bandIntro,
     featuredMedia[]{
       _key,
@@ -301,5 +301,110 @@ export const SHOWS_RECENT_PUBLIC_EVENTS_QUERY = defineQuery(`
     location,
     description,
     externalEventUrl
+  }
+`)
+
+/* -------------------------------------------------------------------------
+ * Media & Merch page (/media-merch)
+ *
+ * One fixed-id singleton query. `gallery.items` (photos), `gallery.videos`
+ * (YouTube videos), and `merch.items` are ordered arrays of DIRECT
+ * references — same dereference shape the homepage's `featuredMedia` and the
+ * About page's `members` already use: `@->` dereferences "this array
+ * element", and `"media"` / `"item"` are projection aliases naming the
+ * result, not real fields. `_key` is preserved on every array so selection
+ * order and list identity survive normalization.
+ *
+ * `gallery.items` projects no `mediaType` (image validity is decided from
+ * whether `image.asset` resolved, exactly like `normalizeFeaturedMedia`
+ * already does for the homepage gallery). `gallery.videos` DOES project
+ * `mediaType`/`videoProvider` — unlike a photo selection, a video selection
+ * must be re-validated as an actual YouTube video (not just "resolved"), so
+ * `normalizeGalleryVideos` needs those fields to check.
+ * ---------------------------------------------------------------------- */
+
+export const MEDIA_PAGE_QUERY = defineQuery(`
+  *[_type == "mediaPage" && _id == "mediaPage"][0]{
+    intro{ kicker, heading, lede },
+    featuredVideo{
+      kicker,
+      heading,
+      video->{
+        videoUrl,
+        videoProvider,
+        title
+      }
+    },
+    gallery{
+      kicker,
+      heading,
+      body,
+      items[]{
+        _key,
+        "media": @->{
+          _id,
+          title,
+          alt,
+          category,
+          creditLine,
+          creditUrl,
+          image{
+            ...,
+            asset->{
+              _id,
+              metadata{ dimensions }
+            }
+          }
+        }
+      },
+      videos[]{
+        _key,
+        "media": @->{
+          _id,
+          title,
+          mediaType,
+          videoProvider,
+          videoUrl,
+          videoPoster{
+            ...,
+            asset->{
+              _id,
+              metadata{ dimensions }
+            }
+          },
+          creditLine,
+          creditUrl
+        }
+      }
+    },
+    merch{
+      kicker,
+      heading,
+      body,
+      items[]{
+        _key,
+        "item": @->{
+          _id,
+          name,
+          description,
+          priceDisplay,
+          availabilityNote,
+          image->{
+            _id,
+            title,
+            alt,
+            image{
+              ...,
+              asset->{
+                _id,
+                metadata{ dimensions }
+              }
+            }
+          }
+        }
+      }
+    },
+    bookingCta{ kicker, heading, body, ctaLabel },
+    seo{ metaTitle, metaDescription, ogImage }
   }
 `)

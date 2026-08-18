@@ -4,6 +4,46 @@ import Footer from "../components/Footer.astro";
 import siteConfig from "../data/siteConfig";
 import "../styles/global.css";
 
+/**
+ * Self-hosted fonts — Jost (body) and Ultra (display), matching
+ * `tokens.css`'s `--body`/`--display` variables exactly. Vendored via the
+ * Fontsource packages `@fontsource/jost`/`@fontsource/ultra` rather than
+ * loaded from `fonts.googleapis.com`/`fonts.gstatic.com` at request time, so
+ * no request to Google occurs on page load — see docs/developer-guide.md
+ * §22 and `web/public/third-party-notices/` (tracked, distributed in the
+ * built site) for the license/rationale record.
+ *
+ * Only the weights/styles actually used sitewide are imported (matching the
+ * previous Google Fonts URL's exact spec: Jost 300/400/500/600/700 normal
+ * plus 400 italic; Ultra 400 normal only, its single weight).
+ *
+ * `latin` only, deliberately not `latin-ext` too: Fontsource's per-subset
+ * files (`latin-300.css`, `latin-ext-300.css`, …) carry no `unicode-range`
+ * — that's only present in the combined per-weight files (`300.css`, which
+ * bundles latin/latin-ext/cyrillic each with its own `unicode-range`).
+ * Importing both `latin-*.css` and `latin-ext-*.css` for the same
+ * weight/style therefore produced two `@font-face` rules with identical
+ * family/weight/style descriptors and no `unicode-range` to arbitrate
+ * between them — a real duplicate-declaration bug, not just extra payload.
+ * The fix is not "combine them correctly" but "don't need latin-ext at
+ * all": its `unicode-range` (`U+0100-02BA,…`) covers Vietnamese and
+ * Eastern-European Latin Extended letters this site has no content in.
+ * `latin`'s own range (`U+0000-00FF,…`) already covers the Latin-1
+ * Supplement block — á é í ó ú ñ ü ç à â ê î ô û ë ï ö and the rest of the
+ * accented characters a Central Coast California venue/person name might
+ * reasonably need — plus general punctuation (em dash, curly quotes) via
+ * its `U+2000-206F` range. No other-script or Latin Extended content is
+ * expected; if that ever changes, re-evaluate rather than re-adding
+ * `latin-ext` reflexively.
+ */
+import "@fontsource/jost/latin-300.css";
+import "@fontsource/jost/latin-400.css";
+import "@fontsource/jost/latin-500.css";
+import "@fontsource/jost/latin-600.css";
+import "@fontsource/jost/latin-700.css";
+import "@fontsource/jost/latin-400-italic.css";
+import "@fontsource/ultra/latin-400.css";
+
 interface Props {
   title?: string;
   description?: string;
@@ -57,12 +97,6 @@ const canonicalUrl = new URL(canonicalPath, siteConfig.siteUrl).href;
     <meta name="twitter:description" content={description} />
     {ogImage && <meta name="twitter:image" content={ogImage} />}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Ultra&family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
-      rel="stylesheet"
-    />
     <script is:inline>
       // Marks that scripting is available. `.reveal` only holds content at
       // opacity 0 while this class is present (see global.css → "Entrance

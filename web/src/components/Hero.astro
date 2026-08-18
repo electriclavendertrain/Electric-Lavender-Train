@@ -1,22 +1,25 @@
 ---
-import { Image } from "astro:assets";
-import logo from "../assets/images/elt-logo.jpg";
 import siteConfig from "../data/siteConfig";
 import { getYouTubeVideoId } from "../lib/youtube";
+import VideoTrigger from "./VideoTrigger.astro";
 
 interface Props {
   eyebrow?: string | null;
   headline: string;
   subcopy?: string | null;
   videoUrl: string | null;
+  /** The selected video's own title when available, otherwise a safe
+   * neutral fallback — resolved by the caller (`index.astro`), which is
+   * where `getHeroVideoTitle`'s Sanity result is combined with that
+   * fallback. */
+  videoTitle: string;
 }
 
-const { eyebrow, headline, subcopy, videoUrl } = Astro.props;
+const { eyebrow, headline, subcopy, videoUrl, videoTitle } = Astro.props;
 
 const videoId = videoUrl ? getYouTubeVideoId(videoUrl) : null;
 const hasVideo = videoId !== null;
 const displayEyebrow = hasVideo ? "Play Featured Video" : eyebrow;
-const videoTitle = `${siteConfig.bandNameFormal} — Featured Video`;
 ---
 
 <section class="hero" id="home">
@@ -28,28 +31,16 @@ const videoTitle = `${siteConfig.bandNameFormal} — Featured Video`;
     different trigger (global.css → "Entrance animation").
   */}
   <div class="hero-content">
-    <div class="hero-media intro-enter">
-      {
-        hasVideo ? (
-          <button
-            type="button"
-            class="hero-media__trigger"
-            id="hero-video-trigger"
-            data-video-id={videoId}
-            data-video-title={videoTitle}
-          >
-            <Image class="hero-logo" src={logo} alt="" width={560} loading="eager" />
-            <span class="hero-media__play" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </span>
-            <span class="visually-hidden">Play featured video</span>
-          </button>
-        ) : (
-          <Image class="hero-logo" src={logo} alt={siteConfig.bandNameFormal} width={560} loading="eager" />
-        )
-      }
+    <div class="hero-media video-trigger-wrapper intro-enter" data-video-wrapper>
+      <VideoTrigger
+        id="hero-video-trigger"
+        videoId={videoId}
+        videoTitle={videoTitle}
+        playLabel="Play featured video"
+        staticAlt={siteConfig.bandNameFormal}
+        width={560}
+        loading="eager"
+      />
     </div>
     {displayEyebrow && <p class="eyebrow intro-enter intro-enter-1">{displayEyebrow}</p>}
     <h1 class="intro-enter intro-enter-2">{headline}</h1>
@@ -106,80 +97,14 @@ const videoTitle = `${siteConfig.bandNameFormal} — Featured Video`;
     align-items: center;
     gap: 26px;
   }
+  /* The one intentional difference from the Media & Merch featured video:
+     this player's own max-width. Everything else — the trigger button, the
+     logo treatment, the play overlay, the float motion, and the activated
+     iframe's size/shadow — is the shared `.video-trigger*` primitive in
+     global.css, so the two players cannot visually drift apart. */
   .hero-media {
-    position: relative;
     max-width: 560px;
     width: 100%;
-  }
-  .hero-content :global(.hero-logo) {
-    width: 100%;
-    height: auto;
-    display: block;
-    filter: drop-shadow(0 0 40px rgba(160, 123, 239, 0.35))
-      drop-shadow(0 10px 40px rgba(0, 0, 0, 0.5));
-    border-radius: 14px;
-  }
-  /* Static (no-video) case: the logo is a direct child of .hero-media, so it
-     floats on its own. When a video is configured, the logo is nested one
-     level deeper inside .hero-media__trigger, which floats as a unit
-     instead (see below) so the overlay/icon move with it. */
-  .hero-media > :global(.hero-logo) {
-    animation: logoFloat 7s ease-in-out infinite;
-  }
-  @keyframes logoFloat {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  .hero-media__trigger {
-    position: relative;
-    appearance: none;
-    background: none;
-    border: 0;
-    padding: 0;
-    margin: 0;
-    display: block;
-    width: 100%;
-    font: inherit;
-    color: inherit;
-    cursor: pointer;
-    border-radius: 14px;
-    animation: logoFloat 7s ease-in-out infinite;
-  }
-  .hero-media__play {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--warm-white);
-    background: rgba(11, 11, 18, 0.38);
-    border-radius: 14px;
-    transition: background 0.3s var(--ease), transform 0.3s var(--ease);
-  }
-  .hero-media__play svg {
-    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.6));
-  }
-  .hero-media__trigger:hover .hero-media__play,
-  .hero-media__trigger:focus-visible .hero-media__play {
-    background: rgba(11, 11, 18, 0.55);
-  }
-  .hero-media__trigger:hover .hero-media__play svg,
-  .hero-media__trigger:focus-visible .hero-media__play svg {
-    transform: scale(1.1);
-  }
-  .hero-media.is-playing :global(.hero-media__iframe) {
-    display: block;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border: 0;
-    border-radius: 14px;
-    box-shadow: 0 0 40px rgba(160, 123, 239, 0.35), 0 10px 40px rgba(0, 0, 0, 0.5);
   }
 
   .eyebrow {

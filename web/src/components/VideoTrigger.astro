@@ -1,0 +1,83 @@
+---
+/**
+ * The shared pre-activation click-to-play video trigger — the ELT logo
+ * treatment, play-icon markup and size, overlay, hover/focus behavior,
+ * border radius/shadow, float motion, accessible button structure, and
+ * `data-video-*` activation contract — used identically by the Homepage
+ * hero (`Hero.astro`) and the Media & Merch featured video
+ * (`FeaturedVideo.astro`). One markup source means the two triggers cannot
+ * drift the way two hand-maintained copies could (this replaced an earlier
+ * version where the play icon alone had silently diverged to two different
+ * sizes, 30px vs. 34px, despite "shared" CSS).
+ *
+ * Visual/behavioral presentation lives here and in the shared
+ * `.video-trigger*` CSS primitive in `global.css`. The only things each
+ * caller controls are outside this component: container `max-width`,
+ * extra spacing, and image loading priority — see each caller's own
+ * wrapper and its `width`/`loading` props to this component.
+ *
+ * Renders a real `<button>` when a video is configured, or a plain,
+ * non-interactive `<Image>` for the static (no-video) state — currently
+ * only the Homepage hero uses the no-video branch (the Media & Merch
+ * featured video is never rendered at all without a video — see
+ * `FeaturedVideo.astro`'s own doc comment).
+ *
+ * After activation, both callers hand off to the same shared
+ * `heroVideo.ts` script and the same `youtube-nocookie.com` iframe
+ * treatment — this component only owns what exists before that.
+ */
+
+import { Image } from "astro:assets";
+import logo from "../assets/images/elt-logo.jpg";
+
+interface Props {
+  /** `null` renders the static, non-interactive logo (Homepage's no-video
+   * state) instead of a button. */
+  videoId: string | null;
+  videoTitle: string;
+  playLabel: string;
+  /** Alt text for the static (no-video) state only. Ignored when a video
+   * is configured — there, the logo is decorative (`alt=""`) because the
+   * button's own visually-hidden text supplies the accessible name. */
+  staticAlt?: string;
+  /** Intrinsic width requested from the image pipeline — not the
+   * rendered/CSS width, which each caller's own wrapper controls via its
+   * own `max-width` (the one intentional size difference between the two
+   * callers). */
+  width: number;
+  loading?: "eager" | "lazy";
+  id?: string;
+}
+
+const { videoId, videoTitle, playLabel, staticAlt, width, loading = "lazy", id } = Astro.props;
+const hasVideo = videoId !== null;
+---
+
+{
+  hasVideo ? (
+    <button
+      type="button"
+      class="video-trigger video-float"
+      id={id}
+      data-video-trigger
+      data-video-id={videoId}
+      data-video-title={videoTitle}
+    >
+      <Image class="video-trigger__logo" src={logo} alt="" width={width} loading={loading} />
+      <span class="video-trigger__play" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor">
+          <path d="M8 5v14l11-7z" />
+        </svg>
+      </span>
+      <span class="visually-hidden">{playLabel}</span>
+    </button>
+  ) : (
+    <Image
+      class="video-trigger__logo video-float"
+      src={logo}
+      alt={staticAlt ?? ""}
+      width={width}
+      loading={loading}
+    />
+  )
+}

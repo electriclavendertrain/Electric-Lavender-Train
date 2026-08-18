@@ -12,6 +12,8 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@fontsource/jost": "^5.3.0",
+    "@fontsource/ultra": "^5.3.0",
     "@sanity/astro": "^3.5.0",
     "@sanity/client": "^7.26.0",
     "@sanity/image-url": "^2.1.1",

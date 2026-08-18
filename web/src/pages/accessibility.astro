@@ -1,0 +1,56 @@
+---
+/**
+ * Accessibility statement. States an intent and a target (WCAG 2.2 AA) —
+ * never a claim of certification or perfect compliance, and never an
+ * accessibility-overlay product or automated-compliance badge.
+ */
+
+import LegalPage from "../layouts/LegalPage.astro";
+import siteConfig, { formatPageTitle } from "../data/siteConfig";
+
+const title = formatPageTitle("Accessibility");
+const description = `${siteConfig.bandNameFormal}'s commitment to making this website accessible.`;
+const email = siteConfig.contact.email;
+---
+
+<LegalPage
+  title={title}
+  description={description}
+  kicker="Legal"
+  heading="Accessibility Statement"
+  effectiveDate="August 15, 2026"
+>
+  <p>
+    The Electric Lavender Train is committed to making this website usable by as many people as
+    possible, including people who use assistive technology such as screen readers, people who
+    navigate by keyboard alone, and people with low vision or other disabilities.
+  </p>
+
+  <h2>Our target</h2>
+  <p>
+    We're working toward the <strong>Web Content Accessibility Guidelines (WCAG) 2.2, Level AA</strong> as our design and development target. This is a goal we're actively working toward, not a
+    certification — we do not claim this website is perfectly or completely compliant with WCAG or
+    any other accessibility standard, and we do not use any accessibility-overlay product or
+    automated tool that claims to make a website instantly or fully compliant. Real accessibility
+    comes from how the site is actually built, tested, and maintained.
+  </p>
+
+  <h2>What we do</h2>
+  <p>Some of the practices reflected in how this website is built:</p>
+  <ul>
+    <li>Semantic HTML, logical heading structure, and visible keyboard focus indicators throughout;</li>
+    <li>Form fields with real, associated labels, and validation errors that are announced accessibly rather than communicated by color alone;</li>
+    <li>Support for reduced-motion preferences — visitors who indicate a preference for less motion see substantially reduced animation across the site;</li>
+    <li>Descriptive alternative text on meaningful images, and accessible titles on embedded video players;</li>
+    <li>A layout designed to remain usable when zoomed or reflowed to a narrow viewport; and</li>
+    <li>Interactive controls sized to meet WCAG 2.2's Target Size (Minimum) criterion — generally at least 24×24 CSS pixels, or equivalent spacing — with many primary controls (buttons, tabs, form fields) sized larger still as an internal usability goal.</li>
+  </ul>
+
+  <h2>Reporting an accessibility barrier</h2>
+  <p>
+    Accessibility is an ongoing effort, not a one-time task — this website continues to be reviewed
+    and improved over time. If you encounter a barrier using it, please tell us. Email
+    <a href={`mailto:${email}`}>{email}</a> with a description of the issue and the page where you
+    found it, and we'll do our best to address it.
+  </p>
+</LegalPage>

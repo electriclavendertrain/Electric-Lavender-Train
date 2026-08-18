@@ -1,0 +1,505 @@
+---
+/**
+ * The switcher + three inquiry forms + direct-email fallback + privacy note.
+ * Kept as one component (rather than one file per form) because Astro's
+ * scoped `<style>` only applies to markup rendered directly in the same
+ * file — splitting the forms into separate components would mean either
+ * duplicating this file's field/button CSS three times or promoting it to
+ * `is:global`, neither of which is worth it for three closely related
+ * panels that share one interactive feature (the switcher) end to end.
+ *
+ * Progressive enhancement, exactly like `MediaGallery.astro`'s filters:
+ * the switcher (`role="tablist"`) stays hidden until `contactForms.ts`
+ * confirms it can drive it (`.is-active`), and every panel's `hidden`
+ * attribute is only ever set by that same script. Without JavaScript, all
+ * three panels render in document order with no `hidden` attribute
+ * anywhere in the server-rendered markup, so nothing is inaccessible and
+ * there is no dead switcher control sitting in the tab order. A no-JS
+ * submission goes straight to Formspree (a standards-based HTML `<form
+ * method="POST" action="https://formspree.io/f/…">`, not something the
+ * script constructs) — see docs/contact-booking.md for what could and could
+ * not be verified about that path without a real configured endpoint.
+ *
+ * No `novalidate` here, deliberately: with JavaScript unavailable, the
+ * browser's own native `required`/`type`/`maxlength` validation is what a
+ * visitor gets, and it must not be suppressed. `contactForms.ts` adds
+ * `novalidate` itself, dynamically, ONLY once it has confirmed it can drive
+ * a given form's enhanced submit flow — at that point its own accessible
+ * `aria-invalid`/error-text validation takes over, which is a peer-or-better
+ * replacement for native browser popups, never a weaker one.
+ *
+ * Each form's `disabled`/`action` state is decided at build time from
+ * `getFormspreeEndpoint(tab.value)` — independent of whether the public
+ * contact email is configured (`emailConfigured` only controls the direct
+ * mailto: fallback below). A real Gmail address must never make an
+ * unconfigured Formspree form appear functional: an inquiry type whose
+ * endpoint is missing/invalid renders disabled with `formNotConfiguredNotice`
+ * pointing at the direct email fallback instead.
+ *
+ * The DOM-visible state this component exposes is provider-neutral —
+ * `data-delivery-configured` (read by `contactForms.ts`), not
+ * `data-formspree-configured` — even though the values it's built from
+ * (the honeypot field name, the `_subject` field, the endpoint itself) do
+ * come from Formspree today. See `formDelivery.ts`'s doc comment for
+ * exactly what a future provider migration would and wouldn't touch.
+ */
+
+import {
+  INQUIRY_TABS,
+  DEFAULT_INQUIRY,
+  fieldsByInquiry,
+  contactCopy,
+} from "../data/contactData";
+import { getFormspreeEndpoint, HONEYPOT_FIELD_NAME, SUBJECT_FIELD_NAME } from "../lib/formDelivery";
+import siteConfig from "../data/siteConfig";
+
+interface Props {
+  headingId: string;
+  emailConfigured: boolean;
+  contactEmail: string | null;
+}
+
+const { headingId, emailConfigured, contactEmail } = Astro.props;
+---
+
+<section class="contact-forms" id={headingId} aria-labelledby={contactCopy.formsHeadingId}>
+  <div class="section-inner">
+    <h2 id={contactCopy.formsHeadingId} class="reveal reveal-1">{contactCopy.formsHeading}</h2>
+
+    {
+      !emailConfigured && (
+        <p class="contact-forms__dev-notice reveal reveal-2" data-dev-notice>
+          {contactCopy.devEmailNotice}
+        </p>
+      )
+    }
+
+    <p class="contact-forms__sensitive-notice reveal reveal-2">{contactCopy.sensitiveInfoNotice}</p>
+
+    <div
+      class="contact-forms__switcher"
+      role="tablist"
+      aria-label={contactCopy.switcherLabel}
+      data-inquiry-switcher
+    >
+      {
+        INQUIRY_TABS.map((tab) => (
+          <button
+            type="button"
+            role="tab"
+            id={`tab-${tab.value}`}
+            aria-controls={`panel-${tab.value}`}
+            aria-selected={tab.value === DEFAULT_INQUIRY ? "true" : "false"}
+            tabindex={tab.value === DEFAULT_INQUIRY ? 0 : -1}
+            class="contact-forms__tab"
+            data-inquiry-tab={tab.value}
+          >
+            {tab.tabLabel}
+          </button>
+        ))
+      }
+    </div>
+
+    {
+      INQUIRY_TABS.map((tab) => {
+        const endpoint = getFormspreeEndpoint(tab.value);
+        return (
+          <div
+            id={`panel-${tab.value}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${tab.value}`}
+            tabindex={0}
+            class="contact-forms__panel reveal reveal-3"
+            data-inquiry-panel={tab.value}
+          >
+            <h3>{tab.panelHeading}</h3>
+
+            {
+              !endpoint && (
+                <p class="contact-forms__form-notice" data-form-notice>
+                  {contactCopy.formNotConfiguredNotice}
+                </p>
+              )
+            }
+
+            <form
+              method="POST"
+              action={endpoint ?? undefined}
+              class="contact-forms__form"
+              data-inquiry-form={tab.value}
+              data-delivery-configured={endpoint ? "true" : "false"}
+            >
+              {/* This block — the two hidden fields below plus the
+                 honeypot — is the part of the Formspree provider adapter
+                 that lives outside formDelivery.ts: field NAMES come from
+                 that boundary (`SUBJECT_FIELD_NAME`, `HONEYPOT_FIELD_NAME`),
+                 but the markup shape itself (which hidden fields exist, in
+                 what structure) is Formspree's convention. A future
+                 provider migration reviews this block alongside
+                 formDelivery.ts — see that file's doc comment. */}
+              <input type="hidden" name={SUBJECT_FIELD_NAME} value={tab.emailSubject} />
+              <input type="hidden" name="inquiryType" value={tab.value} />
+
+              {/* Formspree's honeypot convention: a real, empty text field
+                 named `_gotcha`. Hidden from sight, the accessibility tree,
+                 and the tab order — never `type="hidden"`, which would not
+                 exercise a bot's ordinary form-filling behavior. */}
+              <div class="visually-hidden" aria-hidden="true">
+                <label>
+                  Leave this field blank
+                  <input type="text" name={HONEYPOT_FIELD_NAME} tabindex="-1" autocomplete="off" />
+                </label>
+              </div>
+
+              <div class="field-grid">
+                {fieldsByInquiry[tab.value].map((field) => {
+                  const fieldId = `${tab.value}-${field.name}`;
+                  const errorId = `${fieldId}-error`;
+                  return (
+                    <div class:list={["field", { "field--wide": field.type === "textarea" }]}>
+                      <label for={fieldId} class="field__label">
+                        {field.label}
+                        {field.required ? (
+                          <>
+                            <span aria-hidden="true"> *</span>
+                            <span class="visually-hidden">{contactCopy.requiredSuffix}</span>
+                          </>
+                        ) : (
+                          <span class="field__optional">{contactCopy.optionalSuffix}</span>
+                        )}
+                      </label>
+
+                      {field.type === "textarea" ? (
+                        <textarea
+                          id={fieldId}
+                          name={field.name}
+                          class="field__control"
+                          required={field.required}
+                          maxlength={field.maxLength}
+                          aria-describedby={errorId}
+                          data-field
+                          data-label={field.label}
+                          data-merch-item-field={field.isMerchItemField}
+                          rows={4}
+                        />
+                      ) : field.type === "select" ? (
+                        <select
+                          id={fieldId}
+                          name={field.name}
+                          class="field__control"
+                          required={field.required}
+                          aria-describedby={errorId}
+                          data-field
+                          data-label={field.label}
+                        >
+                          <option value="">Choose one…</option>
+                          {field.options?.map((option) => <option value={option}>{option}</option>)}
+                        </select>
+                      ) : (
+                        <input
+                          id={fieldId}
+                          name={field.name}
+                          type={field.type}
+                          class="field__control"
+                          required={field.required}
+                          maxlength={field.maxLength}
+                          autocomplete={field.autoComplete}
+                          placeholder={field.placeholder}
+                          aria-describedby={errorId}
+                          data-field
+                          data-label={field.label}
+                          data-merch-item-field={field.isMerchItemField}
+                        />
+                      )}
+
+                      <p class="field__error" id={errorId} role="alert" hidden />
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button type="submit" class="btn btn-primary" data-inquiry-submit disabled={!endpoint}>
+                <span data-submit-label>{contactCopy.submitLabel}</span>
+              </button>
+              <p class="contact-forms__jit-privacy">
+                {contactCopy.jitPrivacyNotice}{" "}
+                <a href={siteConfig.routes.privacy}>{contactCopy.privacyLinkText}</a>.
+              </p>
+
+              <p
+                class="contact-forms__status"
+                data-form-status
+                role="status"
+                aria-live="polite"
+                tabindex="-1"
+                hidden
+              />
+              <p
+                class="contact-forms__status contact-forms__status--error"
+                data-form-error
+                role="alert"
+                tabindex="-1"
+                hidden
+              />
+            </form>
+          </div>
+        );
+      })
+    }
+
+    {
+      contactEmail && (
+        <p class="contact-forms__direct-email reveal reveal-4">
+          {contactCopy.directEmailIntro} <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+        </p>
+      )
+    }
+
+    <div class="contact-forms__privacy reveal reveal-4">
+      <h3>{contactCopy.privacyHeading}</h3>
+      <p>{contactCopy.privacyNote}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import "../scripts/contactForms";
+</script>
+
+<style>
+  .contact-forms h2 {
+    scroll-margin-top: 110px;
+  }
+
+  .contact-forms__dev-notice {
+    margin-top: 18px;
+    max-width: 62ch;
+    font-size: 0.9rem;
+    color: rgba(244, 232, 208, 0.75);
+    border-left: 2px solid rgba(200, 168, 107, 0.55);
+    padding-left: 16px;
+  }
+
+  .contact-forms__sensitive-notice {
+    margin-top: 18px;
+    max-width: 62ch;
+    font-size: 0.85rem;
+    color: rgba(244, 232, 208, 0.65);
+  }
+
+  .contact-forms__form-notice {
+    margin-bottom: 18px;
+    font-size: 0.88rem;
+    color: rgba(244, 232, 208, 0.75);
+    border-left: 2px solid rgba(200, 168, 107, 0.55);
+    padding-left: 16px;
+  }
+
+  /* Hidden until contactForms.ts confirms it can drive the switcher — same
+     progressive-enhancement pattern as .media-gallery__filters. */
+  .contact-forms__switcher {
+    display: none;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 30px;
+  }
+  .contact-forms__switcher.is-active {
+    display: flex;
+  }
+  .contact-forms__tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 10px 22px;
+    border-radius: 24px;
+    font-size: 0.78rem;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--lavender-soft);
+    background: rgba(160, 123, 239, 0.08);
+    border: 1.5px solid rgba(160, 123, 239, 0.35);
+    cursor: pointer;
+    transition: background 0.3s var(--ease), border-color 0.3s var(--ease),
+      color 0.3s var(--ease);
+  }
+  .contact-forms__tab:hover {
+    border-color: var(--lavender);
+    color: var(--warm-white);
+  }
+  /* aria-selected carries the state to assistive tech; the fill + checkmark
+     are the sighted-user cue, so selection is never color-only. */
+  .contact-forms__tab[aria-selected="true"] {
+    color: var(--black);
+    background: var(--lavender-soft);
+    border-color: var(--lavender-soft);
+  }
+  .contact-forms__tab[aria-selected="true"]::before {
+    content: "✓ ";
+  }
+
+  .contact-forms__panel {
+    margin-top: 34px;
+    padding: 30px;
+    border-radius: 18px;
+    border: 1px solid rgba(160, 123, 239, 0.25);
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.14), rgba(11, 11, 18, 0.4));
+  }
+  /* Without JavaScript every panel is visible in document order; with it,
+     contactForms.ts toggles the native `hidden` attribute — never removed
+     from the DOM, never rebuilt. */
+  .contact-forms__panel + .contact-forms__panel {
+    margin-top: 22px;
+  }
+  .contact-forms__panel h3 {
+    font-family: var(--display);
+    font-size: 1.2rem;
+    color: var(--warm-white);
+    margin-bottom: 20px;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px 22px;
+  }
+  .field--wide {
+    grid-column: 1 / -1;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .field__label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: var(--cream);
+    overflow-wrap: anywhere;
+  }
+  .field__optional {
+    font-weight: 400;
+    color: rgba(244, 232, 208, 0.55);
+  }
+  .field__control {
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(160, 123, 239, 0.3);
+    background: rgba(11, 11, 18, 0.6);
+    color: var(--warm-white);
+    font-family: var(--body);
+    font-size: 0.95rem;
+    transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+  }
+  .field__control::placeholder {
+    color: rgba(244, 232, 208, 0.4);
+  }
+  .field__control:focus-visible {
+    border-color: var(--gold);
+  }
+  textarea.field__control {
+    min-height: 110px;
+    resize: vertical;
+  }
+  select.field__control {
+    appearance: auto;
+  }
+  /* Invalid state is communicated by aria-invalid + this visible border AND
+     the text error below — never by color alone. */
+  .field__control[aria-invalid="true"] {
+    border-color: var(--burgundy);
+  }
+  .field__error {
+    font-size: 0.8rem;
+    color: #e8a5ab;
+    overflow-wrap: anywhere;
+  }
+
+  .contact-forms__form > .btn {
+    margin-top: 24px;
+  }
+  .contact-forms__form > .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .contact-forms__jit-privacy {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: rgba(244, 232, 208, 0.55);
+  }
+  .contact-forms__jit-privacy a {
+    color: var(--lavender-soft);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .contact-forms__jit-privacy a:hover {
+    color: var(--gold);
+  }
+
+  .contact-forms__status {
+    margin-top: 18px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: rgba(160, 123, 239, 0.1);
+    border: 1px solid rgba(160, 123, 239, 0.3);
+    font-size: 0.88rem;
+    color: rgba(244, 232, 208, 0.9);
+    overflow-wrap: anywhere;
+  }
+  /* Failure is communicated by this distinct background/border AND the
+     message text itself — never by color alone. */
+  .contact-forms__status--error {
+    background: rgba(139, 42, 58, 0.16);
+    border-color: rgba(232, 165, 171, 0.5);
+    color: #e8a5ab;
+  }
+
+  .contact-forms__direct-email {
+    margin-top: 30px;
+    font-size: 0.95rem;
+    color: rgba(244, 232, 208, 0.85);
+    overflow-wrap: anywhere;
+  }
+  .contact-forms__direct-email a {
+    color: var(--lavender-soft);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .contact-forms__direct-email a:hover {
+    color: var(--gold);
+  }
+
+  .contact-forms__privacy {
+    margin-top: 30px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(160, 123, 239, 0.15);
+    max-width: 66ch;
+  }
+  .contact-forms__privacy h3 {
+    font-family: var(--display);
+    font-size: 1rem;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+  .contact-forms__privacy p {
+    font-size: 0.88rem;
+    color: rgba(244, 232, 208, 0.75);
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 700px) {
+    .field-grid {
+      grid-template-columns: 1fr;
+    }
+    .field--wide {
+      grid-column: auto;
+    }
+    .contact-forms__panel {
+      padding: 22px;
+    }
+  }
+</style>
