@@ -70,6 +70,18 @@ const { kicker, heading, body, ctaLabel, signupUrl } = Astro.props;
   .newsletter__panel .kicker {
     justify-content: center;
   }
+  /* The shared `.kicker` primitive (global.css) only draws its bar after the
+     text — fine for every left-aligned kicker sitewide, but this is the one
+     kicker centered as a group (`justify-content: center` above), where a
+     single trailing bar reads lopsided. Scoped to this panel only, so every
+     other kicker on the site keeps its normal one-sided treatment. */
+  .newsletter__panel .kicker::before {
+    content: "";
+    flex: 0 0 40px;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.5;
+  }
   .newsletter__body {
     max-width: 58ch;
     margin: 18px auto 28px;
