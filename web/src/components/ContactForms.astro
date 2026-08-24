@@ -1,18 +1,18 @@
 ---
 /**
- * The switcher + three inquiry forms + direct-email fallback + privacy note.
+ * The switcher + four inquiry forms + direct-email fallback + privacy note.
  * Kept as one component (rather than one file per form) because Astro's
  * scoped `<style>` only applies to markup rendered directly in the same
  * file — splitting the forms into separate components would mean either
- * duplicating this file's field/button CSS three times or promoting it to
- * `is:global`, neither of which is worth it for three closely related
+ * duplicating this file's field/button CSS four times or promoting it to
+ * `is:global`, neither of which is worth it for four closely related
  * panels that share one interactive feature (the switcher) end to end.
  *
  * Progressive enhancement, exactly like `MediaGallery.astro`'s filters:
  * the switcher (`role="tablist"`) stays hidden until `contactForms.ts`
  * confirms it can drive it (`.is-active`), and every panel's `hidden`
  * attribute is only ever set by that same script. Without JavaScript, all
- * three panels render in document order with no `hidden` attribute
+ * four panels render in document order with no `hidden` attribute
  * anywhere in the server-rendered markup, so nothing is inaccessible and
  * there is no dead switcher control sitting in the tab order. A no-JS
  * submission goes straight to Formspree (a standards-based HTML `<form
@@ -113,6 +113,7 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
             data-inquiry-panel={tab.value}
           >
             <h3>{tab.panelHeading}</h3>
+            {tab.panelNote && <p class="contact-forms__panel-note">{tab.panelNote}</p>}
 
             {
               !endpoint && (
@@ -287,6 +288,12 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
     color: rgba(244, 232, 208, 0.65);
   }
 
+  .contact-forms__panel-note {
+    margin-bottom: 18px;
+    margin-top: -10px;
+    font-size: 0.85rem;
+    color: rgba(244, 232, 208, 0.65);
+  }
   .contact-forms__form-notice {
     margin-bottom: 18px;
     font-size: 0.88rem;
@@ -427,7 +434,11 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
   }
 
   .contact-forms__jit-privacy {
-    margin-top: 10px;
+    /* Exactly 15px of visible separation from the Send Inquiry button above
+       — shared by all four inquiry panels (Booking/Merch/Other/Content
+       Removal Request), since this is the one `.contact-forms__jit-privacy`
+       rule every panel's markup uses. */
+    margin-top: 15px;
     font-size: 0.78rem;
     color: rgba(244, 232, 208, 0.55);
   }

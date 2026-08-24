@@ -8,7 +8,22 @@ export const HOMEPAGE_QUERY = defineQuery(`
   *[_type == "homepage" && _id == "homepage"][0]{
     hero,
     heroVideo->{ videoUrl, videoProvider, title },
-    bandIntro,
+    bandIntro{
+      ...,
+      image->{
+        _id,
+        alt,
+        creditLine,
+        creditUrl,
+        image{
+          ...,
+          asset->{
+            _id,
+            metadata{ dimensions }
+          }
+        }
+      }
+    },
     featuredMedia[]{
       _key,
       "mediaItem": @->{
@@ -35,6 +50,7 @@ export const HOMEPAGE_QUERY = defineQuery(`
     galleryIntro{ kicker, heading, ctaLabel },
     testimonialsIntro{ kicker, heading },
     bookingCta,
+    newsletter{ kicker, heading, body, ctaLabel },
     seo
   }
 `)
@@ -128,6 +144,7 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
       }
     },
     story{ kicker, heading, paragraphs },
+    labelAffiliation{ kicker, text, logoAlt, url },
     membersIntro{ kicker, heading, body },
     members[]{
       _key,
@@ -305,7 +322,7 @@ export const SHOWS_RECENT_PUBLIC_EVENTS_QUERY = defineQuery(`
 `)
 
 /* -------------------------------------------------------------------------
- * Media & Merch page (/media-merch)
+ * Gallery & Merchandise page (/gallery-merch)
  *
  * One fixed-id singleton query. `gallery.items` (photos), `gallery.videos`
  * (YouTube videos), and `merch.items` are ordered arrays of DIRECT
@@ -323,8 +340,44 @@ export const SHOWS_RECENT_PUBLIC_EVENTS_QUERY = defineQuery(`
  * `normalizeGalleryVideos` needs those fields to check.
  * ---------------------------------------------------------------------- */
 
-export const MEDIA_PAGE_QUERY = defineQuery(`
-  *[_type == "mediaPage" && _id == "mediaPage"][0]{
+/* -------------------------------------------------------------------------
+ * Contact & Booking page (/contact-booking)
+ *
+ * One fixed-id singleton query. Everything selected here is genuinely
+ * editorial — page intro, the compact newsletter callout, and the FAQ.
+ * Inquiry types, field definitions, validation, delivery configuration, and
+ * every piece of protected privacy/security copy stay entirely out of this
+ * query and out of Sanity — see `web/src/data/contactData.ts`.
+ * ---------------------------------------------------------------------- */
+
+export const CONTACT_PAGE_QUERY = defineQuery(`
+  *[_type == "contactPage" && _id == "contactPage"][0]{
+    intro{ kicker, heading, lede, explanation },
+    newsletterCta{ heading, body, linkLabel },
+    faq[]{ _key, question, answer },
+    seo{ metaTitle, metaDescription, ogImage }
+  }
+`)
+
+/* -------------------------------------------------------------------------
+ * Music page (/music)
+ *
+ * One fixed-id singleton query. `releases` is ONE ordered array of direct
+ * references — same `@->` dereference shape used throughout this file — and
+ * is the single source of truth for both selection AND order; the frontend
+ * splits it into "upcoming" and "released" groups by each release's own
+ * `state`, without re-sorting either group.
+ *
+ * Field order below (intro, featuredVideo, releases, seo) matches the
+ * editorial placement on the page: the featured video renders immediately
+ * after the intro and before the release sections — see `music.astro` and
+ * the matching field order in `studio/schemaTypes/musicPage.ts`. GROQ
+ * doesn't care about projection field order, but keeping it visually
+ * consistent with the page/schema avoids the two silently drifting apart.
+ * ---------------------------------------------------------------------- */
+
+export const MUSIC_PAGE_QUERY = defineQuery(`
+  *[_type == "musicPage" && _id == "musicPage"][0]{
     intro{ kicker, heading, lede },
     featuredVideo{
       kicker,
@@ -335,6 +388,50 @@ export const MEDIA_PAGE_QUERY = defineQuery(`
         title
       }
     },
+    releases[]{
+      _key,
+      "release": @->{
+        _id,
+        title,
+        "slug": slug.current,
+        releaseType,
+        state,
+        releaseDate,
+        coverArtwork->{
+          _id,
+          alt,
+          image{
+            ...,
+            asset->{
+              _id,
+              metadata{ dimensions }
+            }
+          }
+        },
+        description,
+        spotifyUrl,
+        appleMusicUrl,
+        preSaveUrl,
+        watchVideoUrl
+      }
+    },
+    seo{ metaTitle, metaDescription, ogImage }
+  }
+`)
+
+/* -------------------------------------------------------------------------
+ * Gallery & Merchandise page (/gallery-merch)
+ *
+ * Renamed from the Media & Merch page (`mediaPage` → `galleryPage`, route
+ * `/media-merch` → `/gallery-merch`) — see docs/gallery-merch.md. Unlike
+ * `mediaPage`, this singleton has NO featured-video field: featured,
+ * click-to-load video locations are now only the Homepage hero and the
+ * Music page (`MUSIC_PAGE_QUERY` above).
+ * ---------------------------------------------------------------------- */
+
+export const GALLERY_PAGE_QUERY = defineQuery(`
+  *[_type == "galleryPage" && _id == "galleryPage"][0]{
+    intro{ kicker, heading, lede },
     gallery{
       kicker,
       heading,
@@ -376,6 +473,14 @@ export const MEDIA_PAGE_QUERY = defineQuery(`
           creditUrl
         }
       }
+    },
+    eventMediaSubmission{
+      enabled,
+      kicker,
+      heading,
+      explanation,
+      ctaLabel,
+      formUrl
     },
     merch{
       kicker,

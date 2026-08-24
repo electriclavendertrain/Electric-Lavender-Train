@@ -7,17 +7,26 @@
  * line. The availability note is the page's core honesty requirement: the
  * schedule lists confirmed engagements, so a gap in it says nothing about
  * whether that date can be booked.
+ *
+ * The disclaimer is rendered from `availabilityNoteParts` — an ordered list
+ * of plain-text/`<strong>` segments (`web/src/data/showsData.ts`) — rather
+ * than a single string, so the two required emphasized phrases ("not an
+ * availability calendar", "not guaranteed") render as semantic `<strong>`
+ * without ever building HTML from a string (`set:html`) or moving this
+ * protected, code-owned wording into Sanity.
  */
+
+import type { AvailabilityNoteSegment } from "../data/showsData";
 
 interface Props {
   kicker?: string | null;
   heading: string;
   paragraphs: readonly string[];
   timeZoneNote: string;
-  availabilityNote: string;
+  availabilityNoteParts: readonly AvailabilityNoteSegment[];
 }
 
-const { kicker, heading, paragraphs, timeZoneNote, availabilityNote } = Astro.props;
+const { kicker, heading, paragraphs, timeZoneNote, availabilityNoteParts } = Astro.props;
 ---
 
 <section class="shows-intro">
@@ -28,7 +37,13 @@ const { kicker, heading, paragraphs, timeZoneNote, availabilityNote } = Astro.pr
     {paragraphs.map((paragraph) => <p class="shows-intro__lead">{paragraph}</p>)}
 
     <p class="shows-intro__note">{timeZoneNote}</p>
-    <p class="shows-intro__disclaimer">{availabilityNote}</p>
+    <p class="shows-intro__disclaimer">
+      {
+        availabilityNoteParts.map((part) =>
+          part.emphasis ? <strong>{part.text}</strong> : part.text,
+        )
+      }
+    </p>
   </div>
 </section>
 

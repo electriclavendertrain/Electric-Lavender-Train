@@ -1,0 +1,89 @@
+---
+/**
+ * The Contact page's FAQ, rendered immediately after ContactForms.astro's
+ * own Privacy & Delivery material — `id="faq"` is this section's stable
+ * anchor, linked from the Footer. Each entry is a native `<details>`
+ * disclosure: keyboard-operable, has a real accessible name and expanded
+ * state built into the platform, and needs no script to work. Omits itself
+ * entirely when there are no valid FAQ entries, rather than rendering an
+ * empty heading.
+ */
+import type { NormalizedFaqEntry } from "../sanity/normalize";
+
+interface Props {
+  sectionId: string;
+  headingId: string;
+  heading: string;
+  items: NormalizedFaqEntry[];
+}
+
+const { sectionId, headingId, heading, items } = Astro.props;
+---
+
+{
+  items.length > 0 && (
+    <section class="contact-faq" id={sectionId} aria-labelledby={headingId}>
+      <div class="section-inner">
+        <h2 id={headingId} class="reveal">
+          {heading}
+        </h2>
+        <div class="contact-faq__list">
+          {items.map((item, index) => (
+            <details class={`contact-faq__item reveal reveal-${Math.min(index + 1, 4)}`}>
+              <summary class="contact-faq__question">{item.question}</summary>
+              <p class="contact-faq__answer">{item.answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .contact-faq h2 {
+    margin-bottom: 28px;
+    scroll-margin-top: 110px;
+  }
+  .contact-faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 74ch;
+  }
+  .contact-faq__item {
+    border: 1px solid rgba(160, 123, 239, 0.22);
+    border-radius: 14px;
+    padding: 6px 22px;
+    background: rgba(90, 62, 123, 0.08);
+  }
+  .contact-faq__question {
+    cursor: pointer;
+    list-style: none;
+    padding: 16px 30px 16px 0;
+    position: relative;
+    font-weight: 600;
+    color: var(--warm-white);
+  }
+  .contact-faq__question::-webkit-details-marker {
+    display: none;
+  }
+  .contact-faq__question::after {
+    content: "+";
+    position: absolute;
+    right: 2px;
+    top: 14px;
+    font-size: 1.2rem;
+    color: var(--gold);
+    transition: transform 0.25s var(--ease);
+  }
+  .contact-faq__item[open] .contact-faq__question::after {
+    transform: rotate(45deg);
+  }
+  .contact-faq__answer {
+    padding-bottom: 20px;
+    color: rgba(244, 232, 208, 0.8);
+    font-weight: 300;
+    max-width: 68ch;
+  }
+</style>

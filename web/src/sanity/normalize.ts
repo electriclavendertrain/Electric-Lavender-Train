@@ -1,9 +1,11 @@
 import { sanityImageUrl } from "./image";
-import { isValidDateTime } from "../lib/dateFormat";
+import { isValidDateTime, isValidCalendarDateOnly } from "../lib/dateFormat";
 import {
   TEST_BIOGRAPHY_MARKER,
 } from "../data/aboutData";
-import { TEST_PRODUCT_MARKER, TEST_MEDIA_ITEM_MARKER, TEST_VIDEO_ID } from "../data/mediaData";
+import { TEST_PRODUCT_MARKER, TEST_MEDIA_ITEM_MARKER, TEST_VIDEO_ID } from "../data/galleryMerchData";
+import { TEST_NEWSLETTER_MARKER } from "../data/homeData";
+import { TEST_RELEASE_MARKER } from "../data/musicData";
 import { getYouTubeVideoId } from "../lib/youtube";
 import type {
   HOMEPAGE_QUERY_RESULT,
@@ -14,7 +16,9 @@ import type {
   SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY_RESULT,
   SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY_RESULT,
   SHOWS_RECENT_PUBLIC_EVENTS_QUERY_RESULT,
-  MEDIA_PAGE_QUERY_RESULT,
+  GALLERY_PAGE_QUERY_RESULT,
+  CONTACT_PAGE_QUERY_RESULT,
+  MUSIC_PAGE_QUERY_RESULT,
   SanityImageCrop,
   SanityImageDimensions,
   SanityImageHotspot,
@@ -315,7 +319,10 @@ export function isHeroContentComplete(
  * Band Introduction requires a heading and at least one non-blank
  * paragraph — the small label and button text are optional and each omit
  * independently in `BandIntro.astro`, which also defensively filters blank
- * paragraph entries.
+ * paragraph entries. The image (`bandIntro.image`) is independently optional
+ * and is never part of this completeness check — a missing or invalid image
+ * must never hide valid heading/paragraph content. See
+ * `normalizeBandIntroImage` below.
  */
 export function isBandIntroComplete(
   bandIntro: Homepage["bandIntro"],
@@ -324,12 +331,62 @@ export function isBandIntroComplete(
   heading: string;
   paragraphs: string[];
   ctaLabel?: string;
+  image: NonNullable<Homepage["bandIntro"]>["image"];
 } {
   return Boolean(
     bandIntro?.heading &&
       bandIntro?.paragraphs &&
       bandIntro.paragraphs.some((p) => p && p.trim().length > 0),
   );
+}
+
+export interface NormalizedBandIntroImage {
+  src: string;
+  width: number;
+  height: number;
+  objectPosition: string;
+  alt: string;
+  /** Approved, unobtrusive attribution — never invented. `url` is `null`
+   * when no credit link was supplied, or when one was supplied but did not
+   * pass `safeExternalUrl` (degrades to unlinked text rather than dropping
+   * the whole image). */
+  credit: { label: string; url: string | null } | null;
+}
+
+const BAND_INTRO_IMAGE_WIDTH = 900;
+
+/**
+ * `homepage.bandIntro.image` is optional and independent of every other
+ * singleton's own image field (in particular `aboutPage.intro.heroImage`) —
+ * the same underlying `mediaItem` may be selected in both places, but
+ * neither selection affects the other. A missing reference, an unresolved
+ * asset, or missing alt text all resolve to `null` here — the caller (
+ * `index.astro`) treats `null` as "no image," never as a reason to hide the
+ * heading/paragraphs, and falls back to a local development-only photo
+ * outside production. Width only, like every other content photo on this
+ * site — Sanity applies the editor's manual crop but forces no aspect
+ * ratio, and the hotspot is handed to CSS `object-position`.
+ */
+export function normalizeBandIntroImage(
+  raw: NonNullable<Homepage["bandIntro"]>["image"] | null | undefined,
+): NormalizedBandIntroImage | null {
+  const image = raw?.image;
+  const assetId = image?.asset?._id;
+  const alt = cleanText(raw?.alt);
+  if (!image || !assetId || !alt) return null;
+
+  const width = BAND_INTRO_IMAGE_WIDTH;
+  const creditLabel = cleanText(raw?.creditLine);
+  const credit = creditLabel ? { label: creditLabel, url: safeExternalUrl(raw?.creditUrl) } : null;
+
+  return {
+    src: sanityImageUrl(image, { width }),
+    width,
+    height: Math.round(width / computeCroppedAspectRatio(image)),
+    objectPosition: computeObjectPosition(image),
+    alt,
+    credit,
+  };
 }
 
 /**
@@ -340,6 +397,34 @@ export function isBookingCtaComplete(
   bookingCta: Homepage["bookingCta"],
 ): bookingCta is { kicker?: string; heading: string; body: string; ctaLabel: string } {
   return Boolean(bookingCta?.heading && bookingCta?.body && bookingCta?.ctaLabel);
+}
+
+/**
+ * Newsletter section's required core is heading + body + button text — the
+ * small label is optional and omits independently in `Newsletter.astro`.
+ * Whether the signup button itself actually appears is a separate, later
+ * decision (`getNewsletterSignupUrl()` in `web/src/lib/newsletter.ts`) —
+ * this only governs the surrounding editorial copy.
+ *
+ * `strict` mirrors every other production guard in this file
+ * (`NormalizeGalleryPageOptions.strict`, `NormalizeMusicPageOptions.strict`,
+ * `NormalizeAboutOptions.rejectTestBiographies`): true only when the
+ * configured Sanity DATASET is `production`. In that mode, a
+ * `[TEST`-marked kicker/heading/body/ctaLabel (`TEST_NEWSLETTER_MARKER`)
+ * also fails completeness — a belt-and-suspenders guard against test
+ * newsletter copy ever being copied into the production dataset by
+ * accident, exactly like `TEST_BIOGRAPHY_MARKER` and `TEST_PRODUCT_MARKER`.
+ */
+export function isNewsletterComplete(
+  newsletter: Homepage["newsletter"],
+  strict: boolean,
+): newsletter is { kicker: string | null; heading: string; body: string; ctaLabel: string } {
+  if (!newsletter?.heading || !newsletter?.body || !newsletter?.ctaLabel) return false;
+  if (strict) {
+    const values = [newsletter.kicker, newsletter.heading, newsletter.body, newsletter.ctaLabel];
+    if (values.some((value) => value?.includes(TEST_NEWSLETTER_MARKER))) return false;
+  }
+  return true;
 }
 
 /**
@@ -462,6 +547,10 @@ export interface NormalizedAboutPageContent {
     heroImage: NormalizedAboutHeroImage;
   };
   story: { kicker: string | null; heading: string; paragraphs: string[] };
+  /** `null` when the Sanity field is empty/incomplete — `about.astro` falls
+   * back to `siteConfig.heavyCrushRecords` rather than omitting the section
+   * or invalidating the rest of the page. See `normalizeAboutPageContent`. */
+  labelAffiliation: { kicker: string | null; text: string; logoAlt: string; url: string } | null;
   membersIntro: { kicker: string | null; heading: string; body: string | null };
   members: NormalizedBandMember[];
   experience: {
@@ -634,6 +723,10 @@ export function normalizeAboutPageContent(
     .filter((paragraph): paragraph is string => paragraph !== null)
     .slice(0, MAX_STORY_PARAGRAPHS);
 
+  const labelAffiliationText = cleanText(page.labelAffiliation?.text);
+  const labelAffiliationLogoAlt = cleanText(page.labelAffiliation?.logoAlt);
+  const labelAffiliationUrl = safeExternalUrl(page.labelAffiliation?.url);
+
   const membersIntroHeading = cleanText(page.membersIntro?.heading);
 
   // Order and `_key` come straight from the stored array; capping and
@@ -698,6 +791,21 @@ export function normalizeAboutPageContent(
       heading: storyHeading,
       paragraphs: storyParagraphs,
     },
+    // Independently optional — unlike every other field in this return
+    // value, an incomplete `labelAffiliation` does NOT invalidate the whole
+    // About page. `about.astro` falls back to the same approved facts
+    // already recorded in `siteConfig.heavyCrushRecords` when this is
+    // `null`, so the acknowledgment still renders correctly even before an
+    // editor has touched this specific field in Studio.
+    labelAffiliation:
+      labelAffiliationText && labelAffiliationLogoAlt && labelAffiliationUrl
+        ? {
+            kicker: cleanText(page.labelAffiliation?.kicker),
+            text: labelAffiliationText,
+            logoAlt: labelAffiliationLogoAlt,
+            url: labelAffiliationUrl,
+          }
+        : null,
     membersIntro: {
       kicker: cleanText(page.membersIntro?.kicker),
       heading: membersIntroHeading,
@@ -962,10 +1070,15 @@ export function normalizePrivateEvents(
 }
 
 /* =========================================================================
- * Media & Merch page (/media-merch)
+ * Gallery & Merchandise page (/gallery-merch)
  *
- * `mediaPage.gallery.items` and `mediaPage.merch.items` are ordered arrays of
- * a hand-picked, curated selection — the same editorial weight as
+ * Renamed from the Media & Merch page (`mediaPage` → `galleryPage`) — see
+ * docs/gallery-merch.md. This page has NO featured-video field or section;
+ * featured, click-to-load video locations are now only the Homepage hero
+ * and the Music page (see the `normalizeFeaturedVideo` section below).
+ *
+ * `galleryPage.gallery.items` and `galleryPage.merch.items` are ordered
+ * arrays of a hand-picked, curated selection — the same editorial weight as
  * `aboutPage.members`. This file therefore follows the About page's
  * precedent, not the Homepage's: a curated selection is treated STRICTLY in
  * production (any invalid selected entry fails the whole build, exactly like
@@ -975,7 +1088,7 @@ export function normalizePrivateEvents(
  *
  * Which behavior applies is controlled by `options.strict`, which callers set
  * from the configured DATASET (`isProductionDataset`), not from Astro's
- * build mode — see `NormalizeMediaPageOptions`.
+ * build mode — see `NormalizeGalleryPageOptions`.
  *
  * As with the rest of this file, per-item objects are built field by field —
  * no spreading a raw query result — and nothing about a rejected item's
@@ -996,12 +1109,12 @@ const GALLERY_THUMB_WIDTH = 700;
 const GALLERY_LIGHTBOX_WIDTH = 1600;
 const MERCH_IMAGE_WIDTH = 640;
 
-type MediaPage = NonNullable<MEDIA_PAGE_QUERY_RESULT>;
-type RawGalleryPhoto = NonNullable<MediaPage["gallery"]["items"]>[number]["media"];
-type RawGalleryVideo = NonNullable<MediaPage["gallery"]["videos"]>[number]["media"];
-type RawMerchItem = NonNullable<MediaPage["merch"]["items"]>[number]["item"];
+type GalleryPage = NonNullable<GALLERY_PAGE_QUERY_RESULT>;
+type RawGalleryPhoto = NonNullable<GalleryPage["gallery"]["items"]>[number]["media"];
+type RawGalleryVideo = NonNullable<GalleryPage["gallery"]["videos"]>[number]["media"];
+type RawMerchItem = NonNullable<GalleryPage["merch"]["items"]>[number]["item"];
 
-/** Mirrors Studio's `Rule.max(12)` on `mediaPage.gallery.videos` — Studio
+/** Mirrors Studio's `Rule.max(12)` on `galleryPage.gallery.videos` — Studio
  * validation binds the Studio UI, not the Content API, so the cap is
  * re-applied here exactly like `MAX_GALLERY_ITEMS` / `MAX_MERCH_ITEMS`. */
 const MAX_GALLERY_VIDEOS = 12;
@@ -1085,7 +1198,7 @@ export interface NormalizedMerchItem {
   availabilityNote: string | null;
 }
 
-export interface NormalizedMediaGallery {
+export interface NormalizedGallerySection {
   kicker: string | null;
   heading: string | null;
   body: string | null;
@@ -1103,23 +1216,40 @@ export interface NormalizedMediaGallery {
   hasVideos: boolean;
 }
 
-export interface NormalizedMediaMerch {
+export interface NormalizedMerchSection {
   kicker: string | null;
   heading: string | null;
   body: string | null;
   items: NormalizedMerchItem[];
 }
 
-export interface NormalizedMediaPageContent {
+/**
+ * `null` when the section is off (editor hasn't enabled it, or hasn't
+ * filled in the required copy) — omitted from the page entirely. When
+ * present but `formUrl` is `null`, the section still renders (the editor
+ * has turned it on) but with a clear development/configuration notice
+ * instead of a working link — the fail-closed state required for a Google
+ * Form that doesn't exist yet, mirroring `Newsletter.astro`'s
+ * `signupUrl: string | null` contract exactly.
+ */
+export interface NormalizedEventMediaSubmission {
+  kicker: string | null;
+  heading: string;
+  explanation: string;
+  ctaLabel: string;
+  formUrl: string | null;
+}
+
+export interface NormalizedGalleryPageContent {
   intro: { kicker: string | null; heading: string; lede: string };
-  featuredVideo: NormalizedFeaturedVideo | null;
-  gallery: NormalizedMediaGallery;
-  merch: NormalizedMediaMerch;
+  gallery: NormalizedGallerySection;
+  eventMediaSubmission: NormalizedEventMediaSubmission | null;
+  merch: NormalizedMerchSection;
   bookingCta: { kicker: string | null; heading: string; body: string; ctaLabel: string };
   seo: { metaTitle: string | null; metaDescription: string | null; ogImageUrl: string | null };
 }
 
-export interface NormalizeMediaPageOptions {
+export interface NormalizeGalleryPageOptions {
   /**
    * True only when the configured Sanity DATASET is `production` — set from
    * `import.meta.env.PUBLIC_SANITY_DATASET`, not from Astro's build mode,
@@ -1230,7 +1360,7 @@ function normalizeOneGalleryPhoto(
 }
 
 /**
- * `mediaPage.gallery.items` is the single source of truth for gallery
+ * `galleryPage.gallery.items` is the single source of truth for gallery
  * membership AND order — this loop never sorts or reorders. Invalid entries
  * are filtered out (lenient mode) BEFORE the 24-item cap is applied, so an
  * invalid entry never consumes one of the 24 slots. In strict mode, any
@@ -1239,7 +1369,7 @@ function normalizeOneGalleryPhoto(
  * curated selection with something missing from it.
  */
 function normalizeGalleryItems(
-  entries: MediaPage["gallery"]["items"],
+  entries: GalleryPage["gallery"]["items"],
   strict: boolean,
 ): NormalizedGalleryPhoto[] | null {
   const items: NormalizedGalleryPhoto[] = [];
@@ -1342,7 +1472,7 @@ function normalizeOneGalleryVideo(
 }
 
 /**
- * `mediaPage.gallery.videos` is the single source of truth for gallery-
+ * `galleryPage.gallery.videos` is the single source of truth for gallery-
  * video membership AND order, independent of `gallery.items`'s photo
  * order — same cap-after-filter, never-reorder contract as
  * `normalizeGalleryItems`. A reference to the same underlying `mediaItem`
@@ -1352,7 +1482,7 @@ function normalizeOneGalleryVideo(
  * convention of re-checking Studio-enforced rules at the content layer.
  */
 function normalizeGalleryVideos(
-  entries: MediaPage["gallery"]["videos"],
+  entries: GalleryPage["gallery"]["videos"],
   strict: boolean,
 ): NormalizedGalleryVideo[] | null {
   const videos: NormalizedGalleryVideo[] = [];
@@ -1443,7 +1573,7 @@ function normalizeOneMerchItem(
 
 /** Same cap-after-filter, never-reorder contract as `normalizeGalleryItems`. */
 function normalizeMerchItems(
-  entries: MediaPage["merch"]["items"],
+  entries: GalleryPage["merch"]["items"],
   strict: boolean,
 ): NormalizedMerchItem[] | null {
   const items: NormalizedMerchItem[] = [];
@@ -1463,14 +1593,30 @@ function normalizeMerchItems(
 }
 
 /**
+ * Structural, not tied to `musicPage`'s own generated type — kept general in
+ * case a future page-level featured video is ever added elsewhere, the same
+ * way it was previously shared between `mediaPage` and `musicPage` before
+ * the Gallery & Merchandise page's featured-video section was removed
+ * entirely (`docs/gallery-merch.md`). Featured, click-to-load video
+ * locations today are only the Homepage hero (its own, separate
+ * `getHeroVideoUrl`/`getHeroVideoTitle` pair below) and the Music page.
+ */
+interface RawFeaturedVideoLike {
+  kicker?: string | null;
+  heading?: string | null;
+  video?: { videoUrl?: string | null; title?: string | null } | null;
+}
+
+/**
  * Mirrors `getHeroVideoUrl` exactly: returns the stored URL, unvalidated, or
  * `null` if nothing is referenced. `getYouTubeVideoId` — approved and
  * untouched — does the actual YouTube-ID validation, at the same layer
  * (`FeaturedVideo.astro`, mirroring `Hero.astro`) the homepage already does
  * it at. A malformed or non-YouTube URL safely resolves to "no video" there,
- * exactly as it does on the homepage.
+ * exactly as it does on the homepage. Used by `musicPage.featuredVideo` —
+ * see `RawFeaturedVideoLike` above.
  */
-function normalizeFeaturedVideo(raw: MediaPage["featuredVideo"]): NormalizedFeaturedVideo | null {
+function normalizeFeaturedVideo(raw: RawFeaturedVideoLike | null | undefined): NormalizedFeaturedVideo | null {
   const videoUrl = cleanText(raw?.video?.videoUrl);
   if (!videoUrl) return null;
 
@@ -1483,28 +1629,61 @@ function normalizeFeaturedVideo(raw: MediaPage["featuredVideo"]): NormalizedFeat
 }
 
 /**
- * Treats the Media & Merch singleton as one editorial unit for its required
- * core (intro + booking CTA), exactly like About and Shows — anything
- * required there that is missing or malformed returns `null` for the whole
- * document. The gallery and merch selections are handled by their own
- * strict/lenient normalizers above; a `null` from either also invalidates
- * the whole page, but ONLY in strict mode (see the module doc comment).
+ * Approved, planned production feature — not conditional on further product
+ * sign-off, only on the Google Form actually existing. `null` when disabled
+ * or missing its required copy — omits the section entirely. Otherwise
+ * always returned complete, with `formUrl` independently `null` when not
+ * yet configured or invalid — see `NormalizedEventMediaSubmission`'s doc
+ * comment for what that state means to the caller. This is deliberately
+ * fail-closed: nothing here claims the Google Form's own consent/license
+ * mechanism is operational — that only becomes true once a real form and
+ * its consent language exist (see `docs/gallery-merch.md` and
+ * `docs/client-questions.md`).
+ */
+function normalizeEventMediaSubmission(
+  raw: GalleryPage["eventMediaSubmission"],
+): NormalizedEventMediaSubmission | null {
+  if (!raw?.enabled) return null;
+
+  const heading = cleanText(raw.heading);
+  const explanation = cleanText(raw.explanation);
+  const ctaLabel = cleanText(raw.ctaLabel);
+  if (!heading || !explanation || !ctaLabel) return null;
+
+  return {
+    kicker: cleanText(raw.kicker),
+    heading,
+    explanation,
+    ctaLabel,
+    formUrl: safeGoogleFormUrl(raw.formUrl),
+  };
+}
+
+/**
+ * Treats the Gallery & Merchandise singleton as one editorial unit for its
+ * required core (intro + booking CTA), exactly like About and Shows —
+ * anything required there that is missing or malformed returns `null` for
+ * the whole document. The gallery and merch selections are handled by their
+ * own strict/lenient normalizers above; a `null` from either also
+ * invalidates the whole page, but ONLY in strict mode (see the module doc
+ * comment). There is no featured-video field on this page at all — see the
+ * module doc comment.
  *
- * Do NOT fail merely because: the featured video is absent, the gallery
- * (photos or videos) is empty, merchandise is empty, a category is absent, a
- * media credit is absent, a merchandise image is absent, price/availability
- * text is absent, or optional SEO overrides are absent — none of those reach
- * this function's `null`-return paths. `gallery.videos` is normalized by its
- * own strict/lenient rules (`normalizeGalleryVideos`, mirroring
+ * Do NOT fail merely because: the gallery (photos or videos) is empty,
+ * merchandise is empty, a category is absent, a media credit is absent, a
+ * merchandise image is absent, price/availability text is absent, or
+ * optional SEO overrides are absent — none of those reach this function's
+ * `null`-return paths. `gallery.videos` is normalized by its own
+ * strict/lenient rules (`normalizeGalleryVideos`, mirroring
  * `normalizeGalleryItems`'s cap-after-filter, never-reorder contract, plus a
  * production-only rejection of development placeholder video content) —
  * an empty or absent `videos` selection is always valid and leaves a
  * photo-only gallery unchanged.
  */
-export function normalizeMediaPageContent(
-  page: MEDIA_PAGE_QUERY_RESULT,
-  options: NormalizeMediaPageOptions,
-): NormalizedMediaPageContent | null {
+export function normalizeGalleryPageContent(
+  page: GALLERY_PAGE_QUERY_RESULT,
+  options: NormalizeGalleryPageOptions,
+): NormalizedGalleryPageContent | null {
   if (!page) return null;
 
   const introHeading = cleanText(page.intro?.heading);
@@ -1532,7 +1711,6 @@ export function normalizeMediaPageContent(
       heading: introHeading,
       lede: introLede,
     },
-    featuredVideo: normalizeFeaturedVideo(page.featuredVideo),
     gallery: {
       kicker: cleanText(page.gallery?.kicker),
       heading: cleanText(page.gallery?.heading),
@@ -1543,6 +1721,7 @@ export function normalizeMediaPageContent(
       hasVenueCrowd: galleryItems.some((item) => item.category === "venue-crowd"),
       hasVideos: galleryVideos.length > 0,
     },
+    eventMediaSubmission: normalizeEventMediaSubmission(page.eventMediaSubmission),
     merch: {
       kicker: cleanText(page.merch?.kicker),
       heading: cleanText(page.merch?.heading),
@@ -1555,6 +1734,415 @@ export function normalizeMediaPageContent(
       body: bookingBody,
       ctaLabel: bookingCtaLabel,
     },
+    seo: {
+      metaTitle: cleanText(page.seo?.metaTitle),
+      metaDescription: cleanText(page.seo?.metaDescription),
+      ogImageUrl: getOgImageUrl(page.seo?.ogImage),
+    },
+  };
+}
+
+/* =========================================================================
+ * Contact & Booking page (/contact-booking)
+ *
+ * `intro` is the required editorial core, treated as one unit exactly like
+ * every other page singleton's intro — missing/incomplete invalidates the
+ * whole document, in every mode.
+ *
+ * `newsletterCta` and `faq` follow the same strict/lenient split as the
+ * Gallery & Merchandise and Music pages' curated selections
+ * (`NormalizeContactPageOptions.strict`, set by the caller from the
+ * configured DATASET): in `production`, a missing/incomplete newsletter
+ * callout or an empty FAQ list is treated as mandatory production content
+ * and invalidates the whole document, exactly like an incomplete `intro`.
+ * Everywhere else, both remain independently optional and degrade on their
+ * own — a missing/incomplete newsletter callout omits just that section,
+ * and an empty FAQ list simply renders no FAQ entries — so a
+ * `development`-dataset preview stays usable while this content is still
+ * being written. FAQ entries are filtered individually in both modes — a
+ * malformed entry is dropped, never fatal to its siblings or to the page.
+ * ====================================================================== */
+
+export interface NormalizedFaqEntry {
+  _key: string;
+  question: string;
+  answer: string;
+}
+
+export interface NormalizedContactPageContent {
+  intro: { kicker: string | null; heading: string; lede: string; explanation: string };
+  newsletterCta: { heading: string; body: string; linkLabel: string } | null;
+  faq: NormalizedFaqEntry[];
+  seo: { metaTitle: string | null; metaDescription: string | null; ogImageUrl: string | null };
+}
+
+export interface NormalizeContactPageOptions {
+  /** True only when the configured Sanity DATASET is `production` — mirrors
+   * `NormalizeGalleryPageOptions.strict` / `NormalizeMusicPageOptions.strict`
+   * exactly. */
+  strict: boolean;
+}
+
+const MAX_FAQ_ENTRIES = 12;
+
+function normalizeFaqEntries(
+  entries: NonNullable<CONTACT_PAGE_QUERY_RESULT>["faq"],
+): NormalizedFaqEntry[] {
+  const items: NormalizedFaqEntry[] = [];
+  for (const entry of entries ?? []) {
+    if (items.length >= MAX_FAQ_ENTRIES) break;
+    const question = cleanText(entry?.question);
+    const answer = cleanText(entry?.answer);
+    if (!question || !answer || !entry?._key) continue;
+    items.push({ _key: entry._key, question, answer });
+  }
+  return items;
+}
+
+/**
+ * Treats the Contact singleton's `intro` as one required editorial unit,
+ * exactly like every other page singleton — missing/incomplete returns
+ * `null` for the whole document, and `contact-booking.astro` then either
+ * fails the production build or falls back as a complete block. In strict
+ * (production) mode, an incomplete newsletter callout or an empty FAQ list
+ * ALSO returns `null` for the whole document — see the module doc comment.
+ */
+export function normalizeContactPageContent(
+  page: CONTACT_PAGE_QUERY_RESULT,
+  options: NormalizeContactPageOptions,
+): NormalizedContactPageContent | null {
+  if (!page) return null;
+
+  const introHeading = cleanText(page.intro?.heading);
+  const introLede = cleanText(page.intro?.lede);
+  const introExplanation = cleanText(page.intro?.explanation);
+
+  if (!introHeading || !introLede || !introExplanation) return null;
+
+  const newsletterHeading = cleanText(page.newsletterCta?.heading);
+  const newsletterBody = cleanText(page.newsletterCta?.body);
+  const newsletterLinkLabel = cleanText(page.newsletterCta?.linkLabel);
+  const newsletterCta =
+    newsletterHeading && newsletterBody && newsletterLinkLabel
+      ? { heading: newsletterHeading, body: newsletterBody, linkLabel: newsletterLinkLabel }
+      : null;
+
+  const faq = normalizeFaqEntries(page.faq);
+
+  if (options.strict && (!newsletterCta || faq.length === 0)) return null;
+
+  return {
+    intro: {
+      kicker: cleanText(page.intro?.kicker),
+      heading: introHeading,
+      lede: introLede,
+      explanation: introExplanation,
+    },
+    newsletterCta,
+    faq,
+    seo: {
+      metaTitle: cleanText(page.seo?.metaTitle),
+      metaDescription: cleanText(page.seo?.metaDescription),
+      ogImageUrl: getOgImageUrl(page.seo?.ogImage),
+    },
+  };
+}
+
+/* =========================================================================
+ * Music page (/music)
+ *
+ * `releases` is a curated, editor-ordered selection — the same editorial
+ * weight as `aboutPage.members` and `galleryPage.gallery.items` — so it
+ * follows their precedent: STRICT in production (any invalid selected
+ * release fails the whole build) and LENIENT everywhere else (an invalid
+ * entry is silently dropped). `options.strict` is set by the caller from
+ * the configured DATASET, exactly like `NormalizeGalleryPageOptions.strict`.
+ *
+ * A release's own optional links (Spotify/Apple Music/pre-save/watch video)
+ * never gate the release's existence, in either mode — a broken or
+ * lookalike-domain link degrades to "no link" for that one field only, the
+ * same way a malformed credit URL degrades elsewhere in this file. Only a
+ * release missing its title, a recognized `state`, or a parseable
+ * `releaseDate` is dropped (lenient) or fatal (strict).
+ * ====================================================================== */
+
+export type MusicReleaseState = "upcoming" | "released";
+export type MusicReleaseType = "single" | "ep" | "album" | "other" | null;
+
+export interface NormalizedMusicArtwork {
+  src: string;
+  width: number;
+  height: number;
+  objectPosition: string;
+  alt: string;
+}
+
+export interface NormalizedMusicRelease {
+  _id: string;
+  title: string;
+  slug: string | null;
+  releaseType: MusicReleaseType;
+  state: MusicReleaseState;
+  /** `YYYY-MM-DD`, as stored — never re-formatted here; components decide
+   * display formatting and the optional countdown from this raw value. */
+  releaseDate: string;
+  /** `null` when no artwork is selected, or a selected one is unusable —
+   * an upcoming release may be announced before artwork exists. */
+  artwork: NormalizedMusicArtwork | null;
+  description: string | null;
+  spotifyUrl: string | null;
+  appleMusicUrl: string | null;
+  preSaveUrl: string | null;
+  watchVideoUrl: string | null;
+}
+
+export interface NormalizedMusicPageContent {
+  intro: { kicker: string | null; heading: string; lede: string };
+  releases: NormalizedMusicRelease[];
+  featuredVideo: NormalizedFeaturedVideo | null;
+  seo: { metaTitle: string | null; metaDescription: string | null; ogImageUrl: string | null };
+}
+
+export interface NormalizeMusicPageOptions {
+  /** True only when the configured Sanity DATASET is `production` —
+   * mirrors `NormalizeGalleryPageOptions.strict` exactly. */
+  strict: boolean;
+}
+
+const MAX_MUSIC_RELEASES = 40;
+const MUSIC_ARTWORK_WIDTH = 640;
+const MUSIC_RELEASE_STATES: readonly string[] = ["upcoming", "released"];
+
+type RawMusicReleases = NonNullable<MUSIC_PAGE_QUERY_RESULT>["releases"];
+type RawMusicRelease = NonNullable<RawMusicReleases>[number]["release"];
+
+function isMusicReleaseState(value: unknown): value is MusicReleaseState {
+  return typeof value === "string" && MUSIC_RELEASE_STATES.includes(value);
+}
+
+/** https-only, no provider hardcoded — used for `preSaveUrl` and
+ * `watchVideoUrl`, whose providers deliberately vary. */
+function safeHttpsUrl(value: string | null | undefined): string | null {
+  const raw = cleanText(value);
+  if (!raw) return null;
+  try {
+    return new URL(raw).protocol === "https:" ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Used for `galleryPage.eventMediaSubmission.formUrl` — unlike `safeHttpsUrl`
+ * above, this does NOT accept an arbitrary `https://` link. Studio's own
+ * `Rule.custom` on this field (`studio/schemaTypes/galleryPage.ts`) binds
+ * the Studio UI, not the Content API, so the identical check is re-applied
+ * here, kept deliberately in lockstep with it — matching the project's
+ * established convention for lookalike-domain-resistant fields
+ * (`spotifyUrl`/`appleMusicUrl` on `musicRelease` use the identical
+ * pattern). This validates URL *structure and host* only — it accepts
+ * exactly two shapes: a real `docs.google.com/forms/d/e/<id>/viewform`
+ * link (a prefilled variant with query parameters is also accepted) or a
+ * real `forms.gle/<code>` short link — and rejects everything else that
+ * still parses as one of those two hosts: the bare root of either host, an
+ * arbitrary path under `/forms/` (e.g. `/forms/not-a-form` — a previous,
+ * looser version of this check accepted any non-empty path here), a
+ * `/edit` link, the `/formResponse` submission endpoint, an empty form id,
+ * and a URL carrying embedded credentials. None of this confirms the form
+ * actually exists, is published, has the right sharing/access permissions,
+ * or carries the approved consent language — only that the URL has the
+ * right shape and host to plausibly be one.
+ */
+function safeGoogleFormUrl(value: string | null | undefined): string | null {
+  const raw = cleanText(value);
+  if (!raw) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "https:") return null;
+  if (parsed.username || parsed.password) return null;
+  const hostname = parsed.hostname.replace(/^www\./, "");
+  // Each host accepts exactly one specific URL *shape*, not merely "any
+  // non-empty path under it".
+  if (hostname === "forms.gle") {
+    return /^\/[^/]+$/.test(parsed.pathname) ? raw : null;
+  }
+  if (hostname === "docs.google.com") {
+    return /^\/forms\/d\/e\/[^/]+\/viewform$/.test(parsed.pathname) ? raw : null;
+  }
+  return null;
+}
+
+/** Re-validated at render time, exactly like every other Studio-enforced
+ * rule in this file (Studio's own check binds the Studio UI only) — must
+ * resolve to the real Spotify host, not merely any https:// URL. */
+function safeSpotifyUrl(value: string | null | undefined): string | null {
+  const raw = cleanText(value);
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    const hostname = parsed.hostname.replace(/^www\./, "");
+    return parsed.protocol === "https:" && (hostname === "open.spotify.com" || hostname === "spotify.com")
+      ? raw
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Same reasoning as `safeSpotifyUrl` — must resolve to the real Apple
+ * Music host. */
+function safeAppleMusicUrl(value: string | null | undefined): string | null {
+  const raw = cleanText(value);
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "https:" && parsed.hostname.replace(/^www\./, "") === "music.apple.com"
+      ? raw
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Width only, like every other content photo on this site — Sanity applies
+ * the editor's manual crop but forces no aspect ratio, and the hotspot is
+ * handed to CSS `object-position`. `null` for any reason the artwork can't
+ * be honestly rendered (no selection, unresolved reference, missing alt) —
+ * never fatal to the release itself.
+ */
+function normalizeMusicArtwork(raw: RawMusicRelease["coverArtwork"]): NormalizedMusicArtwork | null {
+  const image = raw?.image;
+  const assetId = image?.asset?._id;
+  const alt = cleanText(raw?.alt);
+  if (!image || !assetId || !alt) return null;
+
+  const width = MUSIC_ARTWORK_WIDTH;
+  return {
+    src: sanityImageUrl(image, { width }),
+    width,
+    height: Math.round(width / computeCroppedAspectRatio(image)),
+    objectPosition: computeObjectPosition(image),
+    alt,
+  };
+}
+
+/**
+ * A release must be renderable as itself: a title, a recognized `state`,
+ * and a parseable `releaseDate`. Everything else — artwork, description,
+ * and every link — is optional and degrades independently, never taking
+ * the release down with it.
+ *
+ * `strict` additionally rejects a release whose title or description
+ * carries `TEST_RELEASE_MARKER` — the `[TEST]` prefix every development
+ * fixture release uses (see `musicData.ts`) — mirroring
+ * `TEST_BIOGRAPHY_MARKER`'s and `TEST_PRODUCT_MARKER`'s role elsewhere in
+ * this file: a marked development release must never silently pass a
+ * production build even if it's ever selected into a production
+ * `musicPage.releases`.
+ */
+function normalizeOneMusicRelease(
+  raw: RawMusicRelease | null | undefined,
+  strict: boolean,
+): NormalizedMusicRelease | null {
+  if (!raw) return null;
+
+  const title = cleanText(raw.title);
+  if (!title) return null;
+  if (!isMusicReleaseState(raw.state)) return null;
+  if (!isValidCalendarDateOnly(raw.releaseDate)) return null;
+
+  const description = cleanText(raw.description);
+  if (strict && (title.includes(TEST_RELEASE_MARKER) || description?.includes(TEST_RELEASE_MARKER))) {
+    return null;
+  }
+
+  return {
+    _id: raw._id,
+    title,
+    slug: cleanText(raw.slug),
+    releaseType: raw.releaseType ?? null,
+    state: raw.state,
+    releaseDate: raw.releaseDate,
+    artwork: normalizeMusicArtwork(raw.coverArtwork),
+    description,
+    spotifyUrl: safeSpotifyUrl(raw.spotifyUrl),
+    appleMusicUrl: safeAppleMusicUrl(raw.appleMusicUrl),
+    preSaveUrl: safeHttpsUrl(raw.preSaveUrl),
+    watchVideoUrl: safeHttpsUrl(raw.watchVideoUrl),
+  };
+}
+
+/**
+ * `musicPage.releases` is the single source of truth for release membership
+ * AND order — this loop never sorts or reorders (`music.astro` derives the
+ * Upcoming/Released groups from this one list by filtering on `state`,
+ * preserving relative order within each). Invalid entries are filtered out
+ * (lenient mode) BEFORE the cap is applied, so an invalid entry never
+ * consumes one of the 40 slots. A reference to the same release appearing
+ * twice is additionally deduplicated by `_id` — Studio's own custom
+ * validation already blocks this in the Studio UI, re-checked here for the
+ * same reason every other Studio-enforced rule is re-checked at this layer.
+ */
+function normalizeMusicReleases(
+  entries: RawMusicReleases,
+  strict: boolean,
+): NormalizedMusicRelease[] | null {
+  const items: NormalizedMusicRelease[] = [];
+  const seenIds = new Set<string>();
+
+  for (const entry of entries ?? []) {
+    if (items.length >= MAX_MUSIC_RELEASES) break;
+
+    const release = normalizeOneMusicRelease(entry?.release, strict);
+    if (release === null) {
+      if (strict) return null;
+      continue;
+    }
+    if (seenIds.has(release._id)) continue;
+    seenIds.add(release._id);
+
+    items.push(release);
+  }
+
+  return items;
+}
+
+/**
+ * Treats the Music singleton's `intro` as the required editorial core,
+ * exactly like every other page singleton — missing/incomplete returns
+ * `null` for the whole document. The curated `releases` selection is
+ * validated by its own strict/lenient rules above; a `null` from it also
+ * invalidates the whole document, but ONLY in strict mode (see the module
+ * doc comment). An empty or absent `releases` selection is always valid on
+ * its own — a Music page with zero releases yet is a legitimate pre-launch
+ * state, not an error.
+ */
+export function normalizeMusicPageContent(
+  page: MUSIC_PAGE_QUERY_RESULT,
+  options: NormalizeMusicPageOptions,
+): NormalizedMusicPageContent | null {
+  if (!page) return null;
+
+  const introHeading = cleanText(page.intro?.heading);
+  const introLede = cleanText(page.intro?.lede);
+  if (!introHeading || !introLede) return null;
+
+  const releases = normalizeMusicReleases(page.releases, options.strict);
+  if (releases === null) return null;
+
+  return {
+    intro: {
+      kicker: cleanText(page.intro?.kicker),
+      heading: introHeading,
+      lede: introLede,
+    },
+    releases,
+    featuredVideo: normalizeFeaturedVideo(page.featuredVideo),
     seo: {
       metaTitle: cleanText(page.seo?.metaTitle),
       metaDescription: cleanText(page.seo?.metaDescription),

@@ -36,7 +36,7 @@ const displayEyebrow = hasVideo ? "Play Featured Video" : eyebrow;
         id="hero-video-trigger"
         videoId={videoId}
         videoTitle={videoTitle}
-        playLabel="Play featured video"
+        playLabel={`Play featured video: ${videoTitle}`}
         staticAlt={siteConfig.bandNameFormal}
         width={560}
         loading="eager"
@@ -49,6 +49,12 @@ const displayEyebrow = hasVideo ? "Play Featured Video" : eyebrow;
       <a href={siteConfig.routes.bookingForm} class="btn btn-primary">Book Us</a>
       <a href={siteConfig.routes.shows} class="btn btn-outline">Upcoming Shows</a>
     </div>
+    {/* Quieter than the two primary buttons above — a soft ask, not a third
+        competing button — pointing to the homepage's own newsletter section
+        rather than opening it directly. */}
+    <a href={siteConfig.routes.newsletterSection} class="hero-newsletter-link intro-enter intro-enter-4">
+      Join the Newsletter
+    </a>
   </div>
   <div class="scroll-cue" aria-hidden="true"></div>
 </section>
@@ -97,7 +103,7 @@ const displayEyebrow = hasVideo ? "Play Featured Video" : eyebrow;
     align-items: center;
     gap: 26px;
   }
-  /* The one intentional difference from the Media & Merch featured video:
+  /* The one intentional difference from the Music page's featured video:
      this player's own max-width. Everything else — the trigger button, the
      logo treatment, the play overlay, the float motion, and the activated
      iframe's size/shadow — is the shared `.video-trigger*` primitive in
@@ -130,6 +136,35 @@ const displayEyebrow = hasVideo ? "Play Featured Video" : eyebrow;
     flex-wrap: wrap;
     justify-content: center;
     margin-top: 8px;
+  }
+
+  /* A restrained outlined button beneath the two primary filled buttons —
+     quieter than them (no fill, smaller type, same cream/gold color family
+     as before), but still reads as its own button rather than a plain text
+     link: a full border on all four sides plus a pill radius, not the
+     previous bottom-border-only underline treatment. 44px min-height
+     matches the site's established target-size convention for primary
+     controls. */
+  .hero-newsletter-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 4px 22px;
+    margin-top: 4px;
+    font-size: 0.82rem;
+    letter-spacing: 0.6px;
+    color: rgba(244, 232, 208, 0.65);
+    border: 1px solid rgba(244, 232, 208, 0.3);
+    border-radius: 999px;
+    transition: color 0.25s var(--ease), border-color 0.25s var(--ease),
+      background-color 0.25s var(--ease);
+  }
+  .hero-newsletter-link:hover,
+  .hero-newsletter-link:focus-visible {
+    color: var(--gold);
+    border-color: var(--gold);
+    background-color: rgba(200, 168, 107, 0.08);
   }
 
   .scroll-cue {

@@ -4,11 +4,14 @@
  * treatment, play-icon markup and size, overlay, hover/focus behavior,
  * border radius/shadow, float motion, accessible button structure, and
  * `data-video-*` activation contract — used identically by the Homepage
- * hero (`Hero.astro`) and the Media & Merch featured video
+ * hero (`Hero.astro`) and the Music page's featured video
  * (`FeaturedVideo.astro`). One markup source means the two triggers cannot
  * drift the way two hand-maintained copies could (this replaced an earlier
  * version where the play icon alone had silently diverged to two different
- * sizes, 30px vs. 34px, despite "shared" CSS).
+ * sizes, 30px vs. 34px, despite "shared" CSS). `FeaturedVideo.astro` used
+ * to also serve the Media & Merch page (now Gallery & Merchandise); that
+ * page's featured-video section was removed entirely, not migrated — see
+ * `FeaturedVideo.astro`'s own doc comment.
  *
  * Visual/behavioral presentation lives here and in the shared
  * `.video-trigger*` CSS primitive in `global.css`. The only things each
@@ -18,8 +21,8 @@
  *
  * Renders a real `<button>` when a video is configured, or a plain,
  * non-interactive `<Image>` for the static (no-video) state — currently
- * only the Homepage hero uses the no-video branch (the Media & Merch
- * featured video is never rendered at all without a video — see
+ * only the Homepage hero uses the no-video branch (the Music featured
+ * video is never rendered at all without a video — see
  * `FeaturedVideo.astro`'s own doc comment).
  *
  * After activation, both callers hand off to the same shared

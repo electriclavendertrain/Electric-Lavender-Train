@@ -7,7 +7,8 @@ const NAV_LINKS = [
   { href: siteConfig.routes.home, label: "Home" },
   { href: siteConfig.routes.about, label: "About" },
   { href: siteConfig.routes.shows, label: "Shows" },
-  { href: siteConfig.routes.mediaMerch, label: "Media & Merch" },
+  { href: siteConfig.routes.music, label: "Music" },
+  { href: siteConfig.routes.galleryMerch, label: "Gallery & Merch" },
   { href: siteConfig.routes.contactBooking, label: "Contact" },
 ];
 
@@ -109,6 +110,26 @@ const isActive = (href: string) =>
     display: flex;
     align-items: center;
     gap: 2.2rem;
+  }
+  /* Just above the 900px mobile breakpoint, the full desktop nav (six links
+     + the "Book Us" pill) is tighter on space than at typical laptop/desktop
+     widths — at the default 2.2rem gap, "Gallery & Merch" and "Book Us" were
+     each wrapping onto two lines and colliding with neighboring items
+     (verified broken from 901px up to ~913px). Tightening the gap (and the
+     "Book Us" button's own horizontal padding, which is the other thing
+     competing for the same space) in this one narrow band keeps every nav
+     item on a single line without shrinking any text size — the fix is
+     spacing, not font size, so it stays fully readable. 1080px is a
+     deliberately generous upper bound past the 977px range this was
+     reported for, so ordinary laptop/desktop widths above it keep the
+     original, more spacious gap unchanged. */
+  @media (min-width: 901px) and (max-width: 1080px) {
+    .desktop-nav {
+      gap: 1.1rem;
+    }
+    .desktop-nav .btn-book {
+      padding: 10px 16px;
+    }
   }
   .desktop-nav .nav-link {
     font-size: 0.85rem;

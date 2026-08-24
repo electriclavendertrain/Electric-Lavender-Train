@@ -1,7 +1,15 @@
 ---
 /**
- * /media-merch — photos, an optional featured video, and inquiry-only
- * merchandise.
+ * /gallery-merch — photos and inquiry-only merchandise.
+ *
+ * Renamed from `/media-merch` (visitor-facing "Media & Merch" → "Gallery &
+ * Merchandise") — see docs/gallery-merch.md. A static-compatible redirect
+ * from the old `/media-merch` path is configured in `astro.config.mjs`, not
+ * a page file here (having both would conflict).
+ *
+ * This page's featured-video section was removed entirely, not migrated —
+ * featured, click-to-load video locations are now only the Homepage hero
+ * and the Music page.
  *
  * This is the only file on this route that touches Sanity. It fetches,
  * hands the raw result straight to normalization, and passes plain objects
@@ -11,20 +19,19 @@
 
 import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import MediaIntro from "../components/MediaIntro.astro";
-import FeaturedVideo from "../components/FeaturedVideo.astro";
+import GalleryMerchIntro from "../components/GalleryMerchIntro.astro";
 import MediaGallery from "../components/MediaGallery.astro";
+import EventMediaSubmission from "../components/EventMediaSubmission.astro";
 import MerchGrid from "../components/MerchGrid.astro";
 import BookingCTA from "../components/BookingCTA.astro";
 import siteConfig, { formatPageTitle, contactInquiryHref } from "../data/siteConfig";
-import { mediaPageCopy, mediaPageFallback, galleryFallback, merchFallback } from "../data/mediaData";
-import { getYouTubeVideoId } from "../lib/youtube";
+import { galleryMerchCopy, galleryMerchFallback, galleryFallback, merchFallback } from "../data/galleryMerchData";
 import { sanityClient } from "../sanity/client";
-import { MEDIA_PAGE_QUERY } from "../sanity/queries";
+import { GALLERY_PAGE_QUERY } from "../sanity/queries";
 import {
-  normalizeMediaPageContent,
+  normalizeGalleryPageContent,
   DEFAULT_OBJECT_POSITION,
-  type NormalizedMediaPageContent,
+  type NormalizedGalleryPageContent,
   type NormalizedGalleryPhoto,
   type NormalizedMerchItem,
 } from "../sanity/normalize";
@@ -35,49 +42,44 @@ import {
 // requirements below. Matches every other route's convention exactly.
 const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
 
-const rawMediaPage = await sanityClient.fetch(MEDIA_PAGE_QUERY);
+const rawGalleryPage = await sanityClient.fetch(GALLERY_PAGE_QUERY);
 
 // The curated gallery/merch selections get strict, item-level validation in
 // production (see normalize.ts's module doc comment on this section) — any
 // invalid selected entry fails the whole build there, and is silently
 // dropped everywhere else.
-const normalizedMediaPage = normalizeMediaPageContent(rawMediaPage, {
+const normalizedGalleryPage = normalizeGalleryPageContent(rawGalleryPage, {
   strict: isProductionDataset,
 });
 
-if (normalizedMediaPage === null && isProductionDataset) {
+if (normalizedGalleryPage === null && isProductionDataset) {
   throw new Error(
-    "The Sanity `mediaPage` singleton is missing or incomplete in the production dataset. " +
+    "The Sanity `galleryPage` singleton is missing or incomplete in the production dataset. " +
       "The page introduction and inquiry call-to-action must be complete; every selected " +
       "gallery photo must resolve with an image, alt text, a known category, and (if supplied) " +
       "a valid credit URL; and every selected merchandise item must have a name and description " +
       "with no `[TEST — CLIENT PRODUCT REQUIRED]` marker and a resolvable image if one is " +
-      "supplied. Publish the Media & Merch Page in Sanity Studio before building for " +
-      "production — see docs/media-merch.md.",
+      "supplied. Publish the Gallery & Merchandise Page in Sanity Studio before building for " +
+      "production — see docs/gallery-merch.md.",
   );
 }
 
 /**
  * The development fallback is ONE complete block, used only when the whole
  * singleton is absent — never patched field by field onto partial live
- * content. It includes a clearly `[TEST — CLIENT VIDEO REQUIRED]`-marked
- * featured video (see `mediaData.ts`'s module doc comment) — this branch is
- * structurally unreachable once `PUBLIC_SANITY_DATASET` is `production`
- * (the `throw` above already fired by the time execution could reach here),
- * and a valid LIVE `mediaPage` with no featured video takes the entirely
- * separate `normalizeFeaturedVideo` path below, which returns `null` and
- * omits the section — this fixture can never substitute for that.
+ * content. It has no featured video at all — this page no longer has a
+ * featured-video section (see the module doc comment above).
  */
-let pageContent: NormalizedMediaPageContent;
+let pageContent: NormalizedGalleryPageContent;
 
 // Mirrors normalize.ts's GALLERY_THUMB_WIDTH / GALLERY_LIGHTBOX_WIDTH: two
 // bounded sizes, never a third undisplayed one, and never the unbounded
-// original — matching the live Sanity path exactly (docs/media-merch.md §13).
+// original — matching the live Sanity path exactly (docs/gallery-merch.md §13).
 const FALLBACK_THUMB_WIDTH = 700;
 const FALLBACK_LIGHTBOX_WIDTH = 1600;
 
-if (normalizedMediaPage) {
-  pageContent = normalizedMediaPage;
+if (normalizedGalleryPage) {
+  pageContent = normalizedGalleryPage;
 } else {
   const galleryItems: NormalizedGalleryPhoto[] = await Promise.all(
     galleryFallback.map(async (item) => {
@@ -126,17 +128,11 @@ if (normalizedMediaPage) {
   }
 
   pageContent = {
-    intro: mediaPageFallback.intro,
-    featuredVideo: {
-      kicker: mediaPageFallback.featuredVideo.kicker,
-      heading: mediaPageFallback.featuredVideo.heading,
-      videoUrl: mediaPageFallback.featuredVideo.videoUrl,
-      title: mediaPageFallback.featuredVideo.title,
-    },
+    intro: galleryMerchFallback.intro,
     gallery: {
-      kicker: mediaPageFallback.gallery.kicker,
-      heading: mediaPageFallback.gallery.heading,
-      body: mediaPageFallback.gallery.body,
+      kicker: galleryMerchFallback.gallery.kicker,
+      heading: galleryMerchFallback.gallery.heading,
+      body: galleryMerchFallback.gallery.body,
       items: galleryItems,
       // The development fallback stays photo-only, deliberately — gallery
       // videos are exercised with local fixtures/mocks during verification,
@@ -147,16 +143,20 @@ if (normalizedMediaPage) {
       hasVenueCrowd: galleryItems.some((item) => item.category === "venue-crowd"),
       hasVideos: false,
     },
+    // Off by default in the development fallback, exactly like the gallery
+    // videos above — this is an approved, planned feature pending a real
+    // Google Form, not something to demonstrate with fabricated content.
+    eventMediaSubmission: null,
     merch: {
-      kicker: mediaPageFallback.merch.kicker,
-      heading: mediaPageFallback.merch.heading,
-      body: mediaPageFallback.merch.body,
+      kicker: galleryMerchFallback.merch.kicker,
+      heading: galleryMerchFallback.merch.heading,
+      body: galleryMerchFallback.merch.body,
       items: merchItems,
     },
-    bookingCta: mediaPageFallback.bookingCta,
+    bookingCta: galleryMerchFallback.bookingCta,
     seo: {
-      metaTitle: mediaPageFallback.seo.metaTitle,
-      metaDescription: mediaPageFallback.seo.metaDescription,
+      metaTitle: galleryMerchFallback.seo.metaTitle,
+      metaDescription: galleryMerchFallback.seo.metaDescription,
       // Deliberately null: this page's share image is its own field and
       // never inherits another route's.
       ogImageUrl: null,
@@ -164,49 +164,24 @@ if (normalizedMediaPage) {
   };
 }
 
-// `normalizeFeaturedVideo` (like `getHeroVideoUrl`) only resolves presence;
-// the actual YouTube-id validation happens here, at the same layer
-// `Hero.astro` already does it at. A malformed or non-YouTube URL safely
-// resolves to "no video" — the whole section is omitted below, never a
-// "coming soon" placeholder.
-const featuredVideoId = pageContent.featuredVideo
-  ? getYouTubeVideoId(pageContent.featuredVideo.videoUrl)
-  : null;
-// A real Studio-provided title takes priority; the fallback string only
-// covers a missing/unresolved mediaItem title, never a hardcoded stand-in
-// for approved metadata (§3 — mirrors how `index.astro` resolves Hero's).
-const featuredVideoTitle =
-  pageContent.featuredVideo?.title ?? `${siteConfig.bandNameFormal} — Featured Video`;
-
-const title = formatPageTitle(pageContent.seo.metaTitle ?? "Media & Merch");
+const title = formatPageTitle(pageContent.seo.metaTitle ?? "Gallery & Merchandise");
 const description = pageContent.seo.metaDescription ?? siteConfig.tagline;
 
 // Merchandise inquiries are an internal Contact-page email flow, not
-// Instagram — see docs/contact-booking.md and docs/media-merch.md §8. This
+// Instagram — see docs/contact-booking.md and docs/gallery-merch.md §8. This
 // is an ordinary internal link: no new tab, no external-link notice.
 const inquiryHref = contactInquiryHref("merch");
 ---
 
 <BaseLayout title={title} description={description} ogImage={pageContent.seo.ogImageUrl}>
-  <MediaIntro
+  <GalleryMerchIntro
     kicker={pageContent.intro.kicker}
     heading={pageContent.intro.heading}
     lede={pageContent.intro.lede}
   />
 
-  {
-    pageContent.featuredVideo && featuredVideoId && (
-      <FeaturedVideo
-        kicker={pageContent.featuredVideo.kicker}
-        heading={pageContent.featuredVideo.heading}
-        videoId={featuredVideoId}
-        videoTitle={featuredVideoTitle}
-      />
-    )
-  }
-
   <MediaGallery
-    headingId={mediaPageCopy.gallery.headingId}
+    headingId={galleryMerchCopy.gallery.headingId}
     kicker={pageContent.gallery.kicker}
     heading={pageContent.gallery.heading}
     body={pageContent.gallery.body}
@@ -217,8 +192,20 @@ const inquiryHref = contactInquiryHref("merch");
     hasVideos={pageContent.gallery.hasVideos}
   />
 
+  {
+    pageContent.eventMediaSubmission && (
+      <EventMediaSubmission
+        kicker={pageContent.eventMediaSubmission.kicker}
+        heading={pageContent.eventMediaSubmission.heading}
+        explanation={pageContent.eventMediaSubmission.explanation}
+        ctaLabel={pageContent.eventMediaSubmission.ctaLabel}
+        formUrl={pageContent.eventMediaSubmission.formUrl}
+      />
+    )
+  }
+
   <MerchGrid
-    headingId={mediaPageCopy.merch.headingId}
+    headingId={galleryMerchCopy.merch.headingId}
     kicker={pageContent.merch.kicker}
     heading={pageContent.merch.heading}
     body={pageContent.merch.body}

@@ -24,7 +24,7 @@
  * this explicit close control are the dismissal paths.
  */
 
-import { mediaPageCopy } from "../data/mediaData";
+import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedGalleryPhoto } from "../sanity/normalize";
 
 interface Props {
@@ -43,7 +43,7 @@ const captionId = `${dialogId}-caption`;
     <a class="gallery-lightbox__close" href={closeHref} data-gallery-lightbox-close>
       <span aria-hidden="true">&times;</span>
       <span class="visually-hidden">
-        {mediaPageCopy.gallery.lightboxCloseLabel} {mediaPageCopy.gallery.lightboxClosePhotoSuffix}
+        {galleryMerchCopy.gallery.lightboxCloseLabel} {galleryMerchCopy.gallery.lightboxClosePhotoSuffix}
       </span>
     </a>
 
@@ -69,11 +69,11 @@ const captionId = `${dialogId}-caption`;
         {
           item.credit && (
             <p class="gallery-lightbox__credit">
-              <span class="visually-hidden">{mediaPageCopy.gallery.photoCreditPrefix}</span>
+              <span class="visually-hidden">{galleryMerchCopy.gallery.photoCreditPrefix}</span>
               {item.credit.url ? (
                 <a href={item.credit.url} target="_blank" rel="noopener noreferrer">
                   {item.credit.label}
-                  <span class="visually-hidden">{mediaPageCopy.newTabSuffix}</span>
+                  <span class="visually-hidden">{galleryMerchCopy.newTabSuffix}</span>
                 </a>
               ) : (
                 item.credit.label

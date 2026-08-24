@@ -12,8 +12,10 @@ interface Props {
   /**
    * Where the button goes. Defaults to the shared booking-form destination,
    * so every existing caller (Homepage, Shows, About) keeps its current
-   * behavior with no changes. The Media & Merch page is the first caller to
-   * override this, passing the verified Instagram URL.
+   * behavior with no changes. The Gallery & Merchandise page (formerly
+   * Media & Merch) was the first caller to override this — it now passes
+   * an internal `/contact-booking` Merch-inquiry link, not the original
+   * verified Instagram URL this comment used to describe.
    */
   href?: string;
   /**

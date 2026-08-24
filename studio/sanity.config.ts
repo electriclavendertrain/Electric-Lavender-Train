@@ -14,7 +14,16 @@ import {structure} from './structure'
  * `bandMember`, `testimonial`, and `merchItem` are deliberately NOT here —
  * they are ordinary reusable documents with Sanity-generated ids.
  */
-const SINGLETON_TYPES = ['homepage', 'aboutPage', 'showsPage', 'mediaPage']
+const SINGLETON_TYPES = [
+  'homepage',
+  'aboutPage',
+  'showsPage',
+  'galleryPage',
+  // Deprecated legacy singleton, retained read-only — see mediaPage.ts.
+  'mediaPage',
+  'contactPage',
+  'musicPage',
+]
 
 export default defineConfig({
   name: 'default',

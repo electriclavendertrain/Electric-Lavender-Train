@@ -14,6 +14,7 @@ import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import AboutHero from "../components/AboutHero.astro";
 import AboutStory from "../components/AboutStory.astro";
+import LabelAffiliation from "../components/LabelAffiliation.astro";
 import BandMembers from "../components/BandMembers.astro";
 import AboutExperience from "../components/AboutExperience.astro";
 import AboutPageJsonLd from "../components/AboutPageJsonLd.astro";
@@ -142,6 +143,18 @@ const testimonials = withTestimonialFallbacks(
   !isProductionDataset,
 );
 
+// Independently optional (see normalize.ts's doc comment on this field):
+// falls back to the same approved facts already recorded in
+// `siteConfig.heavyCrushRecords` rather than to a `[TEST]`-marked
+// placeholder — these are real, approved, safe-to-publish facts, not
+// content standing in for something the client hasn't provided yet.
+const labelAffiliation = pageContent.labelAffiliation ?? {
+  kicker: null,
+  text: siteConfig.heavyCrushRecords.relationshipText,
+  logoAlt: "Heavy Crush Records logo",
+  url: siteConfig.heavyCrushRecords.url,
+};
+
 const title = formatPageTitle(pageContent.seo.metaTitle ?? "About");
 const description = pageContent.seo.metaDescription ?? siteConfig.tagline;
 
@@ -180,6 +193,13 @@ const pageUrl = new URL(siteConfig.routes.about, siteConfig.siteUrl).href;
     kicker={pageContent.story.kicker}
     heading={pageContent.story.heading}
     paragraphs={pageContent.story.paragraphs}
+  />
+
+  <LabelAffiliation
+    kicker={labelAffiliation.kicker}
+    text={labelAffiliation.text}
+    logoAlt={labelAffiliation.logoAlt}
+    url={labelAffiliation.url}
   />
 
   <BandMembers

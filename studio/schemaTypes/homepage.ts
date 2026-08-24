@@ -5,6 +5,12 @@ export const homepage = defineType({
   title: 'Homepage',
   type: 'document',
   initialValue: {
+    newsletter: {
+      kicker: 'Stay in the Loop',
+      heading: 'Join the ELT Newsletter',
+      body: 'Weekly updates from Electric Lavender Train, straight to your inbox. Subscribers can separately opt in to new-show alerts when a public date is added. Signup uses email confirmation (double opt-in) once the hosted form is live.',
+      ctaLabel: 'Sign Up for the Newsletter',
+    },
     upcomingShows: {
       kicker: 'Where to Find Us',
       heading: 'Upcoming Shows',
@@ -96,6 +102,15 @@ export const homepage = defineType({
           name: 'ctaLabel',
           title: 'Button text',
           type: 'string',
+        }),
+        defineField({
+          name: 'image',
+          title: 'Band introduction image',
+          description:
+            'Optional. Image media items only. Independent of the About page’s hero image — choosing the same photo in both places is fine, but changing one never changes the other. If left empty, the heading and paragraphs above still render; a development-only local photo fills the space outside production while no image is selected.',
+          type: 'reference',
+          to: [{type: 'mediaItem'}],
+          options: {filter: 'mediaType == "image"'},
         }),
       ],
     }),
@@ -243,6 +258,41 @@ export const homepage = defineType({
         defineField({
           name: 'body',
           title: 'Body',
+          type: 'text',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'ctaLabel',
+          title: 'Button text',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+      ],
+    }),
+    defineField({
+      name: 'newsletter',
+      title: 'Newsletter section',
+      description:
+        'Renders in a dedicated "#newsletter" section near the end of the homepage, and is linked from the hero, the footer, and the Contact page. The signup button itself is code-controlled: it only appears once a real hosted signup URL is configured outside Sanity (PUBLIC_NEWSLETTER_SIGNUP_URL), and shows a clear "not yet configured" notice otherwise. No email field is ever collected directly on this site.',
+      type: 'object',
+      validation: (Rule) => Rule.required(),
+      fields: [
+        defineField({
+          name: 'kicker',
+          title: 'Small label above heading',
+          type: 'string',
+        }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'body',
+          title: 'Body',
+          description:
+            'Explain: (1) this is a weekly newsletter, (2) subscribers may separately choose new-show alerts, and (3) signup uses email confirmation (double opt-in) once the hosted form is configured.',
           type: 'text',
           validation: (Rule) => Rule.required(),
         }),

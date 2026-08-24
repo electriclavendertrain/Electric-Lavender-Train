@@ -36,6 +36,12 @@ export const aboutPage = defineType({
         'The band is based on California’s Central Coast and plays across it. A night with ELT is meant to feel like a good night out: familiar hits, a band clearly enjoying itself, and a crowd that ends up singing along.',
       ],
     },
+    labelAffiliation: {
+      kicker: 'Our Label',
+      text: 'The Electric Lavender Train is part of Heavy Crush Records.',
+      logoAlt: 'Heavy Crush Records logo',
+      url: 'https://www.heavycrushrecords.com/',
+    },
     membersIntro: {
       kicker: 'The Lineup',
       heading: 'Meet the Band',
@@ -145,6 +151,40 @@ export const aboutPage = defineType({
           type: 'array',
           of: [defineArrayMember({type: 'text', validation: (Rule) => Rule.required()})],
           validation: (Rule) => Rule.required().min(1).max(4),
+        }),
+      ],
+    }),
+    defineField({
+      name: 'labelAffiliation',
+      title: 'Label affiliation',
+      description:
+        'A restrained, code-designed acknowledgment of the Heavy Crush Records relationship, rendered between Our Story and Meet the Band. The logo image itself is a fixed site asset, not uploaded here — this only manages the wording, its alt text, and the destination link. Optional: while empty, the section still renders using the same approved wording and link as a built-in default. Do not change the factual relationship claim without Hunter’s approval.',
+      type: 'object',
+      fields: [
+        defineField({
+          name: 'kicker',
+          title: 'Small label above the text',
+          type: 'string',
+        }),
+        defineField({
+          name: 'text',
+          title: 'Relationship text',
+          description: 'Keep to the approved wording: “The Electric Lavender Train is part of Heavy Crush Records.”',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'logoAlt',
+          title: 'Logo alternative text',
+          description: 'Accessible description of the Heavy Crush Records logo image.',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'url',
+          title: 'Heavy Crush Records URL',
+          type: 'url',
+          validation: (Rule) => Rule.required().uri({scheme: ['http', 'https']}),
         }),
       ],
     }),

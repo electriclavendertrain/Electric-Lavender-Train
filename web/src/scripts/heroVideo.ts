@@ -1,7 +1,7 @@
 /**
  * Click-to-play video activation, shared by every route with a click-to-play
- * YouTube embed (currently the Homepage hero and the Media & Merch page's
- * featured video). The iframe is only created here, after a real user
+ * YouTube embed (currently the Homepage hero and the Music page's featured
+ * video). The iframe is only created here, after a real user
  * activation — never on page load, and never a request to any
  * `youtube.com`/`ytimg.com`-family host before that. A native <button> (see
  * Hero.astro / FeaturedVideo.astro) gives keyboard activation (Enter/Space)

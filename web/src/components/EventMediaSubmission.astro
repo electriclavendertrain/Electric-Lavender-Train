@@ -1,0 +1,76 @@
+---
+/**
+ * "Share Your Event Media" — rendered between the Media Gallery and
+ * Merchandise sections on the Gallery & Merchandise page. This is an
+ * approved, planned production feature (not an undecided client question)
+ * pending only the actual Google Form being created — see
+ * docs/gallery-merch.md and docs/client-questions.md. This site only ever
+ * LINKS to that separately hosted Google Form; no upload happens on this
+ * site, in Astro, or in Sanity.
+ *
+ * Whether this section renders at all is decided upstream by
+ * `normalizeEventMediaSubmission` (`sanity/normalize.ts`): the whole
+ * section is omitted unless an editor has explicitly enabled it and filled
+ * in its copy. Once enabled, `formUrl` independently governs whether the
+ * button is a real link (`formUrl` set to a validated real Google Forms URL
+ * — `docs.google.com/forms/...` or `forms.gle/...`, nothing else, see
+ * `safeGoogleFormUrl` in `normalize.ts`) or a clear configuration notice
+ * (`formUrl` is `null`) — the same fail-closed contract `Newsletter.astro`
+ * uses for its own hosted-signup link, so a not-yet-created Google Form can
+ * never look like a working upload control.
+ */
+import { galleryMerchCopy } from "../data/galleryMerchData";
+
+interface Props {
+  kicker?: string | null;
+  heading: string;
+  explanation: string;
+  ctaLabel: string;
+  formUrl: string | null;
+}
+
+const { kicker, heading, explanation, ctaLabel, formUrl } = Astro.props;
+---
+
+<section class="event-media" aria-labelledby="event-media-heading">
+  <div class="section-inner">
+    {kicker && <p class="kicker reveal">{kicker}</p>}
+    <h2 id="event-media-heading" class="reveal reveal-1">{heading}</h2>
+    <p class="event-media__explanation reveal reveal-2">{explanation}</p>
+
+    {
+      formUrl ? (
+        <a
+          href={formUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn btn-outline event-media__cta reveal reveal-3"
+        >
+          {ctaLabel}
+          <span class="visually-hidden"> (opens Google Forms in a new tab)</span>
+        </a>
+      ) : (
+        <p class="event-media__notice reveal reveal-3" data-event-media-notice>
+          {galleryMerchCopy.eventMediaSubmission.notConfiguredNotice}
+        </p>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .event-media__explanation {
+    max-width: 62ch;
+    color: rgba(244, 232, 208, 0.82);
+    font-weight: 300;
+    margin: 18px 0 28px;
+  }
+  .event-media__notice {
+    max-width: 62ch;
+    font-size: 0.85rem;
+    color: rgba(244, 232, 208, 0.65);
+    border: 1px dashed rgba(200, 168, 107, 0.4);
+    border-radius: 12px;
+    padding: 14px 18px;
+  }
+</style>

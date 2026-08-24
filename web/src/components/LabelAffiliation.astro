@@ -1,0 +1,92 @@
+---
+/**
+ * A restrained acknowledgment of the Heavy Crush Records relationship,
+ * rendered on the About page between "Our Story" and "Meet the Band"
+ * (`about.astro`), plus a smaller variant of the same wording in the
+ * Footer. Deliberately compact — this site is ELT's, not the label's, so
+ * the section keeps a fraction of a normal section's vertical weight and
+ * introduces no new heading level.
+ *
+ * The logo is a fixed local site asset (`web/src/assets/images/
+ * heavy_crush_records_logo.avif`), never uploaded through Sanity — only the
+ * kicker, relationship sentence, logo alt text, and destination URL are
+ * editable, from `aboutPage.labelAffiliation`.
+ */
+import { Image } from "astro:assets";
+import logo from "../assets/images/heavy_crush_records_logo.avif";
+
+interface Props {
+  kicker?: string | null;
+  text: string;
+  logoAlt: string;
+  url: string;
+}
+
+const { kicker, text, logoAlt, url } = Astro.props;
+---
+
+<section class="label-affiliation">
+  <div class="section-inner">
+    {kicker && <p class="kicker reveal">{kicker}</p>}
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="label-affiliation__link reveal reveal-1"
+    >
+      <Image src={logo} alt={logoAlt} width={64} class="label-affiliation__logo" />
+      <span class="label-affiliation__text">{text}</span>
+      <span class="visually-hidden"> (opens in a new tab)</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .label-affiliation {
+    padding: 56px 6%;
+  }
+  .label-affiliation__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    transition: background 0.3s var(--ease);
+  }
+  .label-affiliation__link:hover,
+  .label-affiliation__link:focus-visible {
+    background: rgba(160, 123, 239, 0.08);
+  }
+  .label-affiliation__logo {
+    flex: 0 0 auto;
+    width: 64px;
+    height: auto;
+    border-radius: 8px;
+  }
+  .label-affiliation__text {
+    max-width: 46ch;
+    font-size: 0.95rem;
+    color: rgba(244, 232, 208, 0.85);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba(244, 232, 208, 0.35);
+  }
+  .label-affiliation__link:hover .label-affiliation__text,
+  .label-affiliation__link:focus-visible .label-affiliation__text {
+    color: var(--gold);
+    text-decoration-color: currentColor;
+  }
+
+  @media (max-width: 900px) {
+    .label-affiliation {
+      padding: 40px 6%;
+    }
+  }
+  @media (max-width: 560px) {
+    .label-affiliation__link {
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+  }
+</style>

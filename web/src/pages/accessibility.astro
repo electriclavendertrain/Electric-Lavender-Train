@@ -18,7 +18,7 @@ const email = siteConfig.contact.email;
   description={description}
   kicker="Legal"
   heading="Accessibility Statement"
-  effectiveDate="August 15, 2026"
+  effectiveDate="August 20, 2026"
 >
   <p>
     The Electric Lavender Train is committed to making this website usable by as many people as
@@ -38,19 +38,34 @@ const email = siteConfig.contact.email;
   <h2>What we do</h2>
   <p>Some of the practices reflected in how this website is built:</p>
   <ul>
-    <li>Semantic HTML, logical heading structure, and visible keyboard focus indicators throughout;</li>
+    <li>Semantic HTML, logical heading structure, and a visible keyboard focus indicator on interactive elements;</li>
     <li>Form fields with real, associated labels, and validation errors that are announced accessibly rather than communicated by color alone;</li>
     <li>Support for reduced-motion preferences — visitors who indicate a preference for less motion see substantially reduced animation across the site;</li>
     <li>Descriptive alternative text on meaningful images, and accessible titles on embedded video players;</li>
     <li>A layout designed to remain usable when zoomed or reflowed to a narrow viewport; and</li>
     <li>Interactive controls sized to meet WCAG 2.2's Target Size (Minimum) criterion — generally at least 24×24 CSS pixels, or equivalent spacing — with many primary controls (buttons, tabs, form fields) sized larger still as an internal usability goal.</li>
   </ul>
+  <p>
+    This is a description of our design intent and ongoing practice, not a claim that every page has
+    been manually tested against every WCAG 2.2 AA success criterion.
+  </p>
 
-  <h2>Reporting an accessibility barrier</h2>
+  <h2>Services we don't fully control</h2>
+  <p>
+    This site links to or embeds a small number of external services — YouTube's video player
+    (once you activate it), and, where enabled, a Brevo-hosted newsletter signup/preferences page
+    and a Google Form for event media submissions. Each of those runs on the provider's own site,
+    with its own accessibility behavior, which we do not build and cannot fully control or
+    guarantee. If you run into an accessibility barrier specifically on one of those external pages,
+    let us know — we may be able to raise it with the provider, or discuss another way to help.
+  </p>
+
+  <h2>Reporting a barrier or requesting assistance</h2>
   <p>
     Accessibility is an ongoing effort, not a one-time task — this website continues to be reviewed
-    and improved over time. If you encounter a barrier using it, please tell us. Email
+    and improved over time. If you encounter a barrier using it, or need help getting to information
+    or completing something on this site another way, please tell us. Email
     <a href={`mailto:${email}`}>{email}</a> with a description of the issue and the page where you
-    found it, and we'll do our best to address it.
+    found it, and we'll do our best to help. We don't promise a specific response time.
   </p>
 </LegalPage>

@@ -159,3 +159,67 @@ export function getPacificMonthKey(iso: string): string {
 export function getPacificMonthLabel(iso: string): string {
   return MONTH_PARTS_FORMAT.format(new Date(iso));
 }
+
+/**
+ * Strict `YYYY-MM-DD` calendar-date validation, e.g. for `musicRelease.releaseDate`.
+ * Deliberately does NOT rely on `new Date(value)`'s parsing leniency — some
+ * of what follows (`pacificCalendarDayDiff`) builds a date from `Date.UTC`,
+ * which silently *rolls over* an out-of-range day (`Date.UTC(2026, 1, 31)`
+ * becomes March 3, not an error) rather than rejecting it. This reconstructs
+ * the date from its own year/month/day components and confirms none of them
+ * changed, so an impossible date like February 31 is rejected outright
+ * instead of silently normalizing into a real one.
+ */
+export function isValidCalendarDateOnly(value: string | null | undefined): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const utc = Date.UTC(year, month - 1, day);
+  const reconstructed = new Date(utc);
+  return (
+    reconstructed.getUTCFullYear() === year &&
+    reconstructed.getUTCMonth() === month - 1 &&
+    reconstructed.getUTCDate() === day
+  );
+}
+
+/**
+ * Today's calendar date in America/Los_Angeles, as 1-indexed
+ * `{ year, month, day }`. DST-safe because it reads the zone's actual
+ * wall-clock calendar date via `Intl.DateTimeFormat`, never a fixed UTC
+ * offset that would drift across a DST transition.
+ */
+function pacificTodayParts(now: Date): { year: number; month: number; day: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  return { year: get("year"), month: get("month"), day: get("day") };
+}
+
+/**
+ * Whole calendar days from "today" in America/Los_Angeles to the given
+ * `YYYY-MM-DD` release date: positive for a future date, `0` for today,
+ * negative for a past date. The caller must validate `dateOnly` with
+ * `isValidCalendarDateOnly` first — this does not re-check it.
+ *
+ * DST-safe by construction, not by special-casing the transition dates:
+ * both "today" and the release date are reduced to plain
+ * `{ year, month, day }` calendar triples, then compared via `Date.UTC`,
+ * which has no DST of its own. The only place a real Pacific-time offset is
+ * consulted at all is resolving *today's own calendar date* — once that's
+ * known, the day-count arithmetic never touches a real timezone again, so a
+ * day that's 23 or 25 real hours long because it crosses a Pacific DST
+ * transition still counts as exactly one calendar day, matching how a
+ * visitor reads a countdown ("3 days away") regardless of what happens to
+ * the clock on any day in between.
+ */
+export function pacificCalendarDayDiff(dateOnly: string, now: Date = new Date()): number {
+  const [year, month, day] = dateOnly.split("-").map(Number);
+  const target = Date.UTC(year, month - 1, day);
+  const today = pacificTodayParts(now);
+  const start = Date.UTC(today.year, today.month - 1, today.day);
+  return Math.round((target - start) / 86_400_000);
+}

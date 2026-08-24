@@ -99,6 +99,16 @@ const {
     color: var(--lavender-soft);
     border-bottom: 1px solid rgba(160, 123, 239, 0.5);
     padding-bottom: 2px;
+    /* Restrained: a touch more opaque/prominent on hover/focus, never a
+       filled button — the border brightens alongside the text so the cue
+       isn't color alone. */
+    opacity: 0.82;
+    transition: opacity 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+  .view-all:hover,
+  .view-all:focus-visible {
+    opacity: 1;
+    border-bottom-color: rgba(160, 123, 239, 0.85);
   }
   .shows-grid {
     display: grid;

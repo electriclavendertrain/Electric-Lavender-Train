@@ -28,15 +28,16 @@
  * no hidden `form-name` field, no POST to `/`. The site may still end up
  * hosted on Netlify, but form delivery no longer depends on it.
  *
- * One Formspree project, three separately configurable forms — one per
- * inquiry type, each with its own endpoint URL, read from its own env var
- * (see `getFormspreeEndpoint`). An endpoint that is missing or doesn't look
- * like a real Formspree URL resolves to `null`: a **fail-closed** state.
- * That specific inquiry type's submit control stays disabled and the
- * direct-email fallback is what's actually usable — never a form that
- * silently pretends to work. No real Formspree ID is invented anywhere in
- * this codebase; the three env vars are genuinely unset until the site
- * owner creates the Formspree project and fills them in.
+ * One Formspree project, four separately configurable forms — one per
+ * inquiry type (Booking/Merch/Other/Content Removal Request), each with its
+ * own endpoint URL, read from its own env var (see `getFormspreeEndpoint`).
+ * An endpoint that is missing or doesn't look like a real Formspree URL
+ * resolves to `null`: a **fail-closed** state. That specific inquiry type's
+ * submit control stays disabled and the direct-email fallback is what's
+ * actually usable — never a form that silently pretends to work. No real
+ * Formspree ID is invented anywhere in this codebase; all four env vars are
+ * genuinely unset until the site owner creates the corresponding Formspree
+ * form and fills them in.
  */
 
 import type { ContactInquiryType } from "../data/siteConfig";
@@ -63,7 +64,7 @@ export const SUBJECT_FIELD_NAME = "_subject";
  * Which env var holds each inquiry type's Formspree endpoint. Astro only
  * exposes `PUBLIC_`-prefixed variables to client-side code, and each value
  * is needed both server-side (an unconfigured form's `<form action>`) and
- * client-side (the AJAX fetch target), so all three carry that prefix —
+ * client-side (the AJAX fetch target), so all four carry that prefix —
  * these are not secrets; a plain HTML form's `action` URL is visible in
  * page source regardless of how it gets there.
  *
@@ -75,6 +76,10 @@ const ENDPOINT_ENV_VARS: Record<ContactInquiryType, string | undefined> = {
   booking: import.meta.env.PUBLIC_FORMSPREE_BOOKING_ENDPOINT,
   merch: import.meta.env.PUBLIC_FORMSPREE_MERCH_ENDPOINT,
   other: import.meta.env.PUBLIC_FORMSPREE_OTHER_ENDPOINT,
+  // Independently configurable — a fourth Formspree form, from the same
+  // Formspree project or a different one, so Content Removal Request can go
+  // live on its own schedule. Fails closed exactly like the other three.
+  removal: import.meta.env.PUBLIC_FORMSPREE_REMOVAL_ENDPOINT,
 };
 
 /**

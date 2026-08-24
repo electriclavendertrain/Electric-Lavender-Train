@@ -1,0 +1,51 @@
+---
+/**
+ * A compact newsletter callout for the Contact page, rendered after the FAQ
+ * so the FAQ stays directly beneath ContactForms.astro's Privacy & Delivery
+ * material. This is a teaser only — no email field, no second copy of the
+ * fail-closed signup logic. It always links to the homepage's own
+ * `#newsletter` section (`Newsletter.astro`), which is the site's one
+ * subscription entry point.
+ */
+import siteConfig from "../data/siteConfig";
+
+interface Props {
+  heading: string;
+  body: string;
+  linkLabel: string;
+}
+
+const { heading, body, linkLabel } = Astro.props;
+---
+
+<section class="contact-newsletter">
+  <div class="section-inner">
+    <div class="contact-newsletter__panel reveal">
+      <h2>{heading}</h2>
+      <p class="contact-newsletter__body">{body}</p>
+      <a href={siteConfig.routes.newsletterSection} class="btn btn-outline contact-newsletter__cta">
+        {linkLabel}
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contact-newsletter__panel {
+    max-width: 640px;
+    padding: 34px 30px;
+    border-radius: 18px;
+    border: 1px solid rgba(160, 123, 239, 0.22);
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.14), rgba(11, 11, 18, 0.4));
+  }
+  .contact-newsletter__panel h2 {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+  }
+  .contact-newsletter__body {
+    color: rgba(244, 232, 208, 0.8);
+    font-weight: 300;
+    max-width: 58ch;
+    margin-bottom: 22px;
+  }
+</style>

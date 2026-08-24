@@ -22,14 +22,14 @@ import { submitForm } from "../lib/formDelivery";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_ITEM_PARAM_LENGTH = 200;
-const ALLOWED_INQUIRIES = ["booking", "merch", "other"];
+const ALLOWED_INQUIRIES = ["booking", "merch", "other", "removal"];
 
 /* -------------------------------------------------------------------------
  * Inquiry switcher — ARIA tabs pattern, automatic activation.
  *
  * Hidden until this script confirms it can wire the tabs up; every panel's
  * `hidden` attribute is only ever set here — the server-rendered markup has
- * none, so a script failure or unavailability leaves all three forms
+ * none, so a script failure or unavailability leaves all four forms
  * visible in document order with no dead switcher control.
  * ---------------------------------------------------------------------- */
 

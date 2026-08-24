@@ -162,6 +162,12 @@ export const aboutPageFallback = {
       "The band is based on California’s Central Coast and plays across it. A night with ELT is meant to feel like a good night out: familiar hits, a band clearly enjoying itself, and a crowd that ends up singing along.",
     ],
   },
+  labelAffiliation: {
+    kicker: "Our Label",
+    text: "The Electric Lavender Train is part of Heavy Crush Records.",
+    logoAlt: "Heavy Crush Records logo",
+    url: "https://www.heavycrushrecords.com/",
+  },
   membersIntro: {
     kicker: "The Lineup",
     heading: "Meet the Band",

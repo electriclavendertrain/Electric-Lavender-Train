@@ -1,0 +1,208 @@
+---
+/**
+ * One release card, used in both the Upcoming and Released sections of
+ * `music.astro`. Artwork, description, and every streaming/pre-save/watch
+ * link are independently optional and each omit cleanly — see
+ * `normalizeOneMusicRelease` in `sanity/normalize.ts` for what is and isn't
+ * required for a release to render at all.
+ *
+ * The optional countdown (`[data-countdown]`) is pure progressive
+ * enhancement: `musicCountdown.ts` fills it in and un-hides it only once a
+ * script has actually run. Without JavaScript, the `<time>` element right
+ * next to it already states the release date in full, readable form — see
+ * that script's own doc comment.
+ */
+import { musicPageCopy } from "../data/musicData";
+import type { NormalizedMusicRelease } from "../sanity/normalize";
+
+interface Props {
+  release: NormalizedMusicRelease;
+}
+
+const { release } = Astro.props;
+
+/** Formats a stored `YYYY-MM-DD` release date for display. Constructed via
+ * `Date.UTC` and formatted with `timeZone: "UTC"` so the calendar date
+ * never shifts by a day depending on the visitor's own local timezone — a
+ * release date is a calendar date, not a specific Pacific-time instant like
+ * an `event.startDateTime`, so this is deliberately independent of
+ * `lib/dateFormat.ts`'s Pacific-time formatting. */
+function formatReleaseDate(dateOnly: string): string {
+  const [year, month, day] = dateOnly.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+const releaseTypeLabels: Partial<Record<string, string>> = musicPageCopy.releaseTypeLabels;
+const typeLabel = release.releaseType ? (releaseTypeLabels[release.releaseType] ?? null) : null;
+const hasActions = Boolean(
+  release.spotifyUrl || release.appleMusicUrl || release.preSaveUrl || release.watchVideoUrl,
+);
+---
+
+<li class="music-card">
+  <div class="music-card__art">
+    {
+      release.artwork ? (
+        <img
+          src={release.artwork.src}
+          width={release.artwork.width}
+          height={release.artwork.height}
+          alt={release.artwork.alt}
+          loading="lazy"
+          decoding="async"
+          style={`--focal-point: ${release.artwork.objectPosition}`}
+        />
+      ) : (
+        <div class="music-card__art-placeholder" aria-hidden="true" />
+      )
+    }
+  </div>
+
+  <div class="music-card__body">
+    {typeLabel && <p class="music-card__type">{typeLabel}</p>}
+    <h3 class="music-card__title">{release.title}</h3>
+    <p class="music-card__date">
+      <time datetime={release.releaseDate}>{formatReleaseDate(release.releaseDate)}</time>
+      {release.state === "upcoming" && (
+        <span class="music-card__countdown" data-countdown={release.releaseDate} hidden />
+      )}
+    </p>
+
+    {release.description && <p class="music-card__description">{release.description}</p>}
+
+    {
+      hasActions && (
+        <div class="music-card__actions">
+          {release.spotifyUrl && (
+            <a href={release.spotifyUrl} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+              {musicPageCopy.spotifyLabel}
+              <span class="visually-hidden">{musicPageCopy.newTabSuffix}</span>
+            </a>
+          )}
+          {release.appleMusicUrl && (
+            <a href={release.appleMusicUrl} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+              {musicPageCopy.appleMusicLabel}
+              <span class="visually-hidden">{musicPageCopy.newTabSuffix}</span>
+            </a>
+          )}
+          {release.state === "upcoming" && release.preSaveUrl && (
+            <a href={release.preSaveUrl} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+              {musicPageCopy.preSaveLabel}
+              <span class="visually-hidden">{musicPageCopy.newTabSuffix}</span>
+            </a>
+          )}
+          {release.watchVideoUrl && (
+            <a href={release.watchVideoUrl} target="_blank" rel="noopener noreferrer" class="music-card__watch">
+              {musicPageCopy.watchVideoLabel}
+              <span class="visually-hidden">{musicPageCopy.newTabSuffix}</span>
+            </a>
+          )}
+        </div>
+      )
+    }
+  </div>
+</li>
+
+<style>
+  .music-card {
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.16), rgba(11, 11, 18, 0.4));
+    border: 1px solid rgba(160, 123, 239, 0.22);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: transform 0.3s var(--ease), border-color 0.3s var(--ease);
+  }
+  .music-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--lavender);
+  }
+  .music-card__art {
+    aspect-ratio: 1 / 1;
+    background: rgba(11, 11, 18, 0.5);
+  }
+  .music-card__art :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--focal-point, 50% 50%);
+    display: block;
+  }
+  .music-card__art-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(160, 123, 239, 0.18), rgba(200, 168, 107, 0.12));
+  }
+  .music-card__body {
+    padding: 20px 22px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .music-card__type {
+    font-size: 0.72rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .music-card__title {
+    font-size: 1.15rem;
+    color: var(--warm-white);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .music-card__date {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: var(--lavender-soft);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+  .music-card__countdown {
+    font-size: 0.76rem;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .music-card__description {
+    color: rgba(244, 232, 208, 0.75);
+    font-size: 0.92rem;
+    font-weight: 300;
+    margin-bottom: 16px;
+    flex: 1;
+  }
+  .music-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: auto;
+  }
+  .music-card__actions .btn {
+    padding: 10px 18px;
+    font-size: 0.74rem;
+  }
+  .music-card__watch {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 4px 4px;
+    font-size: 0.78rem;
+    letter-spacing: 0.4px;
+    color: rgba(244, 232, 208, 0.7);
+    border-bottom: 1px solid rgba(244, 232, 208, 0.35);
+  }
+  .music-card__watch:hover,
+  .music-card__watch:focus-visible {
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+</style>

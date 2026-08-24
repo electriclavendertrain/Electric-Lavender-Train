@@ -1,14 +1,15 @@
 ---
 /**
- * /contact-booking — booking, merch, and other inquiries, each a real
- * submittable form delivered via Formspree (one project, three separately
- * configurable endpoints — see `web/src/lib/formDelivery.ts`), with a
- * direct `mailto:` link kept as an always-available fallback.
+ * /contact-booking — booking, merch, other, and content-removal inquiries,
+ * each a real submittable form delivered via Formspree (one project, four
+ * separately configurable endpoints — see `web/src/lib/formDelivery.ts`),
+ * with a direct `mailto:` link kept as an always-available fallback.
  *
- * No Sanity singleton is fetched here — every field, label, and inquiry
- * type is a fixed product decision (see `contactData.ts`'s module doc
- * comment), not editorial content. This is therefore the one content route
- * that touches no Sanity query at all.
+ * This route now fetches ONE Sanity singleton — `contactPage` — but only for
+ * genuinely editorial content: the intro, a compact newsletter callout, and
+ * the FAQ. Every inquiry type, field, validation rule, and delivery/privacy
+ * detail remains a fixed, code-owned product decision (see
+ * `contactData.ts`'s module doc comment), never editorial content.
  *
  * Static and Astro-first, like every other route: nothing is fetched in the
  * browser, and the one piece of real interactivity (the inquiry switcher +
@@ -18,8 +19,13 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ContactIntro from "../components/ContactIntro.astro";
 import ContactForms from "../components/ContactForms.astro";
+import ContactFaq from "../components/ContactFaq.astro";
+import ContactNewsletterCta from "../components/ContactNewsletterCta.astro";
 import siteConfig, { formatPageTitle, isContactEmailConfigured } from "../data/siteConfig";
-import { contactCopy } from "../data/contactData";
+import { contactCopy, contactPageFallback } from "../data/contactData";
+import { sanityClient } from "../sanity/client";
+import { CONTACT_PAGE_QUERY } from "../sanity/queries";
+import { normalizeContactPageContent, type NormalizedContactPageContent } from "../sanity/normalize";
 
 // Same configured-DATASET convention as every other route (not Astro's
 // build mode) — see docs/developer-guide.md §10.
@@ -28,10 +34,9 @@ const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "productio
 // malformed value must not satisfy launch readiness either.
 const emailConfigured = isContactEmailConfigured();
 
-// This route has no Sanity content to be missing or incomplete — the one
-// thing that can make it unsafe to publish is a production build going out
-// with no real, usable destination for the forms it invites visitors to
-// fill in and now actually submit.
+// The one thing that can make this route unsafe to publish regardless of
+// Sanity content: a production build going out with no real, usable
+// destination for the forms it invites visitors to fill in and submit.
 if (isProductionDataset && !emailConfigured) {
   throw new Error(
     "The Contact & Booking page cannot build for the production dataset while " +
@@ -43,16 +48,41 @@ if (isProductionDataset && !emailConfigured) {
   );
 }
 
-const title = formatPageTitle(contactCopy.intro.heading);
-const description = contactCopy.intro.lede;
+const rawContactPage = await sanityClient.fetch(CONTACT_PAGE_QUERY);
+const normalizedContactPage = normalizeContactPageContent(rawContactPage, {
+  strict: isProductionDataset,
+});
+
+if (normalizedContactPage === null && isProductionDataset) {
+  throw new Error(
+    "The Sanity `contactPage` singleton is missing or incomplete in the production dataset. " +
+      "The page introduction (kicker/heading/lede/explanation) must be complete, the newsletter " +
+      "callout (newsletterCta) must be complete, and at least one FAQ entry must be published — " +
+      "all three are mandatory production content. Publish the Contact Page in Sanity Studio " +
+      "before building for production.",
+  );
+}
+
+// One complete fallback block, used only when the whole singleton is absent
+// — never patched field by field onto partial live content, matching every
+// other route's convention.
+const pageContent: NormalizedContactPageContent = normalizedContactPage ?? {
+  intro: contactPageFallback.intro,
+  newsletterCta: contactPageFallback.newsletterCta,
+  faq: contactPageFallback.faq,
+  seo: { metaTitle: contactPageFallback.seo.metaTitle, metaDescription: contactPageFallback.seo.metaDescription, ogImageUrl: null },
+};
+
+const title = formatPageTitle(pageContent.seo.metaTitle ?? contactPageFallback.seo.metaTitle);
+const description = pageContent.seo.metaDescription ?? pageContent.intro.lede;
 ---
 
-<BaseLayout title={title} description={description}>
+<BaseLayout title={title} description={description} ogImage={pageContent.seo.ogImageUrl}>
   <ContactIntro
-    kicker={contactCopy.intro.kicker}
-    heading={contactCopy.intro.heading}
-    lede={contactCopy.intro.lede}
-    explanation={contactCopy.intro.explanation}
+    kicker={pageContent.intro.kicker}
+    heading={pageContent.intro.heading}
+    lede={pageContent.intro.lede}
+    explanation={pageContent.intro.explanation}
   />
 
   <ContactForms
@@ -60,4 +90,21 @@ const description = contactCopy.intro.lede;
     emailConfigured={emailConfigured}
     contactEmail={siteConfig.contact.email}
   />
+
+  <ContactFaq
+    sectionId={contactCopy.faqSectionId}
+    headingId={contactCopy.faqHeadingId}
+    heading={contactCopy.faqHeading}
+    items={pageContent.faq}
+  />
+
+  {
+    pageContent.newsletterCta && (
+      <ContactNewsletterCta
+        heading={pageContent.newsletterCta.heading}
+        body={pageContent.newsletterCta.body}
+        linkLabel={pageContent.newsletterCta.linkLabel}
+      />
+    )
+  }
 </BaseLayout>

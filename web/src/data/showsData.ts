@@ -48,11 +48,33 @@ export const showsPageFallback = {
  * generic private-event label comes from here because private GROQ results
  * contain no title, and the time-zone/availability notices must stay true.
  */
+/** One segment of the protected availability disclaimer below. `emphasis`
+ * marks the exact phrases that must render with semantic `<strong>` —
+ * `ShowsIntro.astro` renders this structurally (mapped `<strong>`/plain-text
+ * segments), never via `set:html` or a raw HTML string, so the wording stays
+ * entirely code-owned and cannot be altered from Sanity. */
+export interface AvailabilityNoteSegment {
+  text: string;
+  emphasis?: boolean;
+}
+
+/** The exact, protected disclaimer, split into segments so "not an
+ * availability calendar" and "not guaranteed" can render as `<strong>`
+ * without joining the sentence into one HTML string. Concatenating every
+ * segment's `text` reproduces the plain-text sentence verbatim — used for
+ * SEO/meta fallbacks where a `<strong>`-formatted version isn't applicable. */
+export const availabilityNoteParts: AvailabilityNoteSegment[] = [
+  { text: "This is a schedule of confirmed dates, " },
+  { text: "not an availability calendar", emphasis: true },
+  { text: ". A date that isn't listed here is " },
+  { text: "not guaranteed", emphasis: true },
+  { text: " to be open — send a booking inquiry and ELT will confirm." },
+];
+
 export const showsPageCopy = {
   intro: {
     timeZoneNote: "All times shown are Pacific (America/Los Angeles).",
-    availabilityNote:
-      "This is a schedule of confirmed dates, not an availability calendar. A date that isn't listed here is not guaranteed to be open — send a booking inquiry and ELT will confirm.",
+    availabilityNote: availabilityNoteParts.map((part) => part.text).join(""),
   },
 
   monthNav: {

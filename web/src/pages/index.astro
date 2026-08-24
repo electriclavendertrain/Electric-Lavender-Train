@@ -1,13 +1,16 @@
 ---
 import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import familyPhoto from "../assets/images/elt-family.jpeg";
 import Hero from "../components/Hero.astro";
 import BandIntro from "../components/BandIntro.astro";
 import UpcomingShows from "../components/UpcomingShows.astro";
 import GalleryPreview from "../components/GalleryPreview.astro";
 import Testimonials from "../components/Testimonials.astro";
 import BookingCTA from "../components/BookingCTA.astro";
+import Newsletter from "../components/Newsletter.astro";
 import siteConfig, { formatPageTitle } from "../data/siteConfig";
+import { getNewsletterSignupUrl } from "../lib/newsletter";
 import {
   upcomingShowsFallback,
   galleryIntroFallback,
@@ -17,6 +20,7 @@ import {
   bandIntroFallback,
   galleryFallback,
   bookingCtaFallback,
+  newsletterFallback,
 } from "../data/homeData";
 import { withTestimonialFallbacks } from "../data/testimonialsData";
 import { sanityClient } from "../sanity/client";
@@ -29,14 +33,17 @@ import {
   normalizeFeaturedMedia,
   normalizeTestimonials,
   normalizeUpcomingEvents,
+  normalizeBandIntroImage,
   isHeroContentComplete,
   isBandIntroComplete,
   isBookingCtaComplete,
+  isNewsletterComplete,
   getHeroVideoUrl,
   getHeroVideoTitle,
   getOgImageUrl,
   DEFAULT_OBJECT_POSITION,
   type NormalizedGalleryItem,
+  type NormalizedBandIntroImage,
 } from "../sanity/normalize";
 
 // The production-vs-development policy is decided by which Sanity dataset
@@ -85,11 +92,44 @@ const bandIntroContent = singletonExists
     : null
   : bandIntroFallback;
 
+// `bandIntro.image` is independently optional — its absence never affects
+// `bandIntroContent` above. A resolved live Sanity image always wins; a
+// missing/invalid one falls back to the local family photo ONLY outside
+// production (its usage rights are unconfirmed for production release —
+// see docs/content-rights-checklist.md), never as a substitute for real
+// client-approved imagery once the site is live.
+let bandIntroImage: NormalizedBandIntroImage | null = singletonExists
+  ? normalizeBandIntroImage(homepage.bandIntro?.image)
+  : null;
+if (!bandIntroImage && !isProductionDataset) {
+  const optimized = await getImage({ src: familyPhoto, width: 900 });
+  bandIntroImage = {
+    src: optimized.src,
+    width: optimized.attributes.width ?? 900,
+    height: optimized.attributes.height ?? optimized.attributes.width ?? 900,
+    objectPosition: DEFAULT_OBJECT_POSITION,
+    alt: `${siteConfig.bandNameFormal} band photo`,
+    credit: null,
+  };
+}
+
 const bookingCtaContent = singletonExists
   ? isBookingCtaComplete(homepage.bookingCta)
     ? homepage.bookingCta
     : null
   : bookingCtaFallback;
+
+const newsletterContent = singletonExists
+  ? isNewsletterComplete(homepage.newsletter, isProductionDataset)
+    ? homepage.newsletter
+    : null
+  : newsletterFallback;
+
+// The signup button itself is entirely independent of the editorial content
+// above — it appears only once a real hosted signup URL is configured
+// outside Sanity (never a Studio-editable field: the destination provider is
+// a code/infra decision, not editorial copy). See web/src/lib/newsletter.ts.
+const newsletterSignupUrl = getNewsletterSignupUrl();
 
 // The hero video always comes from the live query — there is no fallback
 // URL. A missing or non-YouTube reference resolves to null here, and
@@ -166,6 +206,7 @@ if (
   (!heroContent ||
     !bandIntroContent ||
     !bookingCtaContent ||
+    !newsletterContent ||
     !hasCompleteUpcomingShowsContent ||
     !hasCompleteGalleryIntro ||
     !hasCompleteTestimonialsIntro)
@@ -173,7 +214,8 @@ if (
   throw new Error(
     "The Sanity `homepage` singleton is incomplete in the production dataset. " +
       "Complete the hero, band introduction, upcoming-shows copy, gallery heading, " +
-      "testimonial heading, and booking call to action in Studio before building for production.",
+      "testimonial heading, newsletter section, and booking call to action in Studio " +
+      "before building for production.",
   );
 }
 
@@ -204,6 +246,7 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
         heading={bandIntroContent.heading}
         paragraphs={bandIntroContent.paragraphs}
         ctaLabel={bandIntroContent.ctaLabel}
+        image={bandIntroImage}
       />
     )
   }
@@ -239,6 +282,18 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
         body={bookingCtaContent.body}
         ctaLabel={bookingCtaContent.ctaLabel}
         balancedKicker={true}
+      />
+    )
+  }
+
+  {
+    newsletterContent && (
+      <Newsletter
+        kicker={newsletterContent.kicker}
+        heading={newsletterContent.heading}
+        body={newsletterContent.body}
+        ctaLabel={newsletterContent.ctaLabel}
+        signupUrl={newsletterSignupUrl}
       />
     )
   }

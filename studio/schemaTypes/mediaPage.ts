@@ -2,7 +2,25 @@ import {PlayIcon} from '@sanity/icons/Play'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
 /**
- * The Media & Merch page singleton, with the fixed `_id: "mediaPage"`.
+ * DEPRECATED — LEGACY, READ-ONLY. The visitor-facing "Media & Merch" page
+ * was renamed to "Gallery & Merchandise" (route `/media-merch` →
+ * `/gallery-merch`), and its Sanity singleton was migrated from `mediaPage`
+ * to the new `galleryPage` type (`studio/schemaTypes/galleryPage.ts`) — see
+ * that file's doc comment and `docs/gallery-merch.md`.
+ *
+ * This type, and the one `mediaPage` document it describes, are retained
+ * temporarily and deliberately: `galleryPage` was seeded in `development` by
+ * copying `mediaPage`'s supported content (excluding `featuredVideo`, which
+ * no longer exists as a page feature), but `mediaPage` itself was NOT
+ * deleted, unset, or overwritten, so it stays available as a historical
+ * reference until the new page is verified. The frontend (`GALLERY_PAGE_QUERY`
+ * in `web/src/sanity/queries.ts`) queries `galleryPage` only — `mediaPage` is
+ * no longer fetched or rendered anywhere. The whole type is marked
+ * `readOnly` below so it cannot be edited further by accident; delete this
+ * type and its one document only after the client has confirmed the
+ * `galleryPage` migration and this legacy copy is no longer needed.
+ *
+ * Original doc comment, preserved for context:
  *
  * Same singleton conventions as `homepage`, `aboutPage`, and `showsPage`: one
  * fixed Structure entry, stripped from `schema.templates` and the global "+"
@@ -24,9 +42,10 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
  */
 export const mediaPage = defineType({
   name: 'mediaPage',
-  title: 'Media & Merch Page',
+  title: 'Media & Merch Page (Deprecated — legacy, read-only, see Gallery & Merchandise Page)',
   type: 'document',
   icon: PlayIcon,
+  readOnly: true,
   initialValue: {
     intro: {
       kicker: 'Media & Merch',
@@ -36,6 +55,13 @@ export const mediaPage = defineType({
     gallery: {
       kicker: 'Good Times & Great People',
       heading: 'Media Gallery',
+    },
+    eventMediaSubmission: {
+      kicker: 'Share Your Story',
+      heading: 'Share Your Event Media',
+      explanation:
+        'Have photos or video from an ELT show? We’d love to see them — submissions may be featured on our website or social media.',
+      ctaLabel: 'Submit Photos & Videos',
     },
     merch: {
       kicker: 'Take It Home',
@@ -179,6 +205,51 @@ export const mediaPage = defineType({
       ],
     }),
     defineField({
+      name: 'eventMediaSubmission',
+      title: 'Share Your Event Media',
+      description:
+        'Rendered between Media Gallery and Merchandise. Links out to a future Google Form — this site never handles the upload itself. While "Enabled" is off, or while no valid Google Form URL is set, the section either stays hidden (disabled) or shows a clear development/configuration notice instead of a link (enabled but not yet configured) — see web/src/sanity/normalize.ts.',
+      type: 'object',
+      fields: [
+        defineField({
+          name: 'enabled',
+          title: 'Enabled',
+          description: 'Turn this section on once the Google Form is ready to link to.',
+          type: 'boolean',
+          initialValue: false,
+        }),
+        defineField({
+          name: 'kicker',
+          title: 'Small label above heading',
+          type: 'string',
+        }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          type: 'string',
+        }),
+        defineField({
+          name: 'explanation',
+          title: 'Explanation',
+          description: 'Short paragraph explaining what this is and how submissions may be used.',
+          type: 'text',
+        }),
+        defineField({
+          name: 'ctaLabel',
+          title: 'Button text',
+          type: 'string',
+        }),
+        defineField({
+          name: 'formUrl',
+          title: 'Google Form URL',
+          description:
+            'Optional. Must be a real https:// link once configured — never a placeholder-shaped fake URL. Leave empty until the form actually exists.',
+          type: 'url',
+          validation: (Rule) => Rule.uri({scheme: ['https']}),
+        }),
+      ],
+    }),
+    defineField({
       name: 'merch',
       title: 'Merchandise',
       description:
@@ -274,7 +345,7 @@ export const mediaPage = defineType({
   ],
   preview: {
     prepare() {
-      return {title: 'Media & Merch Page'}
+      return {title: 'Media & Merch Page (Deprecated)'}
     },
   },
 })

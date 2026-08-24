@@ -32,7 +32,8 @@ const description =
       <h1>Third-Party Notices</h1>
       <p class="notices__lede">
         This site self-hosts two open-source font families rather than loading them from a
-        third-party font CDN at request time. The files themselves live in this site's own build
+        third-party font CDN at request time, and uses a small set of open-source brand icon
+        glyphs for the footer's social links. The files themselves live in this site's own build
         output; this page records where they came from and under what license.
       </p>
 
@@ -88,14 +89,46 @@ const description =
         </tbody>
       </table>
 
+      <table class="notices__table">
+        <caption>Simple Icons (footer social/brand glyphs)</caption>
+        <tbody>
+          <tr><th>Icon set</th><td>Simple Icons</td></tr>
+          <tr><th>Set version</th><td>16.28.0</td></tr>
+          <tr><th>License</th><td>CC0 1.0 Universal (public domain dedication)</td></tr>
+          <tr>
+            <th>Icons used</th>
+            <td>Instagram, Facebook, YouTube, Linktree, Venmo — one unmodified path per icon</td>
+          </tr>
+          <tr>
+            <th>Source</th>
+            <td>
+              <a href="https://simpleicons.org/">simpleicons.org</a> /
+              <a href="https://github.com/simple-icons/simple-icons">github.com/simple-icons/simple-icons</a>
+            </td>
+          </tr>
+          <tr>
+            <th>Full license text</th>
+            <td><a href="/third-party-notices/simple-icons/LICENSE.txt">/third-party-notices/simple-icons/LICENSE.txt</a></td>
+          </tr>
+        </tbody>
+      </table>
+
       <h2 class="notices__why-heading">Why these files are distributed</h2>
       <p class="notices__why">
-        Both licenses (SIL OFL 1.1 for Jost, Apache 2.0 for Ultra) explicitly permit bundling and
-        redistribution as part of a larger work, which is what self-hosting a font in this site's
-        own build output does. The two license files linked above are copied verbatim from the
-        installed Fontsource packages' own <code>LICENSE</code> file, unmodified. Only the specific
-        weights/styles actually used on this site are included in the build — see
-        <code>web/src/layouts/BaseLayout.astro</code> for the exact font imports.
+        Both font licenses (SIL OFL 1.1 for Jost, Apache 2.0 for Ultra) explicitly permit bundling
+        and redistribution as part of a larger work, which is what self-hosting a font in this
+        site's own build output does. The two font license files linked above are copied verbatim
+        from the installed Fontsource packages' own <code>LICENSE</code> file, unmodified. Only the
+        specific weights/styles actually used on this site are included in the build — see
+        <code>web/src/layouts/BaseLayout.astro</code> for the exact font imports. Simple Icons
+        dedicates its icon path data to the public domain under CC0 1.0, which does not require
+        attribution — this page records the source anyway, for the same transparency reason as the
+        fonts above. CC0 covers the vector glyph only; it is not a trademark license for the brands
+        it depicts, and each brand's own name/mark is used here only to identify a real, verified
+        link to that brand's platform (Instagram, Facebook, YouTube, Linktree, Venmo), the ordinary
+        nominative use every site linking to a social profile relies on. The SVG files themselves
+        live at <code>web/public/icons/social/</code>, are served only from this site's own build
+        output, and are never fetched from a third-party CDN at request time.
       </p>
     </div>
   </section>

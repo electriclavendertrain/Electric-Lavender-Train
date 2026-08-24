@@ -6,7 +6,7 @@
  *
  * `items` (photos) and `videos` are each already normalized in their own
  * Sanity-stored order — two independent single sources of truth (see
- * `normalize.ts`'s "Media & Merch page" module doc comment). This component
+ * `normalize.ts`'s "Gallery & Merchandise page" module doc comment). This component
  * never sorts, filters at build time, or drops anything; every normalized
  * item is always in the DOM. Ordering rule, enforced purely by DOM order
  * below: **all photos first (their own order), then all videos (their own
@@ -38,7 +38,7 @@ import { Image } from "astro:assets";
 import eltLogo from "../assets/images/elt-logo.jpg";
 import MediaLightbox from "./MediaLightbox.astro";
 import MediaVideoLightbox from "./MediaVideoLightbox.astro";
-import { mediaPageCopy } from "../data/mediaData";
+import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedGalleryPhoto, NormalizedGalleryVideo } from "../sanity/normalize";
 
 interface Props {
@@ -70,14 +70,14 @@ const videoDialogIdFor = (key: string) => `gallery-video-${key.replace(/[^A-Za-z
 const closeHref = `#${headingId}`;
 
 const filters = [
-  { value: "all", label: mediaPageCopy.gallery.allFilterLabel },
+  { value: "all", label: galleryMerchCopy.gallery.allFilterLabel },
   ...(hasPerformance
-    ? [{ value: "performance", label: mediaPageCopy.gallery.categoryLabels.performance }]
+    ? [{ value: "performance", label: galleryMerchCopy.gallery.categoryLabels.performance }]
     : []),
   ...(hasVenueCrowd
-    ? [{ value: "venue-crowd", label: mediaPageCopy.gallery.categoryLabels["venue-crowd"] }]
+    ? [{ value: "venue-crowd", label: galleryMerchCopy.gallery.categoryLabels["venue-crowd"] }]
     : []),
-  ...(hasVideos ? [{ value: "video", label: mediaPageCopy.gallery.videoFilterLabel }] : []),
+  ...(hasVideos ? [{ value: "video", label: galleryMerchCopy.gallery.videoFilterLabel }] : []),
 ];
 ---
 
@@ -97,7 +97,7 @@ const filters = [
               class="media-gallery__filters"
               data-gallery-filters
               role="group"
-              aria-label={mediaPageCopy.gallery.filterGroupLabel}
+              aria-label={galleryMerchCopy.gallery.filterGroupLabel}
             >
               {filters.map((filter, index) => (
                 <button
@@ -145,11 +145,11 @@ const filters = [
                     </a>
                     {item.credit && (
                       <figcaption class="media-gallery__credit">
-                        <span class="visually-hidden">{mediaPageCopy.gallery.photoCreditPrefix}</span>
+                        <span class="visually-hidden">{galleryMerchCopy.gallery.photoCreditPrefix}</span>
                         {item.credit.url ? (
                           <a href={item.credit.url} target="_blank" rel="noopener noreferrer">
                             {item.credit.label}
-                            <span class="visually-hidden">{mediaPageCopy.newTabSuffix}</span>
+                            <span class="visually-hidden">{galleryMerchCopy.newTabSuffix}</span>
                           </a>
                         ) : (
                           item.credit.label
@@ -174,7 +174,7 @@ const filters = [
                       data-video-id={video.videoId}
                       data-video-title={video.title}
                     >
-                      <span class="visually-hidden">{mediaPageCopy.gallery.playVideoLabelPrefix}</span>
+                      <span class="visually-hidden">{galleryMerchCopy.gallery.playVideoLabelPrefix}</span>
                       {video.poster ? (
                         <img
                           src={video.poster.src}
@@ -200,15 +200,15 @@ const filters = [
                         </svg>
                       </span>
                       <span class="media-gallery__video-title">{video.title}</span>
-                      <span class="visually-hidden">{mediaPageCopy.gallery.videoNewTabSuffix}</span>
+                      <span class="visually-hidden">{galleryMerchCopy.gallery.videoNewTabSuffix}</span>
                     </a>
                     {video.credit && (
                       <figcaption class="media-gallery__credit">
-                        <span class="visually-hidden">{mediaPageCopy.gallery.videoCreditPrefix}</span>
+                        <span class="visually-hidden">{galleryMerchCopy.gallery.videoCreditPrefix}</span>
                         {video.credit.url ? (
                           <a href={video.credit.url} target="_blank" rel="noopener noreferrer">
                             {video.credit.label}
-                            <span class="visually-hidden">{mediaPageCopy.newTabSuffix}</span>
+                            <span class="visually-hidden">{galleryMerchCopy.newTabSuffix}</span>
                           </a>
                         ) : (
                           video.credit.label

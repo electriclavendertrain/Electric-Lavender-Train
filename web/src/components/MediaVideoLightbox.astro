@@ -29,7 +29,7 @@
  * the initial HTML, even while this dialog is closed.
  */
 
-import { mediaPageCopy } from "../data/mediaData";
+import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedGalleryVideo } from "../sanity/normalize";
 
 interface Props {
@@ -51,7 +51,7 @@ const captionId = `${dialogId}-caption`;
     <button type="button" class="gallery-lightbox__close" data-gallery-video-close>
       <span aria-hidden="true">&times;</span>
       <span class="visually-hidden">
-        {mediaPageCopy.gallery.lightboxCloseLabel} {mediaPageCopy.gallery.lightboxCloseVideoSuffix}
+        {galleryMerchCopy.gallery.lightboxCloseLabel} {galleryMerchCopy.gallery.lightboxCloseVideoSuffix}
       </span>
     </button>
 
@@ -65,11 +65,11 @@ const captionId = `${dialogId}-caption`;
         {
           video.credit && (
             <p class="gallery-lightbox__credit">
-              <span class="visually-hidden">{mediaPageCopy.gallery.videoCreditPrefix}</span>
+              <span class="visually-hidden">{galleryMerchCopy.gallery.videoCreditPrefix}</span>
               {video.credit.url ? (
                 <a href={video.credit.url} target="_blank" rel="noopener noreferrer">
                   {video.credit.label}
-                  <span class="visually-hidden">{mediaPageCopy.newTabSuffix}</span>
+                  <span class="visually-hidden">{galleryMerchCopy.newTabSuffix}</span>
                 </a>
               ) : (
                 video.credit.label

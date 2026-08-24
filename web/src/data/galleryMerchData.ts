@@ -1,18 +1,27 @@
 /**
- * Code-owned Media & Merch page material. Three distinct kinds of thing live
- * here, exactly the split established by `aboutData.ts` and `showsData.ts` —
- * do not blur them together.
+ * Code-owned Gallery & Merchandise page material. Renamed from
+ * `mediaData.ts` (visitor-facing "Media & Merch" → "Gallery & Merchandise",
+ * route `/media-merch` → `/gallery-merch`) — see docs/gallery-merch.md.
+ * Three distinct kinds of thing live here, exactly the split established by
+ * `aboutData.ts` and `showsData.ts` — do not blur them together.
  *
- * 1. `mediaPageCopy` — permanent protected interface copy: filter labels,
+ * 1. `galleryMerchCopy` — permanent protected interface copy: filter labels,
  *    category display names, the new-tab notice, and the no-commerce
  *    boundary wording. Not editorial content, never in Sanity. Category
  *    display names are fixed for the same reason link-type names are fixed
  *    on `bandMember`: a filter labelled "Performances" must always mean the
  *    same thing.
- * 2. `mediaPageFallback` — ONE complete development fallback, used only when
- *    the whole `mediaPage` singleton is absent from a non-production
+ * 2. `galleryMerchFallback` — ONE complete development fallback, used only
+ *    when the whole `galleryPage` singleton is absent from a non-production
  *    dataset. Never merged field-by-field with live content, and never used
- *    in production (see `media-merch.astro`).
+ *    in production (see `gallery-merch.astro`). Unlike the page's earlier
+ *    `mediaPage` form, this fallback has NO featured-video content at all —
+ *    the page no longer has a featured-video section (featured, click-to-
+ *    load video locations are now only the Homepage hero and the Music
+ *    page). `TEST_FEATURED_VIDEO_URL`/`TEST_VIDEO_ID` below are retained
+ *    even so — they're still load-bearing for `normalize.ts`'s strict-mode
+ *    rejection of that same well-known filler video if it's ever selected
+ *    into `galleryPage.gallery.videos`.
  * 3. `TEST_PRODUCT_MARKER` — the marker that makes placeholder merchandise
  *    unmistakable and mechanically detectable, exactly like
  *    `TEST_BIOGRAPHY_MARKER`. Load-bearing: `normalize.ts` rejects any
@@ -43,11 +52,14 @@ export const TEST_PRODUCT_MARKER = "[TEST — CLIENT PRODUCT REQUIRED]";
  * project uses — including the live Studio `development`-dataset fixture
  * `test-media-video-youtube` ("[TEST] Placeholder YouTube Video"), which is a
  * real, selectable Sanity document, not just a hardcoded fallback string. An
- * editor could select that exact document into `mediaPage.gallery.videos`
+ * editor could select that exact document into `galleryPage.gallery.videos`
  * (it passes every schema filter: `mediaType == "video"`,
  * `videoProvider == "youtube"`), so `normalize.ts` checks selected gallery
  * videos' titles against this prefix and rejects a match in production —
- * mirrors `TEST_PRODUCT_MARKER`'s role for merchandise.
+ * mirrors `TEST_PRODUCT_MARKER`'s role for merchandise. Deliberately kept
+ * here rather than moved into a generic "mediaItem" module: it's about the
+ * generic `mediaItem` document type, but this Gallery & Merchandise gallery
+ * is still its only consumer.
  */
 export const TEST_MEDIA_ITEM_MARKER = "[TEST";
 
@@ -62,14 +74,7 @@ export const TEST_MEDIA_ITEM_MARKER = "[TEST";
  * accessibility/policy contract, not editorial voice.
  * ---------------------------------------------------------------------- */
 
-export const mediaPageCopy = {
-  featuredVideo: {
-    /** Used only when the editor leaves the optional heading blank, so the
-     * section always has a real, labelled `<h2>` — never an empty one. */
-    defaultHeading: "Featured Video",
-    playLabel: "Play featured video",
-  },
-
+export const galleryMerchCopy = {
   gallery: {
     headingId: "media-gallery",
     /** "All" is a UI filter only — it is never stored in Sanity. */
@@ -105,19 +110,29 @@ export const mediaPageCopy = {
   },
 
   merch: {
-    headingId: "media-merch-items",
+    headingId: "gallery-merch-items",
     /**
      * Protected: defines the site's no-commerce boundary. Editors control
-     * `mediaPage.merch.heading` and `.body`; they do not control this
+     * `galleryPage.merch.heading` and `.body`; they do not control this
      * sentence, because rewording it could imply a working store.
      *
      * Points at the internal Contact page's merch inquiry form, not
-     * Instagram — see docs/contact-booking.md and docs/media-merch.md §8.
+     * Instagram — see docs/contact-booking.md and docs/gallery-merch.md §8.
      */
     noCommerceNotice:
       "Items are available by inquiry only — there is no online store, cart, or checkout. Use the merchandise inquiry form to email the band.",
     /** "Email the Band About {item name}" — an internal link, never a new tab. */
     inquiryLabelPrefix: "Email the Band About",
+  },
+
+  eventMediaSubmission: {
+    /** Shown when the section is enabled but no valid Google Form URL is
+     * configured yet — see `normalizeEventMediaSubmission` in `normalize.ts`.
+     * Never claims the consent/license mechanism is currently operational:
+     * that only becomes true once a real form and its consent language
+     * exist. */
+    notConfiguredNotice:
+      "This form isn't connected yet — check back soon, or use the direct email address in the footer.",
   },
 
   newTabSuffix: " (opens in a new tab)",
@@ -126,25 +141,11 @@ export const mediaPageCopy = {
 /* -------------------------------------------------------------------------
  * Development fallback
  *
- * ONE coherent block, used only when the `mediaPage` singleton is entirely
+ * ONE coherent block, used only when the `galleryPage` singleton is entirely
  * absent from a non-production dataset. If the singleton exists but a
  * required section is incomplete, normalization returns `null` for the whole
  * document and this fallback is used instead — live content and placeholder
- * copy are never mixed in one render (see `media-merch.astro`).
- *
- * The featured video reuses the exact same test YouTube URL already
- * referenced by the development Homepage's `[TEST] Placeholder YouTube
- * Video` mediaItem (`test-media-video-youtube`) — no new Sanity document is
- * created or patched, this is a plain hardcoded URL string, and it is only
- * ever reachable through this fallback (see `media-merch.astro`: the
- * fallback branch is structurally unreachable once `PUBLIC_SANITY_DATASET`
- * is `production`, and a valid live `mediaPage` with no featured video still
- * omits the section — this fixture never leaks into either of those states).
- * The heading carries the `[TEST — CLIENT VIDEO REQUIRED]` marker so it can
- * never be mistaken for real ELT footage. `title` below is this fixture's
- * stand-in for a Studio `mediaItem.title` and is deliberately neutral and
- * test-specific — it becomes the player's accessible iframe title, and must
- * never describe this placeholder as Electric Lavender Train footage.
+ * copy are never mixed in one render (see `gallery-merch.astro`).
  *
  * The gallery reuses the same six existing local development images already
  * bundled for the Homepage fallback gallery — not new assets, and nothing
@@ -157,9 +158,12 @@ export const mediaPageCopy = {
  * ---------------------------------------------------------------------- */
 
 /**
- * The development Homepage's existing test video URL, reused verbatim.
- * Not a new asset and not a new Sanity reference — see the module doc
- * comment above.
+ * A well-known filler YouTube URL, retained only as the source for
+ * `TEST_VIDEO_ID` below — this page's own fallback no longer renders any
+ * featured video, but the id is still used as a belt-and-suspenders
+ * production guard against this exact well-known filler clip ever being
+ * selected into `galleryPage.gallery.videos` (on top of the title-prefix
+ * check, `TEST_MEDIA_ITEM_MARKER`).
  */
 export const TEST_FEATURED_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
@@ -167,7 +171,7 @@ export const TEST_FEATURED_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9Wg
  * The video id embedded in `TEST_FEATURED_VIDEO_URL` above ("Never Gonna
  * Give You Up"), extracted once via the approved parser rather than
  * hardcoded a second time. Used by `normalize.ts` as a belt-and-suspenders
- * production guard for `mediaPage.gallery.videos`, alongside the
+ * production guard for `galleryPage.gallery.videos`, alongside the
  * title-prefix check (`TEST_MEDIA_ITEM_MARKER`) — an editor selecting the
  * live `test-media-video-youtube` fixture would already be caught by its
  * `[TEST]`-prefixed title, but this catches the same well-known filler video
@@ -266,19 +270,11 @@ export const merchFallback: FallbackMerchItem[] = [
   },
 ];
 
-export const mediaPageFallback = {
+export const galleryMerchFallback = {
   intro: {
-    kicker: "Media & Merch",
+    kicker: "Gallery & Merchandise",
     heading: "Photos, Video & Merch",
     lede: "A look at Electric Lavender Train live, plus band merchandise available by inquiry.",
-  },
-  featuredVideo: {
-    kicker: "Watch",
-    heading: "[TEST — CLIENT VIDEO REQUIRED] Featured Video",
-    videoUrl: TEST_FEATURED_VIDEO_URL,
-    /** Never "Electric Lavender Train" — this is a filler URL, not band
-     * footage. See the module doc comment above. */
-    title: "[TEST] Development placeholder video — not Electric Lavender Train footage",
   },
   gallery: {
     kicker: "Good Times & Great People",
@@ -297,13 +293,10 @@ export const mediaPageFallback = {
     ctaLabel: "Email the Band About Merch",
   },
   seo: {
-    metaTitle: "Media & Merch",
-    // Deliberately doesn't mention "video" — the only video on this
-    // fallback build is the marked test placeholder, not real ELT footage,
-    // so this description must not imply otherwise.
+    metaTitle: "Gallery & Merchandise",
     metaDescription:
       "Photos of Electric Lavender Train performing across California's Central Coast, plus band merchandise available by inquiry.",
   },
 };
 
-export default mediaPageCopy;
+export default galleryMerchCopy;

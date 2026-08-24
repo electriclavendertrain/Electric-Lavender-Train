@@ -1,16 +1,23 @@
 ---
-import { Image } from "astro:assets";
-import familyPhoto from "../assets/images/elt-family.jpeg";
 import siteConfig from "../data/siteConfig";
+import type { NormalizedBandIntroImage } from "../sanity/normalize";
 
 interface Props {
   kicker?: string | null;
   heading: string;
   paragraphs: string[];
   ctaLabel?: string | null;
+  /**
+   * `null` when no valid image is available (the field is empty, unresolved,
+   * or missing alt text) — the section renders as text-only in that case.
+   * The caller (`index.astro`) is responsible for the local
+   * development-only fallback photo; this component never imports one
+   * itself.
+   */
+  image?: NormalizedBandIntroImage | null;
 }
 
-const { kicker, heading, paragraphs, ctaLabel } = Astro.props;
+const { kicker, heading, paragraphs, ctaLabel, image = null } = Astro.props;
 
 // Mirrors the schema's `Rule.min(1).max(2)` on `bandIntro.paragraphs`.
 // Studio validation binds the Studio UI, not the Content API, so a raw API
@@ -23,14 +30,35 @@ const nonEmptyParagraphs = paragraphs
   .slice(0, MAX_PARAGRAPHS);
 ---
 
-<section class="about" id="about">
-  <div class="about-img reveal">
-    <Image
-      src={familyPhoto}
-      alt={`${siteConfig.bandNameFormal} band photo`}
-      width={600}
-    />
-  </div>
+<section class:list={["about", { "about--no-image": !image }]} id="about">
+  {
+    image && (
+      <div class="about-img reveal">
+        <img
+          src={image.src}
+          width={image.width}
+          height={image.height}
+          alt={image.alt}
+          loading="lazy"
+          decoding="async"
+          style={`--focal-point: ${image.objectPosition}`}
+        />
+        {image.credit && (
+          <p class="about-img__credit">
+            <span class="visually-hidden">Photo credit: </span>
+            {image.credit.url ? (
+              <a href={image.credit.url} target="_blank" rel="noopener noreferrer">
+                {image.credit.label}
+                <span class="visually-hidden"> (opens in a new tab)</span>
+              </a>
+            ) : (
+              image.credit.label
+            )}
+          </p>
+        )}
+      </div>
+    )
+  }
   <div class="about-copy reveal reveal-2">
     {kicker && <p class="kicker">{kicker}</p>}
     <h2>{heading}</h2>
@@ -52,6 +80,15 @@ const nonEmptyParagraphs = paragraphs
     gap: 70px;
     align-items: center;
   }
+  /* A missing optional image must never take the heading/paragraphs down
+     with it — the section simply collapses to one readable column instead
+     of leaving an empty image slot. */
+  .about.about--no-image {
+    grid-template-columns: 1fr;
+  }
+  .about.about--no-image .about-copy p {
+    max-width: 640px;
+  }
   .about-img {
     position: relative;
     border-radius: 18px;
@@ -62,6 +99,7 @@ const nonEmptyParagraphs = paragraphs
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: var(--focal-point, 50% 50%);
     aspect-ratio: 4 / 5;
   }
   .about-img::after {
@@ -71,6 +109,30 @@ const nonEmptyParagraphs = paragraphs
     border-radius: 18px;
     border: 1px solid rgba(160, 123, 239, 0.3);
     pointer-events: none;
+  }
+  /* Unobtrusive: small, muted, and tucked into the image's own corner —
+     never competing with the heading/copy for attention. Mirrors
+     `.media-gallery__credit` in `MediaGallery.astro`. */
+  .about-img__credit {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+    max-width: calc(100% - 20px);
+    padding: 3px 9px;
+    border-radius: 8px;
+    background: rgba(11, 11, 18, 0.6);
+    font-size: 0.7rem;
+    color: rgba(244, 232, 208, 0.75);
+    overflow-wrap: anywhere;
+  }
+  .about-img__credit a {
+    color: rgba(244, 232, 208, 0.75);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .about-img__credit a:hover {
+    color: var(--lavender-soft);
   }
   .about-copy p {
     color: rgba(244, 232, 208, 0.85);

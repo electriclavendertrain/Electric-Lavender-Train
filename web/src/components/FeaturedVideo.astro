@@ -1,9 +1,15 @@
 ---
 /**
- * The Media & Merch page's optional featured video. Rendered only when
- * `media-merch.astro` has already resolved a valid YouTube video id — this
- * component never decides that for itself and never renders a "coming soon"
- * placeholder for a missing/invalid one; the section simply does not exist.
+ * A page's optional, single featured video. Rendered only when the caller
+ * has already resolved a valid YouTube video id — this component never
+ * decides that for itself and never renders a "coming soon" placeholder for
+ * a missing/invalid one; the section simply does not exist. Reusable by
+ * design: currently used only by the Music page (`music.astro`), placed
+ * immediately after the page's intro and before the release sections. The
+ * Gallery & Merchandise page (formerly Media & Merch) used to have its own
+ * featured video here too — that section was removed entirely, not
+ * migrated; featured, click-to-load video locations today are only the
+ * Homepage hero (its own separate implementation) and the Music page.
  *
  * Click-to-play, exactly like the Homepage hero, and sharing its exact
  * presentation and motion via the `.video-trigger*` primitive in
@@ -20,32 +26,33 @@
  * component's own scoped CSS rather than anything shared: this frame keeps
  * its own larger ~900px maximum width rather than the Homepage's 560px, and
  * (a deliberate product decision, not an oversight) its trigger sits with
- * extra clearance below the section heading. Both players stay
- * independently sized and independently wired to their own Sanity reference
- * (`homepage.heroVideo` vs. `mediaPage.featuredVideo.video`) — nothing here
- * asserts or requires that they reference the same `mediaItem`, only that
- * they're allowed to.
+ * extra clearance below the section heading.
  *
  * Reuses `heroVideo.ts` unchanged via the same `data-video-*` attribute
  * contract (see that file's doc comment) — no second click-to-play script.
  */
 
-import { mediaPageCopy } from "../data/mediaData";
+import { musicPageCopy } from "../data/musicData";
 import VideoTrigger from "./VideoTrigger.astro";
+
+/** Generic accessible-name prefix for the play control, e.g. "Play video:
+ * {title}" — kept local to this component (not imported from any one
+ * page's copy module) since the component itself is page-agnostic. */
+const PLAY_LABEL_PREFIX = "Play video: ";
 
 interface Props {
   kicker?: string | null;
   heading?: string | null;
   videoId: string;
   /** The selected video's own title when available, otherwise a safe
-   * neutral fallback — resolved by the caller (`media-merch.astro`),
-   * mirroring how `index.astro` resolves `Hero.astro`'s `videoTitle`. */
+   * neutral fallback — resolved by the caller, mirroring how `index.astro`
+   * resolves `Hero.astro`'s `videoTitle`. */
   videoTitle: string;
 }
 
 const { kicker, heading, videoId, videoTitle } = Astro.props;
 
-const displayHeading = heading ?? mediaPageCopy.featuredVideo.defaultHeading;
+const displayHeading = heading ?? musicPageCopy.featuredVideo.defaultHeading;
 ---
 
 <section class="featured-video" aria-labelledby="featured-video-heading">
@@ -57,7 +64,7 @@ const displayHeading = heading ?? mediaPageCopy.featuredVideo.defaultHeading;
       <VideoTrigger
         videoId={videoId}
         videoTitle={videoTitle}
-        playLabel={mediaPageCopy.featuredVideo.playLabel}
+        playLabel={`${PLAY_LABEL_PREFIX}${videoTitle}`}
         width={900}
         loading="lazy"
       />
@@ -72,9 +79,9 @@ const displayHeading = heading ?? mediaPageCopy.featuredVideo.defaultHeading;
 <style>
   /* Noticeably more clearance above this section than the sitewide 110px/
      80px default (see `section` in global.css) — the same responsive
-     top-clearance values already established for this page's own intro
-     (`MediaIntro.astro`) and the Contact page's intro, reused here rather
-     than a new one-off number. */
+     top-clearance values already established for a page's own intro
+     (e.g. `MusicIntro.astro`) and the Contact page's intro, reused here
+     rather than a new one-off number. */
   .featured-video {
     padding-top: 150px;
   }

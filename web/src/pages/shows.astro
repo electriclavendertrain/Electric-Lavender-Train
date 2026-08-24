@@ -23,7 +23,7 @@ import PublicShowCard from "../components/PublicShowCard.astro";
 import ShowsEmptyState from "../components/ShowsEmptyState.astro";
 import PublicEventJsonLd from "../components/PublicEventJsonLd.astro";
 import siteConfig, { formatPageTitle } from "../data/siteConfig";
-import { showsPageCopy, showsPageFallback } from "../data/showsData";
+import { showsPageCopy, showsPageFallback, availabilityNoteParts } from "../data/showsData";
 import { sanityClient } from "../sanity/client";
 import {
   SHOWS_PAGE_QUERY,
@@ -95,7 +95,7 @@ const title = formatPageTitle(metaTitle);
     heading={pageContent.intro.heading}
     paragraphs={pageContent.intro.paragraphs}
     timeZoneNote={showsPageCopy.intro.timeZoneNote}
-    availabilityNote={showsPageCopy.intro.availabilityNote}
+    availabilityNoteParts={availabilityNoteParts}
   />
 
   <section id="upcoming" aria-labelledby={showsPageCopy.upcoming.headingId}>

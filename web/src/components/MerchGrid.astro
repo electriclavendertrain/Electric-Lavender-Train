@@ -4,14 +4,14 @@
  * valid selected items — "no merchandise selected" is a legitimate, silent
  * empty state, never an error or a placeholder grid.
  *
- * `mediaPageCopy.merch.noCommerceNotice` is rendered once here, for the
+ * `galleryMerchCopy.merch.noCommerceNotice` is rendered once here, for the
  * whole section, rather than editable in Sanity: it is the sentence that
  * defines the site's no-commerce boundary, and only the heading/body above
- * it are editor-controlled (docs/media-merch.md §"Editable vs. protected").
+ * it are editor-controlled (docs/gallery-merch.md §"Editable vs. protected").
  */
 
 import MerchCard from "./MerchCard.astro";
-import { mediaPageCopy } from "../data/mediaData";
+import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedMerchItem } from "../sanity/normalize";
 
 interface Props {
@@ -34,7 +34,7 @@ const { headingId, kicker, heading, body, items } = Astro.props;
           {heading}
         </h2>
         {body && <p class="merch-grid__body reveal reveal-2">{body}</p>}
-        <p class="merch-grid__notice reveal reveal-2">{mediaPageCopy.merch.noCommerceNotice}</p>
+        <p class="merch-grid__notice reveal reveal-2">{galleryMerchCopy.merch.noCommerceNotice}</p>
 
         <ul class="merch-grid__list reveal reveal-3">
           {items.map((item) => (

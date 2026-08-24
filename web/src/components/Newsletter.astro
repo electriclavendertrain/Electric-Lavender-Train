@@ -1,0 +1,97 @@
+---
+/**
+ * The homepage's newsletter section — the site's one and only subscription
+ * entry point (the Hero's quieter link, the Footer link, and the Contact
+ * page's compact CTA all point here rather than duplicating it, per
+ * docs/CLAUDE.md's "no unnecessary abstraction" and the explicit "no
+ * duplicated subscription forms" requirement).
+ *
+ * This site never collects an email address itself: there is no email
+ * `<input>` anywhere in this markup. The button below only ever navigates to
+ * a separately hosted, double-opt-in signup page (planned as Brevo) once the
+ * site owner has configured `PUBLIC_NEWSLETTER_SIGNUP_URL` — see
+ * `web/src/lib/newsletter.ts`. Until then, this fails closed: no fake link,
+ * no submission attempt, and a clear development/configuration notice
+ * instead of a control that would otherwise look functional. Nothing here
+ * claims email open/click tracking — that is not approved for launch.
+ */
+interface Props {
+  kicker?: string | null;
+  heading: string;
+  body: string;
+  ctaLabel: string;
+  /** `null` when no valid hosted signup URL is configured yet. */
+  signupUrl: string | null;
+}
+
+const { kicker, heading, body, ctaLabel, signupUrl } = Astro.props;
+---
+
+<section id="newsletter" class="newsletter">
+  <div class="section-inner">
+    <div class="newsletter__panel reveal">
+      {kicker && <p class="kicker">{kicker}</p>}
+      <h2>{heading}</h2>
+      <p class="newsletter__body">{body}</p>
+
+      {
+        signupUrl ? (
+          <a
+            href={signupUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-primary newsletter__cta"
+          >
+            {ctaLabel}
+            <span class="visually-hidden"> (opens in a new tab)</span>
+          </a>
+        ) : (
+          <p class="newsletter__notice" data-newsletter-notice>
+            [TEST — NEWSLETTER SIGNUP NOT YET CONFIGURED] The hosted signup form isn't connected
+            yet, so there's nothing to submit to here. This notice — not a working button — is
+            what should appear until a real signup URL is configured.
+          </p>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .newsletter__panel {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 48px 6%;
+    border-radius: 22px;
+    border: 1px solid rgba(160, 123, 239, 0.22);
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.16), rgba(11, 11, 18, 0.4));
+  }
+  .newsletter__panel .kicker {
+    justify-content: center;
+  }
+  .newsletter__body {
+    max-width: 58ch;
+    margin: 18px auto 28px;
+    color: rgba(244, 232, 208, 0.85);
+    font-weight: 300;
+  }
+  .newsletter__cta {
+    margin: 0 auto;
+  }
+  .newsletter__notice {
+    max-width: 58ch;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: rgba(244, 232, 208, 0.65);
+    border: 1px dashed rgba(200, 168, 107, 0.4);
+    border-radius: 12px;
+    padding: 14px 18px;
+  }
+
+  @media (max-width: 600px) {
+    .newsletter__panel {
+      padding: 36px 6%;
+    }
+  }
+</style>

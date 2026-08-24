@@ -1,8 +1,10 @@
 import type {StructureResolver} from 'sanity/structure'
 import {BlockquoteIcon} from '@sanity/icons/Blockquote'
 import {CalendarIcon} from '@sanity/icons/Calendar'
+import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {HomeIcon} from '@sanity/icons/Home'
 import {ImagesIcon} from '@sanity/icons/Images'
+import {MicrophoneIcon} from '@sanity/icons/Microphone'
 import {PlayIcon} from '@sanity/icons/Play'
 import {TagIcon} from '@sanity/icons/Tag'
 import {UsersIcon} from '@sanity/icons/Users'
@@ -29,10 +31,20 @@ export const structure: StructureResolver = (S) =>
         .icon(CalendarIcon)
         .child(S.document().schemaType('showsPage').documentId('showsPage')),
       S.listItem()
-        .title('Media & Merch Page')
-        .id('mediaPage')
-        .icon(PlayIcon)
-        .child(S.document().schemaType('mediaPage').documentId('mediaPage')),
+        .title('Gallery & Merchandise Page')
+        .id('galleryPage')
+        .icon(ImagesIcon)
+        .child(S.document().schemaType('galleryPage').documentId('galleryPage')),
+      S.listItem()
+        .title('Contact Page')
+        .id('contactPage')
+        .icon(EnvelopeIcon)
+        .child(S.document().schemaType('contactPage').documentId('contactPage')),
+      S.listItem()
+        .title('Music Page')
+        .id('musicPage')
+        .icon(MicrophoneIcon)
+        .child(S.document().schemaType('musicPage').documentId('musicPage')),
       S.divider(),
       // Reusable content — ordinary documents, created and deleted freely.
       S.listItem()
@@ -54,6 +66,15 @@ export const structure: StructureResolver = (S) =>
         .id('merchItems')
         .icon(TagIcon)
         .child(S.documentTypeList('merchItem').title('Merchandise')),
+      S.listItem()
+        .title('Music Releases')
+        .id('musicReleases')
+        .icon(MicrophoneIcon)
+        .child(
+          S.documentTypeList('musicRelease')
+            .title('Music Releases')
+            .defaultOrdering([{field: 'releaseDate', direction: 'desc'}]),
+        ),
       S.divider(),
       S.listItem()
         .title('Events')
@@ -118,4 +139,14 @@ export const structure: StructureResolver = (S) =>
         .id('mediaLibrary')
         .icon(ImagesIcon)
         .child(S.documentTypeList('mediaItem').title('Media Library')),
+      // No entry here for the deprecated `mediaPage` (Media & Merch,
+      // pre-rename). The type stays registered in `schemaTypes/index.ts`
+      // and `SINGLETON_TYPES` (read-only, per its own doc comment) and its
+      // one document is untouched — this is deliberately just an omission
+      // from the *navigable list*, not a deletion, so Hunter is never
+      // presented with two "Gallery & Merch" choices in Studio, while the
+      // document remains fully intact for rollback/history. Reachable
+      // directly (e.g. the Vision plugin, or a hand-typed Studio URL) by
+      // anyone who specifically needs it; deleting the type/document
+      // outright needs separate authorization — see mediaPage.ts.
     ])

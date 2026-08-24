@@ -17,7 +17,17 @@
  *
  * There is no event fallback of any kind, anywhere, ever — see
  * `web/src/pages/index.astro` and docs/phase3-plan.md §15.
+ *
+ * `TEST_NEWSLETTER_MARKER` is a belt-and-suspenders production guard, not a
+ * marker used anywhere in this file's own fallback content today (the
+ * newsletter fallback below is real, approved copy, not a placeholder). If a
+ * `[TEST`-prefixed value is ever typed into the Studio `homepage.newsletter`
+ * fields — in `development` or, by accident, `production` — `normalize.ts`
+ * rejects it in production the same way `TEST_BIOGRAPHY_MARKER` and
+ * `TEST_PRODUCT_MARKER` guard their own sections.
  */
+
+export const TEST_NEWSLETTER_MARKER = "[TEST";
 
 import type { ImageMetadata } from "astro";
 import galleryPerformance from "../assets/images/gallery/elt-04.jpg";
@@ -131,4 +141,11 @@ export const bookingCtaFallback = {
   heading: "Let's Make Your Next Event Unforgettable.",
   body: "Weddings, private parties, breweries, festivals — if there's a dance floor, we'll fill it. Send a booking inquiry and let's start planning.",
   ctaLabel: "Send a Booking Inquiry",
+};
+
+export const newsletterFallback = {
+  kicker: "Stay in the Loop",
+  heading: "Join the ELT Newsletter",
+  body: "Weekly updates from Electric Lavender Train, straight to your inbox. Subscribers can separately opt in to new-show alerts when a public date is added. Signup uses email confirmation (double opt-in) once the hosted form is live.",
+  ctaLabel: "Sign Up for the Newsletter",
 };

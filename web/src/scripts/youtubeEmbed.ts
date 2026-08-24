@@ -1,7 +1,7 @@
 /**
  * Builds the iframe every click-to-play YouTube embed on the site uses, once
  * a visitor has explicitly activated one specific video. Shared by
- * `heroVideo.ts` (the Homepage hero / Media & Merch featured video, which
+ * `heroVideo.ts` (the Homepage hero / Music page featured video, which
  * replaces its trigger button with this iframe inline) and
  * `mediaGallery.ts` (gallery videos, which inject this iframe into an
  * already-open lightbox dialog) — one definition means the embed

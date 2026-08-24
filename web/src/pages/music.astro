@@ -1,0 +1,186 @@
+---
+/**
+ * /music — ELT's own releases only: upcoming and already-released, with
+ * streaming/pre-save links, an optional page-level featured video, and a
+ * small Heavy Crush Records acknowledgment. No other Heavy Crush artist's
+ * music appears here, no lyrics, no detailed public credits, no audio
+ * hosting, and no raw media-file upload system — see docs for the full
+ * constraint list this route was built against.
+ *
+ * This is the only file on this route that touches Sanity. It fetches,
+ * hands the raw result straight to normalization, and passes plain objects
+ * down; no component below it knows Sanity exists. Everything here runs
+ * once, at `astro build` — nothing is fetched in the browser.
+ */
+
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MusicIntro from "../components/MusicIntro.astro";
+import MusicReleaseCard from "../components/MusicReleaseCard.astro";
+import FeaturedVideo from "../components/FeaturedVideo.astro";
+import siteConfig, { formatPageTitle } from "../data/siteConfig";
+import { musicPageCopy, musicPageFallback } from "../data/musicData";
+import { getYouTubeVideoId } from "../lib/youtube";
+import { sanityClient } from "../sanity/client";
+import { MUSIC_PAGE_QUERY } from "../sanity/queries";
+import { normalizeMusicPageContent, type NormalizedMusicPageContent } from "../sanity/normalize";
+
+const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
+
+const rawMusicPage = await sanityClient.fetch(MUSIC_PAGE_QUERY);
+
+// The curated release selection gets strict, item-level validation in
+// production (see normalize.ts's module doc comment) — any invalid selected
+// release fails the whole build there, and is silently dropped everywhere
+// else.
+const normalizedMusicPage = normalizeMusicPageContent(rawMusicPage, {
+  strict: isProductionDataset,
+});
+
+if (normalizedMusicPage === null && isProductionDataset) {
+  throw new Error(
+    "The Sanity `musicPage` singleton is missing or incomplete in the production dataset. " +
+      "The page introduction must be complete, and every selected release must resolve with a " +
+      "title, a recognized state, and a valid release date. Publish the Music Page in Sanity " +
+      "Studio before building for production.",
+  );
+}
+
+/**
+ * The development fallback is ONE complete block, used only when the whole
+ * singleton is absent — and deliberately carries zero releases rather than
+ * inventing any (see `musicData.ts`'s module doc comment). This is
+ * structurally unreachable once `PUBLIC_SANITY_DATASET` is `production`
+ * (the `throw` above already fired by the time execution could reach here).
+ */
+const pageContent: NormalizedMusicPageContent = normalizedMusicPage ?? {
+  intro: musicPageFallback.intro,
+  releases: [],
+  featuredVideo: null,
+  seo: { metaTitle: musicPageFallback.seo.metaTitle, metaDescription: musicPageFallback.seo.metaDescription, ogImageUrl: null },
+};
+
+// `musicPage.releases` is the single source of truth for both selection and
+// order (see the schema/query/normalize doc comments) — these two filters
+// only split that one ordered list by each release's own `state`, they
+// never re-sort it.
+const upcomingReleases = pageContent.releases.filter((release) => release.state === "upcoming");
+const releasedReleases = pageContent.releases.filter((release) => release.state === "released");
+
+// Mirrors index.astro's `heroVideoUrl`/`featuredVideoId`
+// resolution exactly: a real Studio-provided title takes priority, and a
+// malformed or non-YouTube URL safely resolves to "no video" (the whole
+// section is omitted below), never a "coming soon" placeholder.
+const featuredVideoId = pageContent.featuredVideo
+  ? getYouTubeVideoId(pageContent.featuredVideo.videoUrl)
+  : null;
+const featuredVideoTitle =
+  pageContent.featuredVideo?.title ?? `${siteConfig.bandNameFormal} — Featured Video`;
+
+const title = formatPageTitle(pageContent.seo.metaTitle ?? musicPageFallback.seo.metaTitle);
+const description = pageContent.seo.metaDescription ?? musicPageFallback.seo.metaDescription;
+---
+
+<BaseLayout title={title} description={description} ogImage={pageContent.seo.ogImageUrl}>
+  <MusicIntro kicker={pageContent.intro.kicker} heading={pageContent.intro.heading} lede={pageContent.intro.lede} />
+
+  {
+    pageContent.featuredVideo && featuredVideoId && (
+      <FeaturedVideo
+        kicker={pageContent.featuredVideo.kicker ?? musicPageCopy.featuredVideo.defaultHeading}
+        heading={pageContent.featuredVideo.heading}
+        videoId={featuredVideoId}
+        videoTitle={featuredVideoTitle}
+      />
+    )
+  }
+
+  <section class="music-section" aria-labelledby={musicPageCopy.upcomingHeadingId}>
+    <div class="section-inner">
+      <h2 id={musicPageCopy.upcomingHeadingId} class="music-section__heading reveal">
+        {musicPageCopy.upcomingHeading}
+      </h2>
+      {
+        upcomingReleases.length > 0 ? (
+          <ul class="music-grid" role="list">
+            {upcomingReleases.map((release) => (
+              <MusicReleaseCard release={release} />
+            ))}
+          </ul>
+        ) : (
+          <p class="music-section__empty reveal">{musicPageCopy.emptyUpcomingMessage}</p>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="music-section" aria-labelledby={musicPageCopy.releasedHeadingId}>
+    <div class="section-inner">
+      <h2 id={musicPageCopy.releasedHeadingId} class="music-section__heading reveal">
+        {musicPageCopy.releasedHeading}
+      </h2>
+      {
+        releasedReleases.length > 0 ? (
+          <ul class="music-grid" role="list">
+            {releasedReleases.map((release) => (
+              <MusicReleaseCard release={release} />
+            ))}
+          </ul>
+        ) : (
+          <p class="music-section__empty reveal">{musicPageCopy.emptyReleasedMessage}</p>
+        )
+      }
+    </div>
+  </section>
+
+  <div class="music-label-note">
+    <p class="section-inner">
+      {musicPageCopy.labelAcknowledgmentPrefix}{" "}
+      <a href={siteConfig.heavyCrushRecords.url} target="_blank" rel="noopener noreferrer">
+        {siteConfig.heavyCrushRecords.name}
+        <span class="visually-hidden">{musicPageCopy.newTabSuffix}</span>
+      </a>.
+    </p>
+  </div>
+
+  {
+    upcomingReleases.length > 0 && (
+      <script>
+        import "../scripts/musicCountdown";
+      </script>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .music-section__heading {
+    margin-bottom: 32px;
+  }
+  .music-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 26px;
+  }
+  .music-section__empty {
+    color: rgba(244, 232, 208, 0.65);
+    max-width: 60ch;
+  }
+  .music-label-note {
+    padding: 70px 6%;
+    font-size: 0.82rem;
+    color: rgba(244, 232, 208, 0.5);
+  }
+  .music-label-note a {
+    color: rgba(244, 232, 208, 0.65);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .music-label-note a:hover {
+    color: var(--lavender-soft);
+  }
+
+  @media (max-width: 900px) {
+    .music-label-note {
+      padding-block: 56px;
+    }
+  }
+</style>

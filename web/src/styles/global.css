@@ -94,9 +94,10 @@ html.nav-open {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Five static points per tile, still roughly half the original density.
-     This keeps the cosmic texture while avoiding a continuous full-viewport
-     gradient repaint, which was especially costly when zoomed. */
+  /* Eight static points per tile (~50% denser than the previous five). Still
+     entirely static — no keyframe animates this layer — and still a single
+     repeating tile rather than a continuous full-viewport gradient repaint,
+     which was especially costly when zoomed. */
   background-image: radial-gradient(
       1.5px 1.5px at 20% 30%,
       rgba(255, 255, 255, 0.82),
@@ -109,7 +110,14 @@ html.nav-open {
       rgba(255, 255, 255, 0.62),
       transparent
     ),
-    radial-gradient(1px 1px at 12% 68%, rgba(255, 255, 255, 0.46), transparent);
+    radial-gradient(1px 1px at 12% 68%, rgba(255, 255, 255, 0.46), transparent),
+    radial-gradient(1px 1px at 40% 8%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(
+      1.5px 1.5px at 55% 90%,
+      rgba(255, 255, 255, 0.68),
+      transparent
+    ),
+    radial-gradient(1px 1px at 6% 44%, rgba(255, 255, 255, 0.5), transparent);
   background-repeat: repeat;
   background-size: 667px 667px;
   opacity: 0.5;
@@ -470,6 +478,11 @@ h2 {
  */
 .video-trigger-wrapper {
   position: relative;
+  /* Gives the floating trigger its own stacking context, so its filtered
+     child (`.video-trigger__logo`, below) can never paint-interleave with
+     unrelated sibling content while the compositor is mid-animation — see
+     `.video-float`'s doc comment for the specific bug this pairs with. */
+  isolation: isolate;
 }
 
 /* Just the float animation, reusable on either the plain logo image (no
@@ -477,9 +490,33 @@ h2 {
    (video configured) — whichever is the "floating unit." Honors
    `prefers-reduced-motion` via the sitewide blanket override above, which
    collapses this animation's duration to near-zero rather than a rule
-   declared here. */
+   declared here.
+
+   `will-change`/`backface-visibility` below fix a real, observed mobile
+   Safari/Chrome rendering defect, not a hypothetical one: before
+   activation, a faint rectangular "boxy" artifact briefly painted
+   above/behind the floating trigger on real mobile browsers (both
+   WebKit/Safari and Chrome on iOS, which is WebKit-based under the hood),
+   and disappeared the moment the trigger was replaced by the activated
+   iframe. Root cause: this element animates `transform` continuously while
+   its child `.video-trigger__logo` carries `filter: drop-shadow(...)`
+   (global.css, below) — a filtered descendant of a continuously-transformed
+   ancestor forces the browser to repeatedly (re)promote that descendant to
+   its own compositing layer. Mobile WebKit/Blink can paint that layer's
+   pre-blur backing-store bounds as a plain rectangle for a frame while the
+   layer is (re)created, which is exactly the artifact reported. `will-change:
+   transform` asks the browser to promote the layer once, up front, instead
+   of discovering and (re)promoting it every animation cycle; `backface-
+   visibility: hidden` is the standard, widely-documented WebKit fix for this
+   same class of transform/filter compositing seam. Both are inert on
+   browsers that do not have this bug — this is a compositing-stability fix
+   only, not a visual change, and every other approved property (the float
+   motion itself, the drop-shadow glow, the larger Media & Merch player size,
+   `prefers-reduced-motion` handling) is unchanged. */
 .video-float {
   animation: videoTriggerFloat 7s ease-in-out infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 @keyframes videoTriggerFloat {
   0%,

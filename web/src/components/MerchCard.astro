@@ -5,18 +5,18 @@
  * text, and an inquiry-only action that links into the Contact page's
  * merchandise inquiry form (`?inquiry=merch&item=…#contact-forms`) — an
  * ordinary internal link, not Instagram. See docs/contact-booking.md and
- * docs/media-merch.md §8.
+ * docs/gallery-merch.md §8.
  *
  * Deliberately absent, and never to be added here: add-to-cart, buy-now,
  * checkout, quantity, size/variant selection, SKU, inventory, a numeric
  * commerce price, a currency code, shipping, tax, discounts, accounts, or
  * order/payment processing. This card cannot imply a working store — see
- * `mediaPageCopy.merch.noCommerceNotice` in `MerchGrid.astro`, which states
+ * `galleryMerchCopy.merch.noCommerceNotice` in `MerchGrid.astro`, which states
  * that boundary once for the whole section rather than per card.
  */
 
 import { contactInquiryHref } from "../data/siteConfig";
-import { mediaPageCopy } from "../data/mediaData";
+import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedMerchItem } from "../sanity/normalize";
 
 interface Props {
@@ -52,7 +52,7 @@ const inquiryHref = contactInquiryHref("merch", item.name);
     {item.availabilityNote && <p class="merch-card__availability">{item.availabilityNote}</p>}
 
     <a class="merch-card__cta" href={inquiryHref}>
-      {mediaPageCopy.merch.inquiryLabelPrefix} {item.name}
+      {galleryMerchCopy.merch.inquiryLabelPrefix} {item.name}
     </a>
   </div>
 </article>
