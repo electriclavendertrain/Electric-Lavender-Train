@@ -549,8 +549,19 @@ export interface NormalizedAboutPageContent {
   story: { kicker: string | null; heading: string; paragraphs: string[] };
   /** `null` when the Sanity field is empty/incomplete — `about.astro` falls
    * back to `siteConfig.heavyCrushRecords` rather than omitting the section
-   * or invalidating the rest of the page. See `normalizeAboutPageContent`. */
-  labelAffiliation: { kicker: string | null; text: string; logoAlt: string; url: string } | null;
+   * or invalidating the rest of the page. See `normalizeAboutPageContent`.
+   * Treated as ONE coherent block: every field here (including
+   * `missionStatement` and every `socialLinks` URL) must be present and
+   * safe for this to be non-null — an incomplete live document never mixes
+   * partial live fields with fallback ones. */
+  labelAffiliation: {
+    kicker: string | null;
+    text: string;
+    logoAlt: string;
+    url: string;
+    missionStatement: string;
+    socialLinks: { facebookUrl: string; instagramUrl: string; youtubeUrl: string };
+  } | null;
   membersIntro: { kicker: string | null; heading: string; body: string | null };
   members: NormalizedBandMember[];
   experience: {
@@ -707,6 +718,56 @@ function normalizeAboutHeroImage(
   };
 }
 
+/**
+ * Re-validated at render time, exactly like `safeSpotifyUrl`/
+ * `safeAppleMusicUrl` above — Studio's own hostname `Rule.custom` binds the
+ * Studio UI, not the Content API, so a button labeled Facebook must be
+ * independently confirmed here to actually point at facebook.com before it
+ * can render. Deliberately https-only (unlike `safeExternalUrl`, which still
+ * accepts http for the label's main `url` field, kept for backward
+ * compatibility).
+ */
+function safeFacebookUrl(value: string | null | undefined): string | null {
+  const raw = cleanText(value);
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "https:" && parsed.hostname.replace(/^www\./, "") === "facebook.com"
+      ? raw
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Same reasoning as `safeFacebookUrl` — must resolve to the real Instagram host. */
+function safeInstagramUrl(value: string | null | undefined): string | null {
+  const raw = cleanText(value);
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "https:" && parsed.hostname.replace(/^www\./, "") === "instagram.com"
+      ? raw
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Same reasoning as `safeFacebookUrl` — must resolve to the real YouTube host. */
+function safeYoutubeUrl(value: string | null | undefined): string | null {
+  const raw = cleanText(value);
+  if (!raw) return null;
+  try {
+    const parsed = new URL(raw);
+    return parsed.protocol === "https:" && parsed.hostname.replace(/^www\./, "") === "youtube.com"
+      ? raw
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 export function normalizeAboutPageContent(
   page: ABOUT_PAGE_QUERY_RESULT,
   options: NormalizeAboutOptions,
@@ -726,6 +787,10 @@ export function normalizeAboutPageContent(
   const labelAffiliationText = cleanText(page.labelAffiliation?.text);
   const labelAffiliationLogoAlt = cleanText(page.labelAffiliation?.logoAlt);
   const labelAffiliationUrl = safeExternalUrl(page.labelAffiliation?.url);
+  const labelAffiliationMission = cleanText(page.labelAffiliation?.missionStatement);
+  const labelAffiliationFacebook = safeFacebookUrl(page.labelAffiliation?.socialLinks?.facebookUrl);
+  const labelAffiliationInstagram = safeInstagramUrl(page.labelAffiliation?.socialLinks?.instagramUrl);
+  const labelAffiliationYoutube = safeYoutubeUrl(page.labelAffiliation?.socialLinks?.youtubeUrl);
 
   const membersIntroHeading = cleanText(page.membersIntro?.heading);
 
@@ -797,13 +862,31 @@ export function normalizeAboutPageContent(
     // already recorded in `siteConfig.heavyCrushRecords` when this is
     // `null`, so the acknowledgment still renders correctly even before an
     // editor has touched this specific field in Studio.
+    //
+    // Treated as ONE coherent block, not per-field: every one of the six
+    // fields below must be present and safe, or the whole object is `null`
+    // and the caller substitutes the complete code-owned default — a
+    // document missing only `socialLinks.youtubeUrl`, for example, must
+    // never render two real social buttons next to a fallback third one.
     labelAffiliation:
-      labelAffiliationText && labelAffiliationLogoAlt && labelAffiliationUrl
+      labelAffiliationText &&
+      labelAffiliationLogoAlt &&
+      labelAffiliationUrl &&
+      labelAffiliationMission &&
+      labelAffiliationFacebook &&
+      labelAffiliationInstagram &&
+      labelAffiliationYoutube
         ? {
             kicker: cleanText(page.labelAffiliation?.kicker),
             text: labelAffiliationText,
             logoAlt: labelAffiliationLogoAlt,
             url: labelAffiliationUrl,
+            missionStatement: labelAffiliationMission,
+            socialLinks: {
+              facebookUrl: labelAffiliationFacebook,
+              instagramUrl: labelAffiliationInstagram,
+              youtubeUrl: labelAffiliationYoutube,
+            },
           }
         : null,
     membersIntro: {

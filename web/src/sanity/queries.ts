@@ -144,7 +144,14 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
       }
     },
     story{ kicker, heading, paragraphs },
-    labelAffiliation{ kicker, text, logoAlt, url },
+    labelAffiliation{
+      kicker,
+      text,
+      logoAlt,
+      url,
+      missionStatement,
+      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }
+    },
     membersIntro{ kicker, heading, body },
     members[]{
       _key,

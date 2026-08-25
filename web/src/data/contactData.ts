@@ -43,9 +43,14 @@ export const INQUIRY_TABS: {
    * with or without JavaScript, which a JS-computed subject would not.
    */
   emailSubject: string;
-  /** Optional, rendered just below the panel heading for that one inquiry
-   * type only — used by Content Removal Request to state plainly that
-   * submitting starts a review rather than guaranteeing removal. */
+  /** Rendered just below the panel heading, above the disconnected-state
+   * notice — a short, purely descriptive orientation sentence for that one
+   * inquiry type. Every tab defines one. None may promise availability,
+   * pricing, inventory, acceptance, removal, or a response time — Content
+   * Removal Request in particular states plainly that submitting starts a
+   * review rather than guaranteeing removal. Still optional in the type so a
+   * future inquiry type can omit it, but in practice every current tab sets
+   * it, keeping the four panels visually consistent. */
   panelNote?: string;
 }[] = [
   {
@@ -53,18 +58,14 @@ export const INQUIRY_TABS: {
     tabLabel: "Booking Inquiry",
     panelHeading: "Booking Inquiry",
     emailSubject: "New Booking Inquiry — Electric Lavender Train",
+    panelNote: "Share the details of your event so we can review the request.",
   },
   {
     value: "merch",
     tabLabel: "Merch Inquiry",
     panelHeading: "Merch Inquiry",
     emailSubject: "New Merch Inquiry — Electric Lavender Train",
-  },
-  {
-    value: "other",
-    tabLabel: "Other",
-    panelHeading: "Other Inquiry",
-    emailSubject: "New General Inquiry — Electric Lavender Train",
+    panelNote: "Tell us which item you’re interested in and what you’d like to know.",
   },
   {
     value: "removal",
@@ -73,6 +74,14 @@ export const INQUIRY_TABS: {
     emailSubject: "New Content Removal Request — Electric Lavender Train",
     panelNote:
       "Submitting this form starts a review of your request — it does not guarantee that the content will be removed.",
+  },
+  {
+    value: "other",
+    tabLabel: "Other",
+    panelHeading: "Other Inquiry",
+    emailSubject: "New General Inquiry — Electric Lavender Train",
+    panelNote:
+      "Use this form for questions that don’t fit booking, merchandise, or content removal.",
   },
 ];
 

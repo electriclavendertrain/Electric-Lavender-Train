@@ -79,11 +79,24 @@ export interface SiteConfig {
    * smaller acknowledgment; the About page's own, larger-treatment copy is
    * separately editable via `aboutPage.labelAffiliation` in Sanity). See
    * `docs/client-questions.md` for the approval record.
+   *
+   * `missionStatement` and `socialLinks` are approved facts too, used only as
+   * the About page's field-level fallback for `aboutPage.labelAffiliation`
+   * (`about.astro`, `aboutData.ts`) when that Sanity field is empty or
+   * incomplete — the Footer and Music-page acknowledgments never reference
+   * them, since neither renders a mission statement or the label's own
+   * social links.
    */
   heavyCrushRecords: {
     name: string;
     url: string;
     relationshipText: string;
+    missionStatement: string;
+    socialLinks: {
+      facebookUrl: string;
+      instagramUrl: string;
+      youtubeUrl: string;
+    };
   };
   contact: {
     email: string | null;
@@ -128,6 +141,12 @@ export const siteConfig: SiteConfig = {
     name: "Heavy Crush Records",
     url: "https://www.heavycrushrecords.com/",
     relationshipText: "The Electric Lavender Train is part of Heavy Crush Records.",
+    missionStatement: "Focus on intent. Empower through performance.",
+    socialLinks: {
+      facebookUrl: "https://www.facebook.com/profile.php?id=61558015122991",
+      instagramUrl: "https://www.instagram.com/heavycrushrecords",
+      youtubeUrl: "https://www.youtube.com/c/thetens",
+    },
   },
 
   contact: {

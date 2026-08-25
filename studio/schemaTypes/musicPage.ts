@@ -31,6 +31,8 @@ export const musicPage = defineType({
     },
     seo: {
       metaTitle: 'Music',
+      metaDescription:
+        'Explore music from The Electric Lavender Train, including upcoming releases, featured videos, and links to Spotify and Apple Music.',
     },
   },
   fields: [

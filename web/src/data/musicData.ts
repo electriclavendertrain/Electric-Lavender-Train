@@ -73,7 +73,8 @@ export const musicPageFallback = {
   },
   seo: {
     metaTitle: "Music",
-    metaDescription: "Streaming links and upcoming releases from Electric Lavender Train.",
+    metaDescription:
+      "Explore music from The Electric Lavender Train, including upcoming releases, featured videos, and links to Spotify and Apple Music.",
   },
 };
 

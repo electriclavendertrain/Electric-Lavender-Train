@@ -147,12 +147,16 @@ const testimonials = withTestimonialFallbacks(
 // falls back to the same approved facts already recorded in
 // `siteConfig.heavyCrushRecords` rather than to a `[TEST]`-marked
 // placeholder — these are real, approved, safe-to-publish facts, not
-// content standing in for something the client hasn't provided yet.
+// content standing in for something the client hasn't provided yet. One
+// coherent block, same as the live value: this fallback is never merged
+// field-by-field with a partially-complete live `labelAffiliation`.
 const labelAffiliation = pageContent.labelAffiliation ?? {
   kicker: null,
   text: siteConfig.heavyCrushRecords.relationshipText,
   logoAlt: "Heavy Crush Records logo",
   url: siteConfig.heavyCrushRecords.url,
+  missionStatement: siteConfig.heavyCrushRecords.missionStatement,
+  socialLinks: siteConfig.heavyCrushRecords.socialLinks,
 };
 
 const title = formatPageTitle(pageContent.seo.metaTitle ?? "About");
@@ -200,6 +204,11 @@ const pageUrl = new URL(siteConfig.routes.about, siteConfig.siteUrl).href;
     text={labelAffiliation.text}
     logoAlt={labelAffiliation.logoAlt}
     url={labelAffiliation.url}
+    missionStatement={labelAffiliation.missionStatement}
+    facebookUrl={labelAffiliation.socialLinks.facebookUrl}
+    instagramUrl={labelAffiliation.socialLinks.instagramUrl}
+    youtubeUrl={labelAffiliation.socialLinks.youtubeUrl}
+    newTabSuffix={aboutPageCopy.newTabSuffix}
   />
 
   <BandMembers

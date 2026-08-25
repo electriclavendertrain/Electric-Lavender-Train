@@ -121,6 +121,14 @@ export const aboutPageCopy = {
     spotify: "Spotify",
     website: "Website",
   },
+
+  /**
+   * `LabelAffiliation.astro`'s explicit website button — fixed, code-owned
+   * text, deliberately not editable in Sanity (unlike the relationship text
+   * and mission statement) so this one button's label can never drift from
+   * what it actually links to.
+   */
+  labelAffiliationWebsiteLabel: "Visit Heavy Crush Records",
 } as const;
 
 /* -------------------------------------------------------------------------
@@ -167,6 +175,11 @@ export const aboutPageFallback = {
     text: "The Electric Lavender Train is part of Heavy Crush Records.",
     logoAlt: "Heavy Crush Records logo",
     url: "https://www.heavycrushrecords.com/",
+    // Sourced from siteConfig, not re-typed here, so this fallback and
+    // about.astro's field-level fallback can never drift on these two
+    // fields — see siteConfig.ts's `heavyCrushRecords` doc comment.
+    missionStatement: siteConfig.heavyCrushRecords.missionStatement,
+    socialLinks: siteConfig.heavyCrushRecords.socialLinks,
   },
   membersIntro: {
     kicker: "The Lineup",

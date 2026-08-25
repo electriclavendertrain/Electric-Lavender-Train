@@ -5,39 +5,104 @@
  * (`about.astro`), plus a smaller variant of the same wording in the
  * Footer. Deliberately compact — this site is ELT's, not the label's, so
  * the section keeps a fraction of a normal section's vertical weight and
- * introduces no new heading level.
+ * introduces no new heading level (the `<aside>` below carries its own
+ * accessible name instead).
  *
  * The logo is a fixed local site asset (`web/src/assets/images/
- * heavy_crush_records_logo.avif`), never uploaded through Sanity — only the
- * kicker, relationship sentence, logo alt text, and destination URL are
- * editable, from `aboutPage.labelAffiliation`.
+ * heavy-crush-records-logo-white.png`), never uploaded through Sanity — the
+ * kicker, relationship sentence, logo alt text, website URL, mission
+ * statement, and the label's three social URLs are editable, from
+ * `aboutPage.labelAffiliation`.
+ *
+ * No nested anchors: the logo, relationship text, and mission statement are
+ * plain content, not wrapped in a link — only the four buttons below
+ * (website, Facebook, Instagram, YouTube) are anchors, and they are
+ * siblings, never nested inside one another or inside a larger link.
+ *
+ * The website button's and every social button's visible label is a fixed,
+ * code-owned string — never sourced from Sanity — so a button labeled
+ * Facebook can never show different text than what its (independently
+ * hostname-validated, see `normalize.ts`) href actually points at.
  */
 import { Image } from "astro:assets";
-import logo from "../assets/images/heavy_crush_records_logo.avif";
+import logo from "../assets/images/heavy-crush-records-logo-white.png";
+import { aboutPageCopy } from "../data/aboutData";
 
 interface Props {
   kicker?: string | null;
   text: string;
   logoAlt: string;
   url: string;
+  missionStatement: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  youtubeUrl: string;
+  newTabSuffix?: string;
 }
 
-const { kicker, text, logoAlt, url } = Astro.props;
+const {
+  kicker,
+  text,
+  logoAlt,
+  url,
+  missionStatement,
+  facebookUrl,
+  instagramUrl,
+  youtubeUrl,
+  newTabSuffix = " (opens in a new tab)",
+} = Astro.props;
+
+/** Fixed order and fixed, code-owned labels — Facebook, then Instagram,
+ * then YouTube, matching the approved visible order exactly. */
+const socialButtons = [
+  { key: "facebook", label: aboutPageCopy.linkTypeLabels.facebook, href: facebookUrl },
+  { key: "instagram", label: aboutPageCopy.linkTypeLabels.instagram, href: instagramUrl },
+  { key: "youtube", label: aboutPageCopy.linkTypeLabels.youtube, href: youtubeUrl },
+];
 ---
 
 <section class="label-affiliation">
   <div class="section-inner">
     {kicker && <p class="kicker reveal">{kicker}</p>}
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      class="label-affiliation__link reveal reveal-1"
-    >
-      <Image src={logo} alt={logoAlt} width={64} class="label-affiliation__logo" />
-      <span class="label-affiliation__text">{text}</span>
-      <span class="visually-hidden"> (opens in a new tab)</span>
-    </a>
+    <aside class="label-affiliation__card reveal reveal-1" aria-label="Heavy Crush Records">
+      <div class="label-affiliation__intro">
+        <Image src={logo} alt={logoAlt} width={64} class="label-affiliation__logo" />
+        <div class="label-affiliation__copy">
+          <p class="label-affiliation__text">{text}</p>
+          <p class="label-affiliation__mission">{missionStatement}</p>
+        </div>
+      </div>
+
+      <div class="label-affiliation__links">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="label-affiliation__link label-affiliation__link--website"
+        >
+          {aboutPageCopy.labelAffiliationWebsiteLabel}
+          <span class="visually-hidden">{newTabSuffix}</span>
+        </a>
+        {
+          socialButtons.map((social) => (
+            <a
+              href={social.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="label-affiliation__link label-affiliation__link--social"
+            >
+              <span
+                class="label-affiliation__icon"
+                style={`--icon: url(/icons/social/${social.key}.svg)`}
+                aria-hidden="true"
+              />
+              {social.label}
+              <span class="visually-hidden">{newTabSuffix}</span>
+            </a>
+          ))
+        }
+      </div>
+    </aside>
   </div>
 </section>
 
@@ -45,36 +110,101 @@ const { kicker, text, logoAlt, url } = Astro.props;
   .label-affiliation {
     padding: 56px 6%;
   }
-  .label-affiliation__link {
-    display: inline-flex;
+
+  .label-affiliation__card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 620px;
+    padding: 22px 26px;
+    border-radius: 16px;
+    border: 1px solid rgba(160, 123, 239, 0.22);
+    background: linear-gradient(160deg, rgba(90, 62, 123, 0.12), rgba(11, 11, 18, 0.35));
+  }
+
+  .label-affiliation__intro {
+    display: flex;
     align-items: center;
     gap: 16px;
-    padding: 10px 12px;
-    border-radius: 14px;
-    transition: background 0.3s var(--ease);
-  }
-  .label-affiliation__link:hover,
-  .label-affiliation__link:focus-visible {
-    background: rgba(160, 123, 239, 0.08);
   }
   .label-affiliation__logo {
     flex: 0 0 auto;
     width: 64px;
     height: auto;
-    border-radius: 8px;
+  }
+  .label-affiliation__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
   .label-affiliation__text {
     max-width: 46ch;
     font-size: 0.95rem;
     color: rgba(244, 232, 208, 0.85);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    text-decoration-color: rgba(244, 232, 208, 0.35);
   }
-  .label-affiliation__link:hover .label-affiliation__text,
-  .label-affiliation__link:focus-visible .label-affiliation__text {
+  .label-affiliation__mission {
+    max-width: 46ch;
+    font-size: 0.85rem;
+    color: rgba(244, 232, 208, 0.65);
+    font-style: italic;
+  }
+
+  .label-affiliation__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  /* 44px min-height matches this site's other primary interactive controls
+     (.contact-forms__tab, .field__control) — a large-enough target without
+     the pill itself needing to look heavy, since padding/font stay compact. */
+  .label-affiliation__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 16px;
+    border-radius: 22px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--lavender-soft);
+    background: rgba(160, 123, 239, 0.08);
+    border: 1.5px solid rgba(160, 123, 239, 0.3);
+    transition: background 0.25s var(--ease), border-color 0.25s var(--ease),
+      color 0.25s var(--ease);
+  }
+  /* Icon and text share `currentColor`, so both update together on hover
+     and keyboard focus — no separate icon-color rule needed. */
+  .label-affiliation__link:hover,
+  .label-affiliation__link:focus-visible {
+    color: var(--warm-white);
+    border-color: var(--lavender);
+    background: rgba(160, 123, 239, 0.16);
+  }
+  .label-affiliation__link--website {
     color: var(--gold);
-    text-decoration-color: currentColor;
+    border-color: rgba(200, 168, 107, 0.4);
+  }
+  .label-affiliation__link--website:hover,
+  .label-affiliation__link--website:focus-visible {
+    color: var(--warm-white);
+    border-color: var(--gold);
+    background: rgba(200, 168, 107, 0.14);
+  }
+
+  .label-affiliation__icon {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    background-color: currentColor;
+    transition: background-color 0.25s var(--ease);
+    -webkit-mask-image: var(--icon);
+    mask-image: var(--icon);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    mask-size: contain;
   }
 
   @media (max-width: 900px) {
@@ -83,10 +213,16 @@ const { kicker, text, logoAlt, url } = Astro.props;
     }
   }
   @media (max-width: 560px) {
-    .label-affiliation__link {
+    .label-affiliation__card {
+      max-width: none;
+    }
+    .label-affiliation__intro {
       flex-direction: column;
       align-items: flex-start;
-      text-align: left;
+    }
+    .label-affiliation__link {
+      flex: 1 1 auto;
+      justify-content: center;
     }
   }
 </style>
