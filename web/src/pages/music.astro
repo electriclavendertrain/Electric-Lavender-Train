@@ -1,11 +1,10 @@
 ---
 /**
  * /music — ELT's own releases only: upcoming and already-released, with
- * streaming/pre-save links, an optional page-level featured video, and a
- * small Heavy Crush Records acknowledgment. No other Heavy Crush artist's
- * music appears here, no lyrics, no detailed public credits, no audio
- * hosting, and no raw media-file upload system — see docs for the full
- * constraint list this route was built against.
+ * streaming/pre-save links and an optional page-level featured video. No
+ * other Heavy Crush artist's music appears here, no lyrics, no detailed
+ * public credits, no audio hosting, and no raw media-file upload system —
+ * see docs for the full constraint list this route was built against.
  *
  * This is the only file on this route that touches Sanity. It fetches,
  * hands the raw result straight to normalization, and passes plain objects
@@ -132,16 +131,6 @@ const description = pageContent.seo.metaDescription ?? musicPageFallback.seo.met
     </div>
   </section>
 
-  <div class="music-label-note">
-    <p class="section-inner">
-      {musicPageCopy.labelAcknowledgmentPrefix}{" "}
-      <a href={siteConfig.heavyCrushRecords.url} target="_blank" rel="noopener noreferrer">
-        {siteConfig.heavyCrushRecords.name}
-        <span class="visually-hidden">{musicPageCopy.newTabSuffix}</span>
-      </a>.
-    </p>
-  </div>
-
   {
     upcomingReleases.length > 0 && (
       <script>
@@ -163,24 +152,5 @@ const description = pageContent.seo.metaDescription ?? musicPageFallback.seo.met
   .music-section__empty {
     color: rgba(244, 232, 208, 0.65);
     max-width: 60ch;
-  }
-  .music-label-note {
-    padding: 70px 6%;
-    font-size: 0.82rem;
-    color: rgba(244, 232, 208, 0.5);
-  }
-  .music-label-note a {
-    color: rgba(244, 232, 208, 0.65);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .music-label-note a:hover {
-    color: var(--lavender-soft);
-  }
-
-  @media (max-width: 900px) {
-    .music-label-note {
-      padding-block: 56px;
-    }
   }
 </style>

@@ -55,8 +55,6 @@ export const musicPageCopy = {
     defaultHeading: "Watch",
   },
 
-  labelAcknowledgmentPrefix: "ELT is part of",
-
   newTabSuffix: " (opens in a new tab)",
 } as const;
 
