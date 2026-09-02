@@ -162,6 +162,18 @@ html.nav-open {
     background-size: 789px 789px;
     opacity: 0.44;
   }
+  /* Two large, infinitely-animating blurred layers are costly on mobile
+     GPUs/compositors — simplified rather than removed: still visible for
+     atmosphere, but static (no `animation`) and a smaller blur radius/lower
+     opacity so they're cheaper to paint and don't need to be kept in a
+     continuously-repainted compositor layer. Layered on top of, not a
+     replacement for, the sitewide `prefers-reduced-motion` override above,
+     which already stops the animation but doesn't reduce the blur cost. */
+  .nebula-blob {
+    animation: none;
+    filter: blur(40px);
+    opacity: 0.22;
+  }
 }
 
 /* ---------- Scroll track / signature element ---------- */
@@ -379,19 +391,19 @@ h2 {
    to delay, a delay does nothing. */
 .reveal-1,
 .intro-enter-1 {
-  --enter-delay: 0.05s;
+  --enter-delay: 0.03s;
 }
 .reveal-2,
 .intro-enter-2 {
-  --enter-delay: 0.16s;
+  --enter-delay: 0.08s;
 }
 .reveal-3,
 .intro-enter-3 {
-  --enter-delay: 0.27s;
+  --enter-delay: 0.13s;
 }
 .reveal-4,
 .intro-enter-4 {
-  --enter-delay: 0.38s;
+  --enter-delay: 0.18s;
 }
 
 /* ---------- Shared buttons ---------- */

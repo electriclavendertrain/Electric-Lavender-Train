@@ -1,18 +1,21 @@
 ---
 /**
  * A restrained acknowledgment of the Heavy Crush Records relationship,
- * rendered on the About page between "Our Story" and "Meet the Band"
- * (`about.astro`), plus a smaller variant of the same wording in the
- * Footer. Deliberately compact — this site is ELT's, not the label's, so
- * the section keeps a fraction of a normal section's vertical weight and
- * introduces no new heading level (the `<aside>` below carries its own
- * accessible name instead).
+ * rendered on the Music page immediately after the Releases section
+ * (`music.astro`), plus a smaller variant of the same wording in the
+ * Footer. Moved here from the About page — Music is now the live owner of
+ * this section's editable content (`musicPage.labelAffiliation`; the old
+ * `aboutPage.labelAffiliation` field is deprecated, read-only). Deliberately
+ * compact — this site is ELT's, not the label's, so the section keeps a
+ * fraction of a normal section's vertical weight and introduces no new
+ * heading level (the `<aside>` below carries its own accessible name
+ * instead).
  *
  * The logo is a fixed local site asset (`web/src/assets/images/
  * heavy-crush-records-logo-white.png`), never uploaded through Sanity — the
  * kicker, relationship sentence, logo alt text, website URL, mission
  * statement, and the label's three social URLs are editable, from
- * `aboutPage.labelAffiliation`.
+ * `musicPage.labelAffiliation`.
  *
  * No nested anchors: the logo, relationship text, and mission statement are
  * plain content, not wrapped in a link — only the four buttons below
@@ -26,7 +29,7 @@
  */
 import { Image } from "astro:assets";
 import logo from "../assets/images/heavy-crush-records-logo-white.png";
-import { aboutPageCopy } from "../data/aboutData";
+import { musicPageCopy } from "../data/musicData";
 
 interface Props {
   kicker?: string | null;
@@ -55,9 +58,9 @@ const {
 /** Fixed order and fixed, code-owned labels — Facebook, then Instagram,
  * then YouTube, matching the approved visible order exactly. */
 const socialButtons = [
-  { key: "facebook", label: aboutPageCopy.linkTypeLabels.facebook, href: facebookUrl },
-  { key: "instagram", label: aboutPageCopy.linkTypeLabels.instagram, href: instagramUrl },
-  { key: "youtube", label: aboutPageCopy.linkTypeLabels.youtube, href: youtubeUrl },
+  { key: "facebook", label: musicPageCopy.labelAffiliation.linkLabels.facebook, href: facebookUrl },
+  { key: "instagram", label: musicPageCopy.labelAffiliation.linkLabels.instagram, href: instagramUrl },
+  { key: "youtube", label: musicPageCopy.labelAffiliation.linkLabels.youtube, href: youtubeUrl },
 ];
 ---
 
@@ -80,7 +83,7 @@ const socialButtons = [
           rel="noopener noreferrer"
           class="label-affiliation__link label-affiliation__link--website"
         >
-          {aboutPageCopy.labelAffiliationWebsiteLabel}
+          {musicPageCopy.labelAffiliation.websiteLabel}
           <span class="visually-hidden">{newTabSuffix}</span>
         </a>
         {

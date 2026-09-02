@@ -31,3 +31,18 @@ export function sanityImageUrl(
   }
   return image.url()
 }
+
+/**
+ * Builds a `srcset` string from a list of candidate widths — each candidate
+ * is a width-only request (same crop/hotspot behavior as `sanityImageUrl`,
+ * no forced aspect ratio), so the browser can pick whichever candidate best
+ * matches the viewport instead of one caller always downloading the largest
+ * request. Candidates should never exceed the width already requested via
+ * `sanityImageUrl` for that same image — this narrows what's requested on
+ * small screens, it never widens it.
+ */
+export function sanityImageSrcSet(source: SanityImageSource, widths: number[]): string {
+  return widths
+    .map((width) => `${builder.image(source).width(width).auto('format').url()} ${width}w`)
+    .join(', ')
+}

@@ -28,11 +28,6 @@ export const galleryPage = defineType({
   type: 'document',
   icon: PlayIcon,
   initialValue: {
-    intro: {
-      kicker: 'Gallery & Merchandise',
-      heading: 'Photos, Video & Merch',
-      lede: 'A look at Electric Lavender Train live, plus band merchandise available by inquiry.',
-    },
     gallery: {
       kicker: 'Good Times & Great People',
       heading: 'Media Gallery',
@@ -60,33 +55,6 @@ export const galleryPage = defineType({
   },
   fields: [
     defineField({
-      name: 'intro',
-      title: 'Page introduction',
-      type: 'object',
-      validation: (Rule) => Rule.required(),
-      fields: [
-        defineField({
-          name: 'kicker',
-          title: 'Small label above heading',
-          type: 'string',
-        }),
-        defineField({
-          name: 'heading',
-          title: 'Heading',
-          description: 'The page’s main heading — the only one of its kind on the page.',
-          type: 'string',
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'lede',
-          title: 'Lede',
-          description: 'One short paragraph introducing this page.',
-          type: 'text',
-          validation: (Rule) => Rule.required(),
-        }),
-      ],
-    }),
-    defineField({
       name: 'gallery',
       title: 'Media gallery',
       type: 'object',
@@ -100,6 +68,8 @@ export const galleryPage = defineType({
         defineField({
           name: 'heading',
           title: 'Heading',
+          description:
+            'Always rendered, even with zero photos/videos selected — this is the page’s only heading (its `<h1>`). Required for the page to build.',
           type: 'string',
           validation: (Rule) => Rule.required(),
         }),

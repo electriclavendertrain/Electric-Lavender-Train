@@ -3,13 +3,21 @@
  * "The ELT Experience" — the bridge between knowing who the band is and
  * wanting to book them. It answers three questions in order: what does ELT
  * sound like, what does a performance feel like, and what kind of room suits
- * the band.
+ * the band. Rendered on the Homepage (moved here from the About page), with
+ * a CTA below the highlights pointing a visitor toward "Meet the Band."
  *
  * The three highlights are modeled by MEANING, not by column count. They are a
  * list of three named ideas that happens to lay out as three columns on a wide
  * screen and one on a narrow one; nothing in the content model refers to
  * columns, and changing the layout would not change the content.
+ *
+ * `ctaLabel`'s visible text is editable in Studio (`homepage.experience.ctaLabel`);
+ * its destination is not — this always links to `siteConfig.routes.about`,
+ * a code-level decision, not editorial content. This mirrors
+ * `LabelAffiliation.astro`'s website button (fixed href, editable-only label).
  */
+
+import siteConfig from "../data/siteConfig";
 
 interface Props {
   headingId: string;
@@ -17,9 +25,10 @@ interface Props {
   heading: string;
   introduction: string;
   highlights: readonly { _key: string; title: string; description: string }[];
+  ctaLabel?: string | null;
 }
 
-const { headingId, kicker, heading, introduction, highlights } = Astro.props;
+const { headingId, kicker, heading, introduction, highlights, ctaLabel } = Astro.props;
 ---
 
 <section class="about-experience" aria-labelledby={headingId}>
@@ -38,6 +47,14 @@ const { headingId, kicker, heading, introduction, highlights } = Astro.props;
         ))
       }
     </ul>
+
+    {ctaLabel && (
+      <div class="about-experience__cta reveal reveal-3">
+        <a href={siteConfig.routes.about} class="btn btn-ghost">
+          {ctaLabel} &rarr;
+        </a>
+      </div>
+    )}
   </div>
 </section>
 
@@ -81,6 +98,9 @@ const { headingId, kicker, heading, introduction, highlights } = Astro.props;
     font-size: 0.98rem;
     font-weight: 300;
     overflow-wrap: anywhere;
+  }
+  .about-experience__cta {
+    margin-top: 40px;
   }
 
   /* Two columns would leave a stranded third card, and three narrow columns

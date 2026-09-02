@@ -41,6 +41,8 @@ const actionHiddenSuffix = restOfName.length > 0 ? ` ${restOfName.join(" ")}` : 
   <div class="member-card__frame">
     <img
       src={member.image.src}
+      srcset={member.image.srcSet}
+      sizes={member.image.sizes}
       width={member.image.width}
       height={member.image.height}
       alt={member.image.alt}

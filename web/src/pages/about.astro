@@ -1,6 +1,10 @@
 ---
 /**
- * /about — who the band is, what a performance is like, and how to book one.
+ * /about — who the band is (the "Who We Are" introduction), meet the band
+ * members, and how to book them. "What a performance is like" is now
+ * answered by "The ELT Experience" on the Homepage, not here — that section
+ * moved off this page along with Our Story and the Heavy Crush Records
+ * label affiliation.
  *
  * This is the only file on this route that touches Sanity. It fetches, hands
  * the raw results straight to normalization, and passes plain objects down; no
@@ -13,10 +17,7 @@
 import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import AboutHero from "../components/AboutHero.astro";
-import AboutStory from "../components/AboutStory.astro";
-import LabelAffiliation from "../components/LabelAffiliation.astro";
 import BandMembers from "../components/BandMembers.astro";
-import AboutExperience from "../components/AboutExperience.astro";
 import AboutPageJsonLd from "../components/AboutPageJsonLd.astro";
 import Testimonials from "../components/Testimonials.astro";
 import BookingCTA from "../components/BookingCTA.astro";
@@ -67,8 +68,8 @@ if (normalizedAboutPage === null && isProductionDataset) {
   throw new Error(
     "The Sanity `aboutPage` singleton is missing or incomplete in the production dataset. " +
       "Every member must resolve with a name, role, profile photo and a real biography " +
-      "(no `[TEST — CLIENT BIO REQUIRED]` text), the hero image must have alt text, and the " +
-      "story, experience and booking sections must be complete. " +
+      "(no `[TEST — CLIENT BIO REQUIRED]` text), the \"Who We Are\" introduction (heading, " +
+      "1-2 paragraphs, hero image with alt text) and the booking section must be complete. " +
       "Publish the About Page in Sanity Studio before building for production — see docs/about.md §11.",
   );
 }
@@ -143,22 +144,6 @@ const testimonials = withTestimonialFallbacks(
   !isProductionDataset,
 );
 
-// Independently optional (see normalize.ts's doc comment on this field):
-// falls back to the same approved facts already recorded in
-// `siteConfig.heavyCrushRecords` rather than to a `[TEST]`-marked
-// placeholder — these are real, approved, safe-to-publish facts, not
-// content standing in for something the client hasn't provided yet. One
-// coherent block, same as the live value: this fallback is never merged
-// field-by-field with a partially-complete live `labelAffiliation`.
-const labelAffiliation = pageContent.labelAffiliation ?? {
-  kicker: null,
-  text: siteConfig.heavyCrushRecords.relationshipText,
-  logoAlt: "Heavy Crush Records logo",
-  url: siteConfig.heavyCrushRecords.url,
-  missionStatement: siteConfig.heavyCrushRecords.missionStatement,
-  socialLinks: siteConfig.heavyCrushRecords.socialLinks,
-};
-
 const title = formatPageTitle(pageContent.seo.metaTitle ?? "About");
 const description = pageContent.seo.metaDescription ?? siteConfig.tagline;
 
@@ -188,27 +173,8 @@ const pageUrl = new URL(siteConfig.routes.about, siteConfig.siteUrl).href;
   <AboutHero
     kicker={pageContent.intro.kicker}
     heading={pageContent.intro.heading}
-    lede={pageContent.intro.lede}
+    paragraphs={pageContent.intro.paragraphs}
     image={pageContent.intro.heroImage}
-  />
-
-  <AboutStory
-    headingId={aboutPageCopy.storyHeadingId}
-    kicker={pageContent.story.kicker}
-    heading={pageContent.story.heading}
-    paragraphs={pageContent.story.paragraphs}
-  />
-
-  <LabelAffiliation
-    kicker={labelAffiliation.kicker}
-    text={labelAffiliation.text}
-    logoAlt={labelAffiliation.logoAlt}
-    url={labelAffiliation.url}
-    missionStatement={labelAffiliation.missionStatement}
-    facebookUrl={labelAffiliation.socialLinks.facebookUrl}
-    instagramUrl={labelAffiliation.socialLinks.instagramUrl}
-    youtubeUrl={labelAffiliation.socialLinks.youtubeUrl}
-    newTabSuffix={aboutPageCopy.newTabSuffix}
   />
 
   <BandMembers
@@ -217,14 +183,6 @@ const pageUrl = new URL(siteConfig.routes.about, siteConfig.siteUrl).href;
     heading={pageContent.membersIntro.heading}
     body={pageContent.membersIntro.body}
     members={pageContent.members}
-  />
-
-  <AboutExperience
-    headingId={aboutPageCopy.experienceHeadingId}
-    kicker={pageContent.experience.kicker}
-    heading={pageContent.experience.heading}
-    introduction={pageContent.experience.introduction}
-    highlights={pageContent.experience.highlights}
   />
 
   <Testimonials

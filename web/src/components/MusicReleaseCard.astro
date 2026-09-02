@@ -1,16 +1,14 @@
 ---
 /**
- * One release card, used in both the Upcoming and Released sections of
- * `music.astro`. Artwork, description, and every streaming/pre-save/watch
+ * One release card, used in the Music page's single Releases section
+ * (released music only — there is no Upcoming Releases UI or countdown
+ * anywhere on the site). Artwork, description, and every streaming/watch
  * link are independently optional and each omit cleanly — see
  * `normalizeOneMusicRelease` in `sanity/normalize.ts` for what is and isn't
- * required for a release to render at all.
- *
- * The optional countdown (`[data-countdown]`) is pure progressive
- * enhancement: `musicCountdown.ts` fills it in and un-hides it only once a
- * script has actually run. Without JavaScript, the `<time>` element right
- * next to it already states the release date in full, readable form — see
- * that script's own doc comment.
+ * required for a release to render at all. `preSaveUrl` is retained on the
+ * reusable `musicRelease` schema for potential future use but is
+ * deliberately never rendered here — pre-saving a release that's already
+ * out doesn't make sense on this released-only page.
  */
 import { musicPageCopy } from "../data/musicData";
 import type { NormalizedMusicRelease } from "../sanity/normalize";
@@ -40,9 +38,7 @@ function formatReleaseDate(dateOnly: string): string {
 
 const releaseTypeLabels: Partial<Record<string, string>> = musicPageCopy.releaseTypeLabels;
 const typeLabel = release.releaseType ? (releaseTypeLabels[release.releaseType] ?? null) : null;
-const hasActions = Boolean(
-  release.spotifyUrl || release.appleMusicUrl || release.preSaveUrl || release.watchVideoUrl,
-);
+const hasActions = Boolean(release.spotifyUrl || release.appleMusicUrl || release.watchVideoUrl);
 ---
 
 <li class="music-card">
@@ -69,9 +65,6 @@ const hasActions = Boolean(
     <h3 class="music-card__title">{release.title}</h3>
     <p class="music-card__date">
       <time datetime={release.releaseDate}>{formatReleaseDate(release.releaseDate)}</time>
-      {release.state === "upcoming" && (
-        <span class="music-card__countdown" data-countdown={release.releaseDate} hidden />
-      )}
     </p>
 
     {release.description && <p class="music-card__description">{release.description}</p>}
@@ -88,12 +81,6 @@ const hasActions = Boolean(
           {release.appleMusicUrl && (
             <a href={release.appleMusicUrl} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
               {musicPageCopy.appleMusicLabel}
-              <span class="visually-hidden">{musicPageCopy.newTabSuffix}</span>
-            </a>
-          )}
-          {release.state === "upcoming" && release.preSaveUrl && (
-            <a href={release.preSaveUrl} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
-              {musicPageCopy.preSaveLabel}
               <span class="visually-hidden">{musicPageCopy.newTabSuffix}</span>
             </a>
           )}
@@ -167,11 +154,6 @@ const hasActions = Boolean(
     color: var(--lavender-soft);
     font-size: 0.85rem;
     margin-bottom: 12px;
-  }
-  .music-card__countdown {
-    font-size: 0.76rem;
-    color: var(--gold);
-    font-weight: 600;
   }
   .music-card__description {
     color: rgba(244, 232, 208, 0.75);

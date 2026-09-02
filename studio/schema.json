@@ -124,7 +124,7 @@
           "type": "string"
         }
       },
-      "intro": {
+      "featured": {
         "type": "objectAttribute",
         "value": {
           "type": "object",
@@ -143,12 +143,13 @@
               },
               "optional": false
             },
-            "lede": {
+            "video": {
               "type": "objectAttribute",
               "value": {
-                "type": "string"
+                "type": "inline",
+                "name": "mediaItem.reference"
               },
-              "optional": false
+              "optional": true
             }
           }
         },
@@ -178,6 +179,80 @@
               "value": {
                 "type": "inline",
                 "name": "mediaItem.reference"
+              },
+              "optional": true
+            }
+          }
+        },
+        "optional": true
+      },
+      "labelAffiliation": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "object",
+          "attributes": {
+            "kicker": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "text": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "logoAlt": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "url": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "missionStatement": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "socialLinks": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "object",
+                "attributes": {
+                  "facebookUrl": {
+                    "type": "objectAttribute",
+                    "value": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  },
+                  "instagramUrl": {
+                    "type": "objectAttribute",
+                    "value": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  },
+                  "youtubeUrl": {
+                    "type": "objectAttribute",
+                    "value": {
+                      "type": "string"
+                    },
+                    "optional": false
+                  }
+                }
               },
               "optional": true
             }
@@ -1032,36 +1107,6 @@
           "type": "string"
         }
       },
-      "intro": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "object",
-          "attributes": {
-            "kicker": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": true
-            },
-            "heading": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            },
-            "lede": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            }
-          }
-        },
-        "optional": false
-      },
       "gallery": {
         "type": "objectAttribute",
         "value": {
@@ -1683,6 +1728,16 @@
               "value": {
                 "type": "string"
               },
+              "optional": true
+            },
+            "paragraphs": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "array",
+                "of": {
+                  "type": "string"
+                }
+              },
               "optional": false
             },
             "heroImage": {
@@ -1696,113 +1751,6 @@
           }
         },
         "optional": false
-      },
-      "story": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "object",
-          "attributes": {
-            "kicker": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": true
-            },
-            "heading": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            },
-            "paragraphs": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "array",
-                "of": {
-                  "type": "string"
-                }
-              },
-              "optional": false
-            }
-          }
-        },
-        "optional": false
-      },
-      "labelAffiliation": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "object",
-          "attributes": {
-            "kicker": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": true
-            },
-            "text": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            },
-            "logoAlt": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            },
-            "url": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            },
-            "missionStatement": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            },
-            "socialLinks": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "object",
-                "attributes": {
-                  "facebookUrl": {
-                    "type": "objectAttribute",
-                    "value": {
-                      "type": "string"
-                    },
-                    "optional": false
-                  },
-                  "instagramUrl": {
-                    "type": "objectAttribute",
-                    "value": {
-                      "type": "string"
-                    },
-                    "optional": false
-                  },
-                  "youtubeUrl": {
-                    "type": "objectAttribute",
-                    "value": {
-                      "type": "string"
-                    },
-                    "optional": false
-                  }
-                }
-              },
-              "optional": true
-            }
-          }
-        },
-        "optional": true
       },
       "membersIntro": {
         "type": "objectAttribute",
@@ -1873,14 +1821,14 @@
               "value": {
                 "type": "string"
               },
-              "optional": false
+              "optional": true
             },
             "introduction": {
               "type": "objectAttribute",
               "value": {
                 "type": "string"
               },
-              "optional": false
+              "optional": true
             },
             "highlights": {
               "type": "objectAttribute",
@@ -1894,14 +1842,14 @@
                       "value": {
                         "type": "string"
                       },
-                      "optional": false
+                      "optional": true
                     },
                     "description": {
                       "type": "objectAttribute",
                       "value": {
                         "type": "string"
                       },
-                      "optional": false
+                      "optional": true
                     },
                     "_type": {
                       "type": "objectAttribute",
@@ -1924,11 +1872,11 @@
                   }
                 }
               },
-              "optional": false
+              "optional": true
             }
           }
         },
-        "optional": false
+        "optional": true
       },
       "testimonialsIntro": {
         "type": "objectAttribute",
@@ -2152,7 +2100,7 @@
               "value": {
                 "type": "string"
               },
-              "optional": false
+              "optional": true
             },
             "paragraphs": {
               "type": "objectAttribute",
@@ -2162,7 +2110,7 @@
                   "type": "string"
                 }
               },
-              "optional": false
+              "optional": true
             },
             "ctaLabel": {
               "type": "objectAttribute",
@@ -2181,31 +2129,9 @@
             }
           }
         },
-        "optional": false
-      },
-      "featuredMedia": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "array",
-          "of": {
-            "type": "object",
-            "attributes": {
-              "_key": {
-                "type": "objectAttribute",
-                "value": {
-                  "type": "string"
-                }
-              }
-            },
-            "rest": {
-              "type": "inline",
-              "name": "mediaItem.reference"
-            }
-          }
-        },
         "optional": true
       },
-      "galleryIntro": {
+      "experience": {
         "type": "objectAttribute",
         "value": {
           "type": "object",
@@ -2215,12 +2141,63 @@
               "value": {
                 "type": "string"
               },
-              "optional": false
+              "optional": true
             },
             "heading": {
               "type": "objectAttribute",
               "value": {
                 "type": "string"
+              },
+              "optional": false
+            },
+            "introduction": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "highlights": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "array",
+                "of": {
+                  "type": "object",
+                  "attributes": {
+                    "title": {
+                      "type": "objectAttribute",
+                      "value": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "description": {
+                      "type": "objectAttribute",
+                      "value": {
+                        "type": "string"
+                      },
+                      "optional": false
+                    },
+                    "_type": {
+                      "type": "objectAttribute",
+                      "value": {
+                        "type": "string",
+                        "value": "experienceHighlight"
+                      }
+                    }
+                  },
+                  "rest": {
+                    "type": "object",
+                    "attributes": {
+                      "_key": {
+                        "type": "objectAttribute",
+                        "value": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
               },
               "optional": false
             },
@@ -2234,6 +2211,58 @@
           }
         },
         "optional": false
+      },
+      "officialBandPhotos": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "object",
+          "attributes": {
+            "kicker": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "heading": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "body": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": true
+            },
+            "photos": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "array",
+                "of": {
+                  "type": "object",
+                  "attributes": {
+                    "_key": {
+                      "type": "objectAttribute",
+                      "value": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "rest": {
+                    "type": "inline",
+                    "name": "mediaItem.reference"
+                  }
+                }
+              },
+              "optional": true
+            }
+          }
+        },
+        "optional": true
       },
       "upcomingShows": {
         "type": "objectAttribute",

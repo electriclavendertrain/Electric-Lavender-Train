@@ -8,34 +8,30 @@ export const HOMEPAGE_QUERY = defineQuery(`
   *[_type == "homepage" && _id == "homepage"][0]{
     hero,
     heroVideo->{ videoUrl, videoProvider, title },
-    bandIntro{
-      ...,
-      image->{
-        _id,
-        alt,
-        creditLine,
-        creditUrl,
-        image{
-          ...,
-          asset->{
-            _id,
-            metadata{ dimensions }
-          }
-        }
-      }
+    experience{
+      kicker,
+      heading,
+      introduction,
+      highlights[]{ _key, title, description },
+      ctaLabel
     },
-    featuredMedia[]{
-      _key,
-      "mediaItem": @->{
-        _id,
-        title,
-        alt,
-        image{
-          ...,
-          asset->{
-            _id,
-            metadata{
-              dimensions
+    officialBandPhotos{
+      kicker,
+      heading,
+      body,
+      photos[]{
+        _key,
+        "mediaItem": @->{
+          _id,
+          title,
+          alt,
+          creditLine,
+          creditUrl,
+          image{
+            ...,
+            asset->{
+              _id,
+              metadata{ dimensions }
             }
           }
         }
@@ -47,7 +43,6 @@ export const HOMEPAGE_QUERY = defineQuery(`
       viewAllLabel,
       emptyState{ title, message, actionLabel }
     },
-    galleryIntro{ kicker, heading, ctaLabel },
     testimonialsIntro{ kicker, heading },
     bookingCta,
     newsletter{ kicker, heading, body, ctaLabel },
@@ -129,6 +124,7 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
     intro{
       kicker,
       heading,
+      paragraphs,
       lede,
       heroImage->{
         _id,
@@ -142,15 +138,6 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
           }
         }
       }
-    },
-    story{ kicker, heading, paragraphs },
-    labelAffiliation{
-      kicker,
-      text,
-      logoAlt,
-      url,
-      missionStatement,
-      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }
     },
     membersIntro{ kicker, heading, body },
     members[]{
@@ -174,12 +161,6 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
         biography,
         publicLinks[]{ _key, linkType, label, url }
       }
-    },
-    experience{
-      kicker,
-      heading,
-      introduction,
-      highlights[]{ _key, title, description }
     },
     testimonialsIntro{ kicker, heading },
     bookingCta{ kicker, heading, body, ctaLabel },
@@ -371,21 +352,36 @@ export const CONTACT_PAGE_QUERY = defineQuery(`
  *
  * One fixed-id singleton query. `releases` is ONE ordered array of direct
  * references — same `@->` dereference shape used throughout this file — and
- * is the single source of truth for both selection AND order; the frontend
- * splits it into "upcoming" and "released" groups by each release's own
- * `state`, without re-sorting either group.
+ * is the single source of truth for both selection AND order. The public
+ * Music page renders released music only; there is no Upcoming Releases
+ * section, empty state, or countdown.
  *
- * Field order below (intro, featuredVideo, releases, seo) matches the
- * editorial placement on the page: the featured video renders immediately
- * after the intro and before the release sections — see `music.astro` and
- * the matching field order in `studio/schemaTypes/musicPage.ts`. GROQ
- * doesn't care about projection field order, but keeping it visually
- * consistent with the page/schema avoids the two silently drifting apart.
+ * `featured` (live) and `featuredVideo` (deprecated, read-only — see
+ * `studio/schemaTypes/musicPage.ts`) are both selected here so
+ * `normalizeMusicPageContent` can prefer the new field while the old one is
+ * still being migrated by hand in Studio: see that function's doc comment
+ * for the whole-block (never per-field) selection rule.
+ *
+ * Field order below (featured, featuredVideo, labelAffiliation, releases,
+ * seo) matches the editorial placement on the page: Featured renders first
+ * and supplies the page's one heading, then Releases, then the Heavy Crush
+ * Records label affiliation — see `music.astro` and the matching field
+ * order in `studio/schemaTypes/musicPage.ts`. GROQ doesn't care about
+ * projection field order, but keeping it visually consistent with the
+ * page/schema avoids the two silently drifting apart.
  * ---------------------------------------------------------------------- */
 
 export const MUSIC_PAGE_QUERY = defineQuery(`
   *[_type == "musicPage" && _id == "musicPage"][0]{
-    intro{ kicker, heading, lede },
+    featured{
+      kicker,
+      heading,
+      video->{
+        videoUrl,
+        videoProvider,
+        title
+      }
+    },
     featuredVideo{
       kicker,
       heading,
@@ -394,6 +390,14 @@ export const MUSIC_PAGE_QUERY = defineQuery(`
         videoProvider,
         title
       }
+    },
+    labelAffiliation{
+      kicker,
+      text,
+      logoAlt,
+      url,
+      missionStatement,
+      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }
     },
     releases[]{
       _key,
@@ -438,7 +442,6 @@ export const MUSIC_PAGE_QUERY = defineQuery(`
 
 export const GALLERY_PAGE_QUERY = defineQuery(`
   *[_type == "galleryPage" && _id == "galleryPage"][0]{
-    intro{ kicker, heading, lede },
     gallery{
       kicker,
       heading,

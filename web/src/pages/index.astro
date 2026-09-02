@@ -1,11 +1,9 @@
 ---
-import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import familyPhoto from "../assets/images/elt-family.jpeg";
 import Hero from "../components/Hero.astro";
-import BandIntro from "../components/BandIntro.astro";
+import AboutExperience from "../components/AboutExperience.astro";
+import OfficialBandPhotos from "../components/OfficialBandPhotos.astro";
 import UpcomingShows from "../components/UpcomingShows.astro";
-import GalleryPreview from "../components/GalleryPreview.astro";
 import Testimonials from "../components/Testimonials.astro";
 import BookingCTA from "../components/BookingCTA.astro";
 import Newsletter from "../components/Newsletter.astro";
@@ -13,12 +11,11 @@ import siteConfig, { formatPageTitle } from "../data/siteConfig";
 import { getNewsletterSignupUrl } from "../lib/newsletter";
 import {
   upcomingShowsFallback,
-  galleryIntroFallback,
   testimonialsIntroFallback,
   homepageSeoFallback,
   heroFallback,
-  bandIntroFallback,
-  galleryFallback,
+  experienceFallback,
+  EXPERIENCE_HEADING_ID,
   bookingCtaFallback,
   newsletterFallback,
 } from "../data/homeData";
@@ -30,20 +27,16 @@ import {
   TESTIMONIALS_QUERY,
 } from "../sanity/queries";
 import {
-  normalizeFeaturedMedia,
   normalizeTestimonials,
   normalizeUpcomingEvents,
-  normalizeBandIntroImage,
+  normalizeOfficialBandPhotos,
   isHeroContentComplete,
-  isBandIntroComplete,
   isBookingCtaComplete,
   isNewsletterComplete,
+  isExperienceContentComplete,
   getHeroVideoUrl,
   getHeroVideoTitle,
   getOgImageUrl,
-  DEFAULT_OBJECT_POSITION,
-  type NormalizedGalleryItem,
-  type NormalizedBandIntroImage,
 } from "../sanity/normalize";
 
 // The production-vs-development policy is decided by which Sanity dataset
@@ -86,33 +79,6 @@ const heroContent = singletonExists
     : null
   : heroFallback;
 
-const bandIntroContent = singletonExists
-  ? isBandIntroComplete(homepage.bandIntro)
-    ? homepage.bandIntro
-    : null
-  : bandIntroFallback;
-
-// `bandIntro.image` is independently optional — its absence never affects
-// `bandIntroContent` above. A resolved live Sanity image always wins; a
-// missing/invalid one falls back to the local family photo ONLY outside
-// production (its usage rights are unconfirmed for production release —
-// see docs/content-rights-checklist.md), never as a substitute for real
-// client-approved imagery once the site is live.
-let bandIntroImage: NormalizedBandIntroImage | null = singletonExists
-  ? normalizeBandIntroImage(homepage.bandIntro?.image)
-  : null;
-if (!bandIntroImage && !isProductionDataset) {
-  const optimized = await getImage({ src: familyPhoto, width: 900 });
-  bandIntroImage = {
-    src: optimized.src,
-    width: optimized.attributes.width ?? 900,
-    height: optimized.attributes.height ?? optimized.attributes.width ?? 900,
-    objectPosition: DEFAULT_OBJECT_POSITION,
-    alt: `${siteConfig.bandNameFormal} band photo`,
-    credit: null,
-  };
-}
-
 const bookingCtaContent = singletonExists
   ? isBookingCtaComplete(homepage.bookingCta)
     ? homepage.bookingCta
@@ -139,23 +105,6 @@ const heroVideoUrl = getHeroVideoUrl(homepage?.heroVideo);
 const heroVideoTitle =
   getHeroVideoTitle(homepage?.heroVideo) ?? `${siteConfig.bandNameFormal} — Featured Video`;
 
-const galleryItems: NormalizedGalleryItem[] = singletonExists
-  ? normalizeFeaturedMedia(homepage.featuredMedia)
-  : await Promise.all(
-      galleryFallback.map(async (item) => {
-        const optimized = await getImage({ src: item.image, width: 800 });
-        return {
-          _key: item._key,
-          src: optimized.src,
-          width: optimized.attributes.width ?? 800,
-          height: optimized.attributes.height ?? optimized.attributes.width ?? 800,
-          objectPosition: DEFAULT_OBJECT_POSITION,
-          alt: item.alt,
-          caption: item.caption,
-        };
-      }),
-    );
-
 // Testimonials come from their own reusable documents and are entirely
 // independent of whether the homepage singleton exists. Use the shared
 // three-card fallback as one complete set in non-production until all three
@@ -181,14 +130,14 @@ const upcomingShowsContent = hasCompleteUpcomingShowsContent
   ? homepage!.upcomingShows!
   : upcomingShowsFallback;
 
-const hasCompleteGalleryIntro = Boolean(
-  homepage?.galleryIntro?.kicker &&
-  homepage.galleryIntro.heading &&
-  homepage.galleryIntro.ctaLabel,
-);
-const galleryIntro = hasCompleteGalleryIntro
-  ? homepage!.galleryIntro!
-  : galleryIntroFallback;
+// "The ELT Experience" — moved here from the About page. `isExperienceContentComplete`
+// trims every string (heading, introduction, CTA label, and each highlight's
+// title/description) before checking it, so a whitespace-only value can
+// never pass as complete — see that function's doc comment in normalize.ts.
+const hasCompleteExperienceContent = isExperienceContentComplete(homepage?.experience);
+const experienceContent = hasCompleteExperienceContent
+  ? homepage!.experience!
+  : experienceFallback;
 
 const hasCompleteTestimonialsIntro = Boolean(
   homepage?.testimonialsIntro?.kicker && homepage.testimonialsIntro.heading,
@@ -198,24 +147,51 @@ const testimonialsIntro =
   ? homepage!.testimonialsIntro!
   : testimonialsIntroFallback;
 
+// Official Band Photos — a restrained, Homepage-only, production-only
+// showcase of professionally photographed official images. Unlike every
+// other Homepage block, absence is always valid (the section is simply
+// omitted — there is no fallback content, and fan/live Gallery images are
+// never substituted), but a PRESENT-but-invalid selection is its own,
+// independent production-fail condition — checked separately from the
+// aggregate "singleton incomplete" throw below, since this block being
+// entirely unset must never trip that throw.
+const officialBandPhotosResult = normalizeOfficialBandPhotos(
+  homepage?.officialBandPhotos?.photos,
+  isProductionDataset,
+);
+if (officialBandPhotosResult === null && isProductionDataset) {
+  throw new Error(
+    "The Sanity `homepage.officialBandPhotos` selection is invalid in the production dataset. " +
+      "Every selected photo must resolve to a real image with alt text and no `[TEST` marker. " +
+      "Fix or remove the invalid photo(s) in Sanity Studio before building for production " +
+      "— this section has no fallback and is never substituted with Gallery images.",
+  );
+}
+const officialBandPhotos = officialBandPhotosResult ?? [];
+const hasCompleteOfficialBandPhotos = Boolean(
+  homepage?.officialBandPhotos?.heading && officialBandPhotos.length > 0,
+);
+
 // A production dataset must own all required Homepage editorial content in
 // Studio. The code fallbacks are migration/development scaffolding, not a way
-// to silently publish an incomplete production singleton.
+// to silently publish an incomplete production singleton. Official Band
+// Photos is deliberately NOT included here — it's optional even in
+// production; only a present-but-invalid selection fails the build (above).
 if (
   isProductionDataset &&
   (!heroContent ||
-    !bandIntroContent ||
+    !hasCompleteExperienceContent ||
     !bookingCtaContent ||
     !newsletterContent ||
     !hasCompleteUpcomingShowsContent ||
-    !hasCompleteGalleryIntro ||
     !hasCompleteTestimonialsIntro)
 ) {
   throw new Error(
     "The Sanity `homepage` singleton is incomplete in the production dataset. " +
-      "Complete the hero, band introduction, upcoming-shows copy, gallery heading, " +
-      "testimonial heading, newsletter section, and booking call to action in Studio " +
-      "before building for production.",
+      "Complete the hero, the ELT Experience section (heading, introduction, CTA label, and " +
+      "exactly three highlights each with a title and description), upcoming-shows " +
+      "copy, testimonial heading, newsletter section, and booking call to action in " +
+      "Studio before building for production.",
   );
 }
 
@@ -239,14 +215,22 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
     )
   }
 
+  <AboutExperience
+    headingId={EXPERIENCE_HEADING_ID}
+    kicker={experienceContent.kicker}
+    heading={experienceContent.heading}
+    introduction={experienceContent.introduction}
+    highlights={experienceContent.highlights}
+    ctaLabel={experienceContent.ctaLabel}
+  />
+
   {
-    bandIntroContent && (
-      <BandIntro
-        kicker={bandIntroContent.kicker}
-        heading={bandIntroContent.heading}
-        paragraphs={bandIntroContent.paragraphs}
-        ctaLabel={bandIntroContent.ctaLabel}
-        image={bandIntroImage}
+    hasCompleteOfficialBandPhotos && (
+      <OfficialBandPhotos
+        kicker={homepage!.officialBandPhotos!.kicker}
+        heading={homepage!.officialBandPhotos!.heading}
+        body={homepage!.officialBandPhotos!.body}
+        photos={officialBandPhotos}
       />
     )
   }
@@ -259,13 +243,6 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
     emptyStateTitle={upcomingShowsContent.emptyState.title}
     emptyStateMessage={upcomingShowsContent.emptyState.message}
     emptyStateActionLabel={upcomingShowsContent.emptyState.actionLabel}
-  />
-
-  <GalleryPreview
-    kicker={galleryIntro.kicker}
-    heading={galleryIntro.heading}
-    ctaLabel={galleryIntro.ctaLabel}
-    items={galleryItems}
   />
 
   <Testimonials

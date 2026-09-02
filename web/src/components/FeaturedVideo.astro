@@ -1,15 +1,16 @@
 ---
 /**
- * A page's optional, single featured video. Rendered only when the caller
- * has already resolved a valid YouTube video id — this component never
- * decides that for itself and never renders a "coming soon" placeholder for
- * a missing/invalid one; the section simply does not exist. Reusable by
- * design: currently used only by the Music page (`music.astro`), placed
- * immediately after the page's intro and before the release sections. The
- * Gallery & Merchandise page (formerly Media & Merch) used to have its own
- * featured video here too — that section was removed entirely, not
- * migrated; featured, click-to-load video locations today are only the
- * Homepage hero (its own separate implementation) and the Music page.
+ * The Music page's "Featured" section — its required editorial block and
+ * its one `<h1>`. Always rendered, unlike a typical optional featured-video
+ * component: `heading` is required and this section never conditionally
+ * disappears from the page. The video itself stays fully optional — when
+ * `videoId` is `null` (no video selected, or a selected one didn't resolve
+ * to a valid YouTube id), the section still renders with just kicker/
+ * heading and no player. The Gallery & Merchandise page (formerly Media &
+ * Merch) used to have its own featured video here too — that section was
+ * removed entirely, not migrated; featured, click-to-load video locations
+ * today are only the Homepage hero (its own separate implementation) and
+ * this Music page section.
  *
  * Click-to-play, exactly like the Homepage hero, and sharing its exact
  * presentation and motion via the `.video-trigger*` primitive in
@@ -30,9 +31,11 @@
  *
  * Reuses `heroVideo.ts` unchanged via the same `data-video-*` attribute
  * contract (see that file's doc comment) — no second click-to-play script.
+ * The script is only imported when a video is actually present: this
+ * section renders even with no video selected, and there is nothing for the
+ * script to attach to in that case.
  */
 
-import { musicPageCopy } from "../data/musicData";
 import VideoTrigger from "./VideoTrigger.astro";
 
 /** Generic accessible-name prefix for the play control, e.g. "Play video:
@@ -42,45 +45,52 @@ const PLAY_LABEL_PREFIX = "Play video: ";
 
 interface Props {
   kicker?: string | null;
-  heading?: string | null;
-  videoId: string;
+  heading: string;
+  videoId: string | null;
   /** The selected video's own title when available, otherwise a safe
    * neutral fallback — resolved by the caller, mirroring how `index.astro`
-   * resolves `Hero.astro`'s `videoTitle`. */
+   * resolves `Hero.astro`'s `videoTitle`. Only meaningful when `videoId`
+   * is non-null. */
   videoTitle: string;
 }
 
 const { kicker, heading, videoId, videoTitle } = Astro.props;
-
-const displayHeading = heading ?? musicPageCopy.featuredVideo.defaultHeading;
 ---
 
 <section class="featured-video" aria-labelledby="featured-video-heading">
   <div class="section-inner">
     {kicker && <p class="kicker reveal">{kicker}</p>}
-    <h2 id="featured-video-heading" class="reveal reveal-1">{displayHeading}</h2>
+    <h1 id="featured-video-heading" class="reveal reveal-1">{heading}</h1>
 
-    <div class="featured-video__frame video-trigger-wrapper reveal reveal-2" data-video-wrapper>
-      <VideoTrigger
-        videoId={videoId}
-        videoTitle={videoTitle}
-        playLabel={`${PLAY_LABEL_PREFIX}${videoTitle}`}
-        width={900}
-        loading="lazy"
-      />
-    </div>
+    {
+      videoId && (
+        <div class="featured-video__frame video-trigger-wrapper reveal reveal-2" data-video-wrapper>
+          <VideoTrigger
+            videoId={videoId}
+            videoTitle={videoTitle}
+            playLabel={`${PLAY_LABEL_PREFIX}${videoTitle}`}
+            width={900}
+            loading="lazy"
+          />
+        </div>
+      )
+    }
   </div>
 </section>
 
-<script>
-  import "../scripts/heroVideo";
-</script>
+{
+  videoId && (
+    <script>
+      import "../scripts/heroVideo";
+    </script>
+  )
+}
 
 <style>
   /* Noticeably more clearance above this section than the sitewide 110px/
      80px default (see `section` in global.css) — the same responsive
      top-clearance values already established for a page's own intro
-     (e.g. `MusicIntro.astro`) and the Contact page's intro, reused here
+     (e.g. `AboutHero.astro`) and the Contact page's intro, reused here
      rather than a new one-off number. */
   .featured-video {
     padding-top: 150px;

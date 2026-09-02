@@ -51,6 +51,15 @@ interface Props {
   hasPerformance: boolean;
   hasVenueCrowd: boolean;
   hasVideos: boolean;
+  /** Heading element/level — independent of `firstSection` below. Defaults
+   * to `"h2"`, matching every existing caller. (Named `headingTag`, not
+   * `as`: a prop literally named `as` breaks Astro's type-checking for the
+   * whole component — confirmed empirically, not a style preference.) */
+  headingTag?: "h1" | "h2";
+  /** Whether this is the page's first visible section — controls only the
+   * header-clearing top padding, independent of `headingTag`. Defaults to
+   * `false`, matching every existing caller. */
+  firstSection?: boolean;
 }
 
 const {
@@ -63,6 +72,8 @@ const {
   hasPerformance,
   hasVenueCrowd,
   hasVideos,
+  headingTag: HeadingTag = "h2",
+  firstSection = false,
 } = Astro.props;
 
 const dialogIdFor = (key: string) => `gallery-photo-${key.replace(/[^A-Za-z0-9_-]/g, "-")}`;
@@ -79,43 +90,47 @@ const filters = [
     : []),
   ...(hasVideos ? [{ value: "video", label: galleryMerchCopy.gallery.videoFilterLabel }] : []),
 ];
+
+const hasMedia = items.length > 0 || videos.length > 0;
 ---
 
 {
-  heading && (items.length > 0 || videos.length > 0) && (
+  heading && (
     <>
-      <section class="media-gallery" aria-labelledby={headingId}>
+      <section class:list={["media-gallery", { "media-gallery--first": firstSection }]} aria-labelledby={headingId}>
         <div class="section-inner">
           {kicker && <p class="kicker reveal">{kicker}</p>}
-          <h2 id={headingId} class="reveal reveal-1">
+          <HeadingTag id={headingId} class="media-gallery__heading reveal reveal-1">
             {heading}
-          </h2>
+          </HeadingTag>
           {body && <p class="media-gallery__body reveal reveal-2">{body}</p>}
 
-          {filters.length > 1 && (
-            <div
-              class="media-gallery__filters"
-              data-gallery-filters
-              role="group"
-              aria-label={galleryMerchCopy.gallery.filterGroupLabel}
-            >
-              {filters.map((filter, index) => (
-                <button
-                  type="button"
-                  class="media-gallery__filter"
-                  data-gallery-filter={filter.value}
-                  data-gallery-filter-label={filter.label}
-                  aria-pressed={index === 0 ? "true" : "false"}
+          {hasMedia ? (
+            <>
+              {filters.length > 1 && (
+                <div
+                  class="media-gallery__filters"
+                  data-gallery-filters
+                  role="group"
+                  aria-label={galleryMerchCopy.gallery.filterGroupLabel}
                 >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-          )}
+                  {filters.map((filter, index) => (
+                    <button
+                      type="button"
+                      class="media-gallery__filter"
+                      data-gallery-filter={filter.value}
+                      data-gallery-filter-label={filter.label}
+                      aria-pressed={index === 0 ? "true" : "false"}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-          <p class="visually-hidden" role="status" data-gallery-status />
+              <p class="visually-hidden" role="status" data-gallery-status />
 
-          <ul class="media-gallery__grid reveal reveal-3">
+              <ul class="media-gallery__grid reveal reveal-3">
             {items.map((item) => {
               const dialogId = dialogIdFor(item._key);
               return (
@@ -132,6 +147,8 @@ const filters = [
                       <span class="visually-hidden">View larger: </span>
                       <img
                         src={item.thumbnail.src}
+                        srcset={item.thumbnail.srcSet}
+                        sizes={item.thumbnail.sizes}
                         width={item.thumbnail.width}
                         height={item.thumbnail.height}
                         alt={item.alt}
@@ -219,29 +236,55 @@ const filters = [
                 </li>
               );
             })}
-          </ul>
+              </ul>
+            </>
+          ) : (
+            <p class="media-gallery__empty reveal reveal-3">{galleryMerchCopy.gallery.emptyMessage}</p>
+          )}
         </div>
       </section>
 
-      {items.map((item) => (
-        <MediaLightbox item={item} dialogId={dialogIdFor(item._key)} closeHref={closeHref} />
-      ))}
-      {videos.map((video) => (
-        <MediaVideoLightbox video={video} dialogId={videoDialogIdFor(video._key)} />
-      ))}
+      {hasMedia && (
+        <>
+          {items.map((item) => (
+            <MediaLightbox item={item} dialogId={dialogIdFor(item._key)} closeHref={closeHref} />
+          ))}
+          {videos.map((video) => (
+            <MediaVideoLightbox video={video} dialogId={videoDialogIdFor(video._key)} />
+          ))}
 
-      <script>
-        import "../scripts/mediaGallery";
-      </script>
+          <script>
+            import "../scripts/mediaGallery";
+          </script>
+        </>
+      )}
     </>
   )
 }
 
 <style>
-  .media-gallery h2 {
-    /* The filter buttons and grid link back here via `closeHref`; keep it
-       clear of the fixed header. */
+  .media-gallery--first {
+    padding-top: 150px;
+  }
+  @media (max-width: 900px) {
+    .media-gallery--first {
+      padding-top: 120px;
+    }
+  }
+  .media-gallery__heading {
+    /* Explicit, tag-independent sizing — matches every other page's `<h1>`
+       intro treatment (e.g. `AboutHero.astro`) regardless
+       of whether this component renders an `<h1>` or `<h2>` here, so the
+       heading looks identical either way rather than depending on the
+       generic sitewide `h2` rule in global.css. The filter buttons and grid
+       link back here via `closeHref`; keep it clear of the fixed header. */
+    font-size: clamp(2.1rem, 5.5vw, 3.4rem);
     scroll-margin-top: 110px;
+  }
+  .media-gallery__empty {
+    color: rgba(244, 232, 208, 0.65);
+    max-width: 60ch;
+    margin-top: 30px;
   }
   .media-gallery__body {
     color: rgba(244, 232, 208, 0.85);
@@ -432,8 +475,8 @@ const filters = [
   }
 
   /* The video's own title, always visible (this is the "referenced
-     mediaItem.title visibly displayed" requirement) — same dark scrim/
-     contrast reasoning as `GalleryPreview.astro`'s `.g-cap`. */
+     mediaItem.title visibly displayed" requirement) — a dark scrim behind
+     the caption text so contrast never depends on the underlying photo. */
   .media-gallery__video-title {
     position: absolute;
     left: 8px;

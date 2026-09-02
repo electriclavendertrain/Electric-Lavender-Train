@@ -18,9 +18,9 @@
      the hero, page intros, and every scroll-revealed section alike — so the
      motion reads as one system rather than several. Change them here and the
      whole site changes together. See `global.css` → "Entrance animation". */
-  --enter-duration: 0.9s;
+  --enter-duration: 0.55s;
   --enter-shift: 26px;
-  --enter-blur: 6px;
+  --enter-blur: 2px;
 
   --content-max-width: 1180px;
 }

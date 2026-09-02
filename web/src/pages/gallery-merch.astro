@@ -11,6 +11,12 @@
  * featured, click-to-load video locations are now only the Homepage hero
  * and the Music page.
  *
+ * The redundant opening "Gallery and Merchandise" intro section was also
+ * removed entirely (`galleryPage.intro` no longer exists) — the Media
+ * Gallery is now the page's first visible section, and its own heading
+ * supplies the page's one `<h1>` (see `MediaGallery.astro`'s `headingTag`/
+ * `firstSection` props), rendered even when zero photos/videos are selected.
+ *
  * This is the only file on this route that touches Sanity. It fetches,
  * hands the raw result straight to normalization, and passes plain objects
  * down; no component below it knows Sanity exists. Everything here runs
@@ -19,7 +25,6 @@
 
 import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import GalleryMerchIntro from "../components/GalleryMerchIntro.astro";
 import MediaGallery from "../components/MediaGallery.astro";
 import EventMediaSubmission from "../components/EventMediaSubmission.astro";
 import MerchGrid from "../components/MerchGrid.astro";
@@ -55,12 +60,12 @@ const normalizedGalleryPage = normalizeGalleryPageContent(rawGalleryPage, {
 if (normalizedGalleryPage === null && isProductionDataset) {
   throw new Error(
     "The Sanity `galleryPage` singleton is missing or incomplete in the production dataset. " +
-      "The page introduction and inquiry call-to-action must be complete; every selected " +
-      "gallery photo must resolve with an image, alt text, a known category, and (if supplied) " +
-      "a valid credit URL; and every selected merchandise item must have a name and description " +
-      "with no `[TEST — CLIENT PRODUCT REQUIRED]` marker and a resolvable image if one is " +
-      "supplied. Publish the Gallery & Merchandise Page in Sanity Studio before building for " +
-      "production — see docs/gallery-merch.md.",
+      "The gallery heading (this page's only heading) and inquiry call-to-action must be " +
+      "complete; every selected gallery photo must resolve with an image, alt text, a known " +
+      "category, and (if supplied) a valid credit URL; and every selected merchandise item " +
+      "must have a name and description with no `[TEST — CLIENT PRODUCT REQUIRED]` marker and " +
+      "a resolvable image if one is supplied. Publish the Gallery & Merchandise Page in Sanity " +
+      "Studio before building for production — see docs/gallery-merch.md.",
   );
 }
 
@@ -128,7 +133,6 @@ if (normalizedGalleryPage) {
   }
 
   pageContent = {
-    intro: galleryMerchFallback.intro,
     gallery: {
       kicker: galleryMerchFallback.gallery.kicker,
       heading: galleryMerchFallback.gallery.heading,
@@ -174,13 +178,9 @@ const inquiryHref = contactInquiryHref("merch");
 ---
 
 <BaseLayout title={title} description={description} ogImage={pageContent.seo.ogImageUrl}>
-  <GalleryMerchIntro
-    kicker={pageContent.intro.kicker}
-    heading={pageContent.intro.heading}
-    lede={pageContent.intro.lede}
-  />
-
   <MediaGallery
+    headingTag="h1"
+    firstSection={true}
     headingId={galleryMerchCopy.gallery.headingId}
     kicker={pageContent.gallery.kicker}
     heading={pageContent.gallery.heading}

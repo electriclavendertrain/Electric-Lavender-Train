@@ -42,15 +42,27 @@ export type MusicPage = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  intro: {
+  featured: {
     kicker?: string;
     heading: string;
-    lede: string;
+    video?: MediaItemReference;
   };
   featuredVideo?: {
     kicker?: string;
     heading?: string;
     video?: MediaItemReference;
+  };
+  labelAffiliation?: {
+    kicker?: string;
+    text: string;
+    logoAlt: string;
+    url: string;
+    missionStatement: string;
+    socialLinks?: {
+      facebookUrl: string;
+      instagramUrl: string;
+      youtubeUrl: string;
+    };
   };
   releases?: Array<
     {
@@ -203,11 +215,6 @@ export type GalleryPage = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
-  intro: {
-    kicker?: string;
-    heading: string;
-    lede: string;
-  };
   gallery: {
     kicker?: string;
     heading: string;
@@ -318,25 +325,9 @@ export type AboutPage = {
   intro: {
     kicker?: string;
     heading: string;
-    lede: string;
-    heroImage: MediaItemReference;
-  };
-  story: {
-    kicker?: string;
-    heading: string;
+    lede?: string;
     paragraphs: Array<string>;
-  };
-  labelAffiliation?: {
-    kicker?: string;
-    text: string;
-    logoAlt: string;
-    url: string;
-    missionStatement: string;
-    socialLinks?: {
-      facebookUrl: string;
-      instagramUrl: string;
-      youtubeUrl: string;
-    };
+    heroImage: MediaItemReference;
   };
   membersIntro: {
     kicker?: string;
@@ -348,13 +339,13 @@ export type AboutPage = {
       _key: string;
     } & BandMemberReference
   >;
-  experience: {
+  experience?: {
     kicker?: string;
-    heading: string;
-    introduction: string;
-    highlights: Array<{
-      title: string;
-      description: string;
+    heading?: string;
+    introduction?: string;
+    highlights?: Array<{
+      title?: string;
+      description?: string;
       _type: "experienceHighlight";
       _key: string;
     }>;
@@ -394,22 +385,34 @@ export type Homepage = {
     subcopy?: string;
   };
   heroVideo?: MediaItemReference;
-  bandIntro: {
+  bandIntro?: {
     kicker?: string;
-    heading: string;
-    paragraphs: Array<string>;
+    heading?: string;
+    paragraphs?: Array<string>;
     ctaLabel?: string;
     image?: MediaItemReference;
   };
-  featuredMedia?: Array<
-    {
-      _key: string;
-    } & MediaItemReference
-  >;
-  galleryIntro: {
-    kicker: string;
+  experience: {
+    kicker?: string;
     heading: string;
+    introduction: string;
+    highlights: Array<{
+      title: string;
+      description: string;
+      _type: "experienceHighlight";
+      _key: string;
+    }>;
     ctaLabel: string;
+  };
+  officialBandPhotos?: {
+    kicker?: string;
+    heading: string;
+    body?: string;
+    photos?: Array<
+      {
+        _key: string;
+      } & MediaItemReference
+    >;
   };
   upcomingShows: {
     kicker: string;
@@ -700,7 +703,7 @@ export type AllSanitySchemaTypes =
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: HOMEPAGE_QUERY
-// Query: *[_type == "homepage" && _id == "homepage"][0]{    hero,    heroVideo->{ videoUrl, videoProvider, title },    bandIntro{      ...,      image->{        _id,        alt,        creditLine,        creditUrl,        image{          ...,          asset->{            _id,            metadata{ dimensions }          }        }      }    },    featuredMedia[]{      _key,      "mediaItem": @->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{              dimensions            }          }        }      }    },    upcomingShows{      kicker,      heading,      viewAllLabel,      emptyState{ title, message, actionLabel }    },    galleryIntro{ kicker, heading, ctaLabel },    testimonialsIntro{ kicker, heading },    bookingCta,    newsletter{ kicker, heading, body, ctaLabel },    seo  }
+// Query: *[_type == "homepage" && _id == "homepage"][0]{    hero,    heroVideo->{ videoUrl, videoProvider, title },    experience{      kicker,      heading,      introduction,      highlights[]{ _key, title, description },      ctaLabel    },    officialBandPhotos{      kicker,      heading,      body,      photos[]{        _key,        "mediaItem": @->{          _id,          title,          alt,          creditLine,          creditUrl,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        }      }    },    upcomingShows{      kicker,      heading,      viewAllLabel,      emptyState{ title, message, actionLabel }    },    testimonialsIntro{ kicker, heading },    bookingCta,    newsletter{ kicker, heading, body, ctaLabel },    seo  }
 export type HOMEPAGE_QUERY_RESULT = {
   hero: {
     eyebrow?: string;
@@ -712,50 +715,44 @@ export type HOMEPAGE_QUERY_RESULT = {
     videoProvider: "other" | "vimeo" | "youtube" | null;
     title: string;
   } | null;
-  bandIntro: {
-    kicker?: string;
+  experience: {
+    kicker: string | null;
     heading: string;
-    paragraphs: Array<string>;
-    ctaLabel?: string;
-    image: {
-      _id: string;
-      alt: string | null;
-      creditLine: string | null;
-      creditUrl: string | null;
-      image: {
-        asset: {
-          _id: string;
-          metadata: {
-            dimensions: SanityImageDimensions | null;
-          } | null;
-        } | null;
-        media?: unknown;
-        hotspot?: SanityImageHotspot;
-        crop?: SanityImageCrop;
-        _type: "image";
-      } | null;
-    } | null;
-  };
-  featuredMedia: Array<{
-    _key: string;
-    mediaItem: {
-      _id: string;
+    introduction: string;
+    highlights: Array<{
+      _key: string;
       title: string;
-      alt: string | null;
-      image: {
-        asset: {
-          _id: string;
-          metadata: {
-            dimensions: SanityImageDimensions | null;
+      description: string;
+    }>;
+    ctaLabel: string;
+  };
+  officialBandPhotos: {
+    kicker: string | null;
+    heading: string;
+    body: string | null;
+    photos: Array<{
+      _key: string;
+      mediaItem: {
+        _id: string;
+        title: string;
+        alt: string | null;
+        creditLine: string | null;
+        creditUrl: string | null;
+        image: {
+          asset: {
+            _id: string;
+            metadata: {
+              dimensions: SanityImageDimensions | null;
+            } | null;
           } | null;
+          media?: unknown;
+          hotspot?: SanityImageHotspot;
+          crop?: SanityImageCrop;
+          _type: "image";
         } | null;
-        media?: unknown;
-        hotspot?: SanityImageHotspot;
-        crop?: SanityImageCrop;
-        _type: "image";
-      } | null;
-    };
-  }> | null;
+      };
+    }> | null;
+  } | null;
   upcomingShows: {
     kicker: string;
     heading: string;
@@ -765,11 +762,6 @@ export type HOMEPAGE_QUERY_RESULT = {
       message: string;
       actionLabel: string;
     };
-  };
-  galleryIntro: {
-    kicker: string;
-    heading: string;
-    ctaLabel: string;
   };
   testimonialsIntro: {
     kicker: string;
@@ -831,12 +823,13 @@ export type TESTIMONIALS_QUERY_RESULT = Array<{
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: ABOUT_PAGE_QUERY
-// Query: *[_type == "aboutPage" && _id == "aboutPage"][0]{    intro{      kicker,      heading,      lede,      heroImage->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{ dimensions }          }        }      }    },    story{ kicker, heading, paragraphs },    labelAffiliation{      kicker,      text,      logoAlt,      url,      missionStatement,      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }    },    membersIntro{ kicker, heading, body },    members[]{      _key,      "member": @->{        _id,        name,        role,        profileImage->{          _id,          title,          alt,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        },        biography,        publicLinks[]{ _key, linkType, label, url }      }    },    experience{      kicker,      heading,      introduction,      highlights[]{ _key, title, description }    },    testimonialsIntro{ kicker, heading },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription, ogImage }  }
+// Query: *[_type == "aboutPage" && _id == "aboutPage"][0]{    intro{      kicker,      heading,      paragraphs,      lede,      heroImage->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{ dimensions }          }        }      }    },    membersIntro{ kicker, heading, body },    members[]{      _key,      "member": @->{        _id,        name,        role,        profileImage->{          _id,          title,          alt,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        },        biography,        publicLinks[]{ _key, linkType, label, url }      }    },    testimonialsIntro{ kicker, heading },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription, ogImage }  }
 export type ABOUT_PAGE_QUERY_RESULT = {
   intro: {
     kicker: string | null;
     heading: string;
-    lede: string;
+    paragraphs: Array<string>;
+    lede: string | null;
     heroImage: {
       _id: string;
       title: string;
@@ -855,23 +848,6 @@ export type ABOUT_PAGE_QUERY_RESULT = {
       } | null;
     };
   };
-  story: {
-    kicker: string | null;
-    heading: string;
-    paragraphs: Array<string>;
-  };
-  labelAffiliation: {
-    kicker: string | null;
-    text: string;
-    logoAlt: string;
-    url: string;
-    missionStatement: string;
-    socialLinks: {
-      facebookUrl: string;
-      instagramUrl: string;
-      youtubeUrl: string;
-    } | null;
-  } | null;
   membersIntro: {
     kicker: string | null;
     heading: string;
@@ -915,16 +891,6 @@ export type ABOUT_PAGE_QUERY_RESULT = {
       }> | null;
     };
   }>;
-  experience: {
-    kicker: string | null;
-    heading: string;
-    introduction: string;
-    highlights: Array<{
-      _key: string;
-      title: string;
-      description: string;
-    }>;
-  };
   testimonialsIntro: {
     kicker: string;
     heading: string;
@@ -1079,12 +1045,16 @@ export type CONTACT_PAGE_QUERY_RESULT = {
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: MUSIC_PAGE_QUERY
-// Query: *[_type == "musicPage" && _id == "musicPage"][0]{    intro{ kicker, heading, lede },    featuredVideo{      kicker,      heading,      video->{        videoUrl,        videoProvider,        title      }    },    releases[]{      _key,      "release": @->{        _id,        title,        "slug": slug.current,        releaseType,        state,        releaseDate,        coverArtwork->{          _id,          alt,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        },        description,        spotifyUrl,        appleMusicUrl,        preSaveUrl,        watchVideoUrl      }    },    seo{ metaTitle, metaDescription, ogImage }  }
+// Query: *[_type == "musicPage" && _id == "musicPage"][0]{    featured{      kicker,      heading,      video->{        videoUrl,        videoProvider,        title      }    },    featuredVideo{      kicker,      heading,      video->{        videoUrl,        videoProvider,        title      }    },    labelAffiliation{      kicker,      text,      logoAlt,      url,      missionStatement,      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }    },    releases[]{      _key,      "release": @->{        _id,        title,        "slug": slug.current,        releaseType,        state,        releaseDate,        coverArtwork->{          _id,          alt,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        },        description,        spotifyUrl,        appleMusicUrl,        preSaveUrl,        watchVideoUrl      }    },    seo{ metaTitle, metaDescription, ogImage }  }
 export type MUSIC_PAGE_QUERY_RESULT = {
-  intro: {
+  featured: {
     kicker: string | null;
     heading: string;
-    lede: string;
+    video: {
+      videoUrl: string | null;
+      videoProvider: "other" | "vimeo" | "youtube" | null;
+      title: string;
+    } | null;
   };
   featuredVideo: {
     kicker: string | null;
@@ -1093,6 +1063,18 @@ export type MUSIC_PAGE_QUERY_RESULT = {
       videoUrl: string | null;
       videoProvider: "other" | "vimeo" | "youtube" | null;
       title: string;
+    } | null;
+  } | null;
+  labelAffiliation: {
+    kicker: string | null;
+    text: string;
+    logoAlt: string;
+    url: string;
+    missionStatement: string;
+    socialLinks: {
+      facebookUrl: string;
+      instagramUrl: string;
+      youtubeUrl: string;
     } | null;
   } | null;
   releases: Array<{
@@ -1142,13 +1124,8 @@ export type MUSIC_PAGE_QUERY_RESULT = {
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: GALLERY_PAGE_QUERY
-// Query: *[_type == "galleryPage" && _id == "galleryPage"][0]{    intro{ kicker, heading, lede },    gallery{      kicker,      heading,      body,      items[]{        _key,        "media": @->{          _id,          title,          alt,          category,          creditLine,          creditUrl,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        }      },      videos[]{        _key,        "media": @->{          _id,          title,          mediaType,          videoProvider,          videoUrl,          videoPoster{            ...,            asset->{              _id,              metadata{ dimensions }            }          },          creditLine,          creditUrl        }      }    },    eventMediaSubmission{      enabled,      kicker,      heading,      explanation,      ctaLabel,      formUrl    },    merch{      kicker,      heading,      body,      items[]{        _key,        "item": @->{          _id,          name,          description,          priceDisplay,          availabilityNote,          image->{            _id,            title,            alt,            image{              ...,              asset->{                _id,                metadata{ dimensions }              }            }          }        }      }    },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription, ogImage }  }
+// Query: *[_type == "galleryPage" && _id == "galleryPage"][0]{    gallery{      kicker,      heading,      body,      items[]{        _key,        "media": @->{          _id,          title,          alt,          category,          creditLine,          creditUrl,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        }      },      videos[]{        _key,        "media": @->{          _id,          title,          mediaType,          videoProvider,          videoUrl,          videoPoster{            ...,            asset->{              _id,              metadata{ dimensions }            }          },          creditLine,          creditUrl        }      }    },    eventMediaSubmission{      enabled,      kicker,      heading,      explanation,      ctaLabel,      formUrl    },    merch{      kicker,      heading,      body,      items[]{        _key,        "item": @->{          _id,          name,          description,          priceDisplay,          availabilityNote,          image->{            _id,            title,            alt,            image{              ...,              asset->{                _id,                metadata{ dimensions }              }            }          }        }      }    },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription, ogImage }  }
 export type GALLERY_PAGE_QUERY_RESULT = {
-  intro: {
-    kicker: string | null;
-    heading: string;
-    lede: string;
-  };
   gallery: {
     kicker: string | null;
     heading: string;
@@ -1264,16 +1241,16 @@ export type GALLERY_PAGE_QUERY_RESULT = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_type == "homepage" && _id == "homepage"][0]{\n    hero,\n    heroVideo->{ videoUrl, videoProvider, title },\n    bandIntro{\n      ...,\n      image->{\n        _id,\n        alt,\n        creditLine,\n        creditUrl,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{ dimensions }\n          }\n        }\n      }\n    },\n    featuredMedia[]{\n      _key,\n      "mediaItem": @->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{\n              dimensions\n            }\n          }\n        }\n      }\n    },\n    upcomingShows{\n      kicker,\n      heading,\n      viewAllLabel,\n      emptyState{ title, message, actionLabel }\n    },\n    galleryIntro{ kicker, heading, ctaLabel },\n    testimonialsIntro{ kicker, heading },\n    bookingCta,\n    newsletter{ kicker, heading, body, ctaLabel },\n    seo\n  }\n': HOMEPAGE_QUERY_RESULT;
+    '\n  *[_type == "homepage" && _id == "homepage"][0]{\n    hero,\n    heroVideo->{ videoUrl, videoProvider, title },\n    experience{\n      kicker,\n      heading,\n      introduction,\n      highlights[]{ _key, title, description },\n      ctaLabel\n    },\n    officialBandPhotos{\n      kicker,\n      heading,\n      body,\n      photos[]{\n        _key,\n        "mediaItem": @->{\n          _id,\n          title,\n          alt,\n          creditLine,\n          creditUrl,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        }\n      }\n    },\n    upcomingShows{\n      kicker,\n      heading,\n      viewAllLabel,\n      emptyState{ title, message, actionLabel }\n    },\n    testimonialsIntro{ kicker, heading },\n    bookingCta,\n    newsletter{ kicker, heading, body, ctaLabel },\n    seo\n  }\n': HOMEPAGE_QUERY_RESULT;
     '\n  *[_type == "testimonial"]\n  | order(displayOrder asc, _id asc)[0...3] {\n    _id,\n    quote,\n    sourceName,\n    sourceContext,\n    sourceUrl,\n    displayOrder,\n    sourceLogo->{\n      _id,\n      title,\n      alt,\n      image{\n        ...,\n        asset->{\n          _id,\n          metadata{ dimensions }\n        }\n      }\n    }\n  }\n': TESTIMONIALS_QUERY_RESULT;
-    '\n  *[_type == "aboutPage" && _id == "aboutPage"][0]{\n    intro{\n      kicker,\n      heading,\n      lede,\n      heroImage->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{ dimensions }\n          }\n        }\n      }\n    },\n    story{ kicker, heading, paragraphs },\n    labelAffiliation{\n      kicker,\n      text,\n      logoAlt,\n      url,\n      missionStatement,\n      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }\n    },\n    membersIntro{ kicker, heading, body },\n    members[]{\n      _key,\n      "member": @->{\n        _id,\n        name,\n        role,\n        profileImage->{\n          _id,\n          title,\n          alt,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        },\n        biography,\n        publicLinks[]{ _key, linkType, label, url }\n      }\n    },\n    experience{\n      kicker,\n      heading,\n      introduction,\n      highlights[]{ _key, title, description }\n    },\n    testimonialsIntro{ kicker, heading },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': ABOUT_PAGE_QUERY_RESULT;
+    '\n  *[_type == "aboutPage" && _id == "aboutPage"][0]{\n    intro{\n      kicker,\n      heading,\n      paragraphs,\n      lede,\n      heroImage->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{ dimensions }\n          }\n        }\n      }\n    },\n    membersIntro{ kicker, heading, body },\n    members[]{\n      _key,\n      "member": @->{\n        _id,\n        name,\n        role,\n        profileImage->{\n          _id,\n          title,\n          alt,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        },\n        biography,\n        publicLinks[]{ _key, linkType, label, url }\n      }\n    },\n    testimonialsIntro{ kicker, heading },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': ABOUT_PAGE_QUERY_RESULT;
     '\n  *[_type == "event"\n    && visibility == "public"\n    && status == "scheduled"\n    && coalesce(endDateTime, startDateTime) >= now()\n  ] | order(startDateTime asc) [0...3] {\n    _id, title, slug, startDateTime, endDateTime,\n    venue, location, externalEventUrl\n  }\n': UPCOMING_PUBLIC_EVENTS_QUERY_RESULT;
     '\n  *[_type == "showsPage" && _id == "showsPage"][0]{\n    intro{ kicker, heading, paragraphs },\n    upcoming{ heading },\n    recent{ kicker, heading },\n    emptyState{ title, message, actionLabel },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': SHOWS_PAGE_QUERY_RESULT;
     '\n  *[\n    _type == "event"\n    && visibility == "public"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) >= now()\n  ]\n  | order(startDateTime asc, _id asc) {\n    _id,\n    "kind": "public",\n    status,\n    startDateTime,\n    endDateTime,\n    title,\n    venue,\n    location,\n    description,\n    externalEventUrl\n  }\n': SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY_RESULT;
     '\n  *[\n    _type == "event"\n    && visibility == "busyOnly"\n    && status == "scheduled"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) >= now()\n  ]\n  | order(startDateTime asc, _id asc) {\n    _id,\n    "kind": "private",\n    startDateTime,\n    endDateTime\n  }\n': SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY_RESULT;
     '\n  *[\n    _type == "event"\n    && visibility == "public"\n    && status == "scheduled"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) < now()\n  ]\n  | order(startDateTime desc, _id asc) [0...12] {\n    _id,\n    "kind": "public",\n    status,\n    startDateTime,\n    endDateTime,\n    title,\n    venue,\n    location,\n    description,\n    externalEventUrl\n  }\n': SHOWS_RECENT_PUBLIC_EVENTS_QUERY_RESULT;
     '\n  *[_type == "contactPage" && _id == "contactPage"][0]{\n    intro{ kicker, heading, lede, explanation },\n    newsletterCta{ heading, body, linkLabel },\n    faq[]{ _key, question, answer },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': CONTACT_PAGE_QUERY_RESULT;
-    '\n  *[_type == "musicPage" && _id == "musicPage"][0]{\n    intro{ kicker, heading, lede },\n    featuredVideo{\n      kicker,\n      heading,\n      video->{\n        videoUrl,\n        videoProvider,\n        title\n      }\n    },\n    releases[]{\n      _key,\n      "release": @->{\n        _id,\n        title,\n        "slug": slug.current,\n        releaseType,\n        state,\n        releaseDate,\n        coverArtwork->{\n          _id,\n          alt,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        },\n        description,\n        spotifyUrl,\n        appleMusicUrl,\n        preSaveUrl,\n        watchVideoUrl\n      }\n    },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': MUSIC_PAGE_QUERY_RESULT;
-    '\n  *[_type == "galleryPage" && _id == "galleryPage"][0]{\n    intro{ kicker, heading, lede },\n    gallery{\n      kicker,\n      heading,\n      body,\n      items[]{\n        _key,\n        "media": @->{\n          _id,\n          title,\n          alt,\n          category,\n          creditLine,\n          creditUrl,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        }\n      },\n      videos[]{\n        _key,\n        "media": @->{\n          _id,\n          title,\n          mediaType,\n          videoProvider,\n          videoUrl,\n          videoPoster{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          },\n          creditLine,\n          creditUrl\n        }\n      }\n    },\n    eventMediaSubmission{\n      enabled,\n      kicker,\n      heading,\n      explanation,\n      ctaLabel,\n      formUrl\n    },\n    merch{\n      kicker,\n      heading,\n      body,\n      items[]{\n        _key,\n        "item": @->{\n          _id,\n          name,\n          description,\n          priceDisplay,\n          availabilityNote,\n          image->{\n            _id,\n            title,\n            alt,\n            image{\n              ...,\n              asset->{\n                _id,\n                metadata{ dimensions }\n              }\n            }\n          }\n        }\n      }\n    },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': GALLERY_PAGE_QUERY_RESULT;
+    '\n  *[_type == "musicPage" && _id == "musicPage"][0]{\n    featured{\n      kicker,\n      heading,\n      video->{\n        videoUrl,\n        videoProvider,\n        title\n      }\n    },\n    featuredVideo{\n      kicker,\n      heading,\n      video->{\n        videoUrl,\n        videoProvider,\n        title\n      }\n    },\n    labelAffiliation{\n      kicker,\n      text,\n      logoAlt,\n      url,\n      missionStatement,\n      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }\n    },\n    releases[]{\n      _key,\n      "release": @->{\n        _id,\n        title,\n        "slug": slug.current,\n        releaseType,\n        state,\n        releaseDate,\n        coverArtwork->{\n          _id,\n          alt,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        },\n        description,\n        spotifyUrl,\n        appleMusicUrl,\n        preSaveUrl,\n        watchVideoUrl\n      }\n    },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': MUSIC_PAGE_QUERY_RESULT;
+    '\n  *[_type == "galleryPage" && _id == "galleryPage"][0]{\n    gallery{\n      kicker,\n      heading,\n      body,\n      items[]{\n        _key,\n        "media": @->{\n          _id,\n          title,\n          alt,\n          category,\n          creditLine,\n          creditUrl,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        }\n      },\n      videos[]{\n        _key,\n        "media": @->{\n          _id,\n          title,\n          mediaType,\n          videoProvider,\n          videoUrl,\n          videoPoster{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          },\n          creditLine,\n          creditUrl\n        }\n      }\n    },\n    eventMediaSubmission{\n      enabled,\n      kicker,\n      heading,\n      explanation,\n      ctaLabel,\n      formUrl\n    },\n    merch{\n      kicker,\n      heading,\n      body,\n      items[]{\n        _key,\n        "item": @->{\n          _id,\n          name,\n          description,\n          priceDisplay,\n          availabilityNote,\n          image->{\n            _id,\n            title,\n            alt,\n            image{\n              ...,\n              asset->{\n                _id,\n                metadata{ dimensions }\n              }\n            }\n          }\n        }\n      }\n    },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': GALLERY_PAGE_QUERY_RESULT;
   }
 }

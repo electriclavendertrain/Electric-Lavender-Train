@@ -28,7 +28,11 @@ if (prefersReducedMotion || typeof IntersectionObserver === "undefined") {
         }
       });
     },
-    { threshold: 0.15, rootMargin: "0px 0px -60px 0px" }
+    // A positive bottom margin extends the observed root past the visual
+    // viewport, so a `.reveal` element starts animating ~150px before it
+    // would otherwise scroll into view, rather than waiting for 15% of it
+    // to already be visible plus a negative margin delaying that further.
+    { threshold: 0, rootMargin: "0px 0px 150px 0px" }
   );
   revealEls.forEach((el) => io.observe(el));
 }

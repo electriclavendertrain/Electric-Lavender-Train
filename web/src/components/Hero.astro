@@ -20,6 +20,19 @@ const { eyebrow, headline, subcopy, videoUrl, videoTitle } = Astro.props;
 const videoId = videoUrl ? getYouTubeVideoId(videoUrl) : null;
 const hasVideo = videoId !== null;
 const displayEyebrow = hasVideo ? "Play Featured Video" : eyebrow;
+
+/**
+ * The approved headline gets a presentational line break before "Favorite
+ * Dance Band" — a design decision, not stored content. Never saved as `<br>`
+ * markup in Sanity: this splits the plain sentence at render time and only
+ * when the exact approved phrase is present, so any other headline text
+ * (Studio-edited copy that doesn't contain this phrase) renders as one
+ * unbroken line instead of breaking at an arbitrary point.
+ */
+const BREAK_BEFORE = "Favorite Dance Band";
+const breakIndex = headline.indexOf(BREAK_BEFORE);
+const headlineBeforeBreak = breakIndex >= 0 ? headline.slice(0, breakIndex).trimEnd() : null;
+const headlineAfterBreak = breakIndex >= 0 ? headline.slice(breakIndex) : null;
 ---
 
 <section class="hero" id="home">
@@ -43,7 +56,17 @@ const displayEyebrow = hasVideo ? "Play Featured Video" : eyebrow;
       />
     </div>
     {displayEyebrow && <p class="eyebrow intro-enter intro-enter-1">{displayEyebrow}</p>}
-    <h1 class="intro-enter intro-enter-2">{headline}</h1>
+    <h1 class="intro-enter intro-enter-2">
+      {headlineBeforeBreak !== null && headlineAfterBreak !== null ? (
+        <>
+          {headlineBeforeBreak}
+          <br />
+          {headlineAfterBreak}
+        </>
+      ) : (
+        headline
+      )}
+    </h1>
     {subcopy && <p class="sub intro-enter intro-enter-3">{subcopy}</p>}
     <div class="hero-buttons intro-enter intro-enter-4">
       <a href={siteConfig.routes.bookingForm} class="btn btn-primary">Book Us</a>

@@ -107,6 +107,10 @@ export const galleryMerchCopy = {
     lightboxCloseLabel: "Close",
     lightboxClosePhotoSuffix: "photo",
     lightboxCloseVideoSuffix: "video",
+    /** Shown in place of the filters/grid when zero photos and videos are
+     * selected — the heading (this page's `<h1>`) still renders above it,
+     * since the page must never be left without one. */
+    emptyMessage: "No gallery photos or videos yet — check back soon.",
   },
 
   merch: {
@@ -271,11 +275,6 @@ export const merchFallback: FallbackMerchItem[] = [
 ];
 
 export const galleryMerchFallback = {
-  intro: {
-    kicker: "Gallery & Merchandise",
-    heading: "Photos, Video & Merch",
-    lede: "A look at Electric Lavender Train live, plus band merchandise available by inquiry.",
-  },
   gallery: {
     kicker: "Good Times & Great People",
     heading: "Media Gallery",

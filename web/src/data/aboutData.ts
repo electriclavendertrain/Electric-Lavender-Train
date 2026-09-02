@@ -92,9 +92,7 @@ export const memberProfileFallbackAssets: Record<
  * ---------------------------------------------------------------------- */
 
 export const aboutPageCopy = {
-  storyHeadingId: "about-story",
   membersHeadingId: "about-members",
-  experienceHeadingId: "about-experience",
   testimonialsHeadingId: "about-testimonials",
 
   /** Prefix for every member dialog's element id. Kept in one place so the
@@ -121,14 +119,6 @@ export const aboutPageCopy = {
     spotify: "Spotify",
     website: "Website",
   },
-
-  /**
-   * `LabelAffiliation.astro`'s explicit website button — fixed, code-owned
-   * text, deliberately not editable in Sanity (unlike the relationship text
-   * and mission statement) so this one button's label can never drift from
-   * what it actually links to.
-   */
-  labelAffiliationWebsiteLabel: "Visit Heavy Crush Records",
 } as const;
 
 /* -------------------------------------------------------------------------
@@ -157,29 +147,16 @@ const LOREM_BIOGRAPHY = [
 ];
 
 export const aboutPageFallback = {
+  /** "Who We Are" — moved here from the Homepage; this is now the page's
+   * introduction and supplies its one `<h1>`. Same approved copy the
+   * Homepage's `bandIntro` used to carry. */
   intro: {
-    kicker: "About the Band",
-    heading: siteConfig.bandNameFormal,
-    lede: "Dynamic rock ’n’ roll and exhilarating takes on the hit songs audiences know and love, played up and down California’s Central Coast.",
-  },
-  story: {
-    kicker: "Our Story",
-    heading: "Rooted in the Central Coast",
+    kicker: "Who We Are",
+    heading: "More Than a Band, We're Family.",
     paragraphs: [
-      "Electric Lavender Train plays the songs people already know and love, with enough energy to fill a dance floor and enough ease to keep a room comfortable. Winery patios, bar lounges, outdoor concerts, resorts, private celebrations — the set changes with the room, the enthusiasm does not.",
-      "The band is based on California’s Central Coast and plays across it. A night with ELT is meant to feel like a good night out: familiar hits, a band clearly enjoying itself, and a crowd that ends up singing along.",
+      "We're a local band with deep roots on the Central Coast. We know the crowd, we know the songs, and we know how to make every night one to remember — full of dancing, singing, and the kind of energy that turns strangers into friends. Whether it's a backyard celebration or a packed house downtown, we play it like family.",
+      "Thanks for riding the train with us.",
     ],
-  },
-  labelAffiliation: {
-    kicker: "Our Label",
-    text: "The Electric Lavender Train is part of Heavy Crush Records.",
-    logoAlt: "Heavy Crush Records logo",
-    url: "https://www.heavycrushrecords.com/",
-    // Sourced from siteConfig, not re-typed here, so this fallback and
-    // about.astro's field-level fallback can never drift on these two
-    // fields — see siteConfig.ts's `heavyCrushRecords` doc comment.
-    missionStatement: siteConfig.heavyCrushRecords.missionStatement,
-    socialLinks: siteConfig.heavyCrushRecords.socialLinks,
   },
   membersIntro: {
     kicker: "The Lineup",
@@ -196,58 +173,32 @@ export const aboutPageFallback = {
     {
       _id: "fallback-member-rachel",
       name: "Rachel Santa Cruz",
-      role: "Lead Vocals, Baritone Ukulele",
+      role: "Vocals, Keys, Baritone Ukulele",
       profileImageFallbackKey: "rachel" as ProfileImageFallbackKey,
       biography: LOREM_BIOGRAPHY,
     },
     {
       _id: "fallback-member-hunter",
       name: "Hunter Takao Nakazono",
-      role: "Guitar, Vocals",
+      role: "Vocals, Guitar",
       profileImageFallbackKey: "hunter" as ProfileImageFallbackKey,
       biography: LOREM_BIOGRAPHY,
     },
     {
       _id: "fallback-member-geert",
       name: "Geert de Lange",
-      role: "Bass",
+      role: "Bass, Vocals",
       profileImageFallbackKey: "geert" as ProfileImageFallbackKey,
       biography: LOREM_BIOGRAPHY,
     },
     {
       _id: "fallback-member-paul",
       name: "Paul Della Pelle",
-      role: "Drums",
+      role: "Drums, Vocals",
       profileImageFallbackKey: "paul" as ProfileImageFallbackKey,
       biography: LOREM_BIOGRAPHY,
     },
   ],
-  experience: {
-    kicker: "What to Expect",
-    heading: "The ELT Experience",
-    introduction:
-      "ELT brings exhilarating takes on the hit songs audiences know and love. Powerhouse vocals, guitar-forward chemistry, and a locked-in rhythm section give every performance plenty of energy, while the band’s easygoing presence keeps the room welcoming — from winery patios and lounge stages to outdoor concerts and private celebrations.",
-    highlights: [
-      {
-        _key: "the-sound",
-        title: "The Sound",
-        description:
-          "Dynamic rock ’n’ roll, and exhilarating takes on the hit songs a room already knows. Broad appeal without a fixed set list — the songs suit the night.",
-      },
-      {
-        _key: "on-stage",
-        title: "On Stage",
-        description:
-          "Powerhouse vocals, guitar-forward chemistry, and a bass-and-drums foundation that holds the whole thing together. Energetic and live, never overproduced.",
-      },
-      {
-        _key: "in-the-room",
-        title: "In the Room",
-        description:
-          "Welcoming and easygoing, and at home on a winery patio, a bar lounge stage, an outdoor concert, a resort lawn, or a private celebration anywhere on the Central Coast.",
-      },
-    ],
-  },
   testimonialsIntro: {
     kicker: "What People Are Saying",
     heading: "Straight From the Dance Floor",

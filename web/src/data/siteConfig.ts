@@ -75,17 +75,21 @@ export interface SiteConfig {
   venmoLabel: string;
   /**
    * The label ELT is part of. Fixed, approved facts — name, URL, and the
-   * exact approved relationship wording (used verbatim in the Footer's
-   * smaller acknowledgment; the About page's own, larger-treatment copy is
-   * separately editable via `aboutPage.labelAffiliation` in Sanity). See
-   * `docs/client-questions.md` for the approval record.
+   * exact approved relationship wording.
    *
-   * `missionStatement` and `socialLinks` are approved facts too, used only as
-   * the About page's field-level fallback for `aboutPage.labelAffiliation`
-   * (`about.astro`, `aboutData.ts`) when that Sanity field is empty or
-   * incomplete — the Footer and Music-page acknowledgments never reference
-   * them, since neither renders a mission statement or the label's own
-   * social links.
+   * Two independent consumers:
+   * - The Footer uses this object for its own small, fixed, code-owned
+   *   relationship acknowledgment (`name`, `url`, `relationshipText`) —
+   *   unchanged regardless of Sanity content, and it never reads
+   *   `musicPage.labelAffiliation`.
+   * - The Music page owns the full, larger, editable Label Affiliation
+   *   section via `musicPage.labelAffiliation` in Sanity (moved there from
+   *   `aboutPage.labelAffiliation` — see `studio/schemaTypes/musicPage.ts`).
+   *   `missionStatement` and `socialLinks` below are this object's
+   *   field-level fallback for that section (`music.astro`,
+   *   `musicData.ts`) whenever `musicPage.labelAffiliation` is absent or
+   *   incomplete — exactly the role this object used to play for
+   *   `aboutPage.labelAffiliation` before the move.
    */
   heavyCrushRecords: {
     name: string;
@@ -107,9 +111,8 @@ export interface SiteConfig {
 export const siteConfig: SiteConfig = {
   bandNameFormal: "The Electric Lavender Train",
   bandNameShort: "ELT",
-  tagline:
-    "The Central Coast's favorite dance band — good music, good people, good times.",
-  location: "San Luis Obispo & the Central Coast, California",
+  tagline: "The Central Coast's Favorite Dance Band.",
+  location: "Central Coast California",
   siteUrl: "https://electriclavendertrain.com",
 
   routes: {

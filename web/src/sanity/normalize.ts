@@ -1,10 +1,10 @@
-import { sanityImageUrl } from "./image";
+import { sanityImageUrl, sanityImageSrcSet } from "./image";
 import { isValidDateTime, isValidCalendarDateOnly } from "../lib/dateFormat";
 import {
   TEST_BIOGRAPHY_MARKER,
 } from "../data/aboutData";
 import { TEST_PRODUCT_MARKER, TEST_MEDIA_ITEM_MARKER, TEST_VIDEO_ID } from "../data/galleryMerchData";
-import { TEST_NEWSLETTER_MARKER } from "../data/homeData";
+import { TEST_NEWSLETTER_MARKER, REQUIRED_EXPERIENCE_HIGHLIGHTS } from "../data/homeData";
 import { TEST_RELEASE_MARKER } from "../data/musicData";
 import { getYouTubeVideoId } from "../lib/youtube";
 import type {
@@ -35,25 +35,6 @@ import type {
 
 type Homepage = NonNullable<HOMEPAGE_QUERY_RESULT>;
 
-export interface NormalizedGalleryItem {
-  _key: string;
-  src: string;
-  width: number;
-  height: number;
-  /** A ready-to-use CSS `object-position` value, e.g. `"32.0% 18.5%"`. */
-  objectPosition: string;
-  alt: string;
-  caption: string;
-}
-
-const GALLERY_IMAGE_WIDTH = 900;
-/**
- * Mirrors the schema's `Rule.max(6)` on `homepage.featuredMedia`. Studio
- * validation binds the Studio UI, not the Content API — a raw API write can
- * store more than six. The mosaic CSS only styles the 1st and 4th tiles
- * specially, so extra tiles would render as unplanned trailing cells.
- */
-const MAX_FEATURED_MEDIA = 6;
 /** Used for Sanity images with no hotspot, and for locally-bundled fallback images (no hotspot data at all). */
 export const DEFAULT_OBJECT_POSITION = "50% 50%";
 
@@ -140,47 +121,6 @@ function computeCroppedAspectRatio(image: ProjectedSanityImage): number {
   const width = dimensions.width * Math.max(1 - left - right, 0.01);
   const height = dimensions.height * Math.max(1 - top - bottom, 0.01);
   return width / height;
-}
-
-/**
- * Drops any featured-media reference that didn't resolve to a real image
- * mediaItem, is missing its asset id (nothing for the image-url builder to
- * build a CDN URL from), or is missing alt text — never render a broken
- * `<img>` or one without accessible alt text.
- *
- * Caps the result at six, defensively. The cap counts *valid* items only:
- * a dropped entry never consumes one of the six slots, so six good images
- * still render even if malformed entries precede them. Selection order is
- * preserved — the array's order is the render order.
- */
-export function normalizeFeaturedMedia(
-  featuredMedia: Homepage["featuredMedia"],
-): NormalizedGalleryItem[] {
-  if (!featuredMedia) return [];
-
-  const items: NormalizedGalleryItem[] = [];
-  for (const entry of featuredMedia) {
-    if (items.length >= MAX_FEATURED_MEDIA) break;
-
-    const media = entry.mediaItem;
-    const image = media?.image;
-    const assetId = image?.asset?._id;
-    if (!media || !image || !assetId || !media.alt) continue;
-
-    const width = GALLERY_IMAGE_WIDTH;
-    const height = Math.round(width / computeCroppedAspectRatio(image));
-
-    items.push({
-      _key: entry._key,
-      src: sanityImageUrl(image, { width }),
-      width,
-      height,
-      objectPosition: computeObjectPosition(image),
-      alt: media.alt,
-      caption: media.title,
-    });
-  }
-  return items;
 }
 
 /* =========================================================================
@@ -316,80 +256,6 @@ export function isHeroContentComplete(
 }
 
 /**
- * Band Introduction requires a heading and at least one non-blank
- * paragraph — the small label and button text are optional and each omit
- * independently in `BandIntro.astro`, which also defensively filters blank
- * paragraph entries. The image (`bandIntro.image`) is independently optional
- * and is never part of this completeness check — a missing or invalid image
- * must never hide valid heading/paragraph content. See
- * `normalizeBandIntroImage` below.
- */
-export function isBandIntroComplete(
-  bandIntro: Homepage["bandIntro"],
-): bandIntro is {
-  kicker?: string;
-  heading: string;
-  paragraphs: string[];
-  ctaLabel?: string;
-  image: NonNullable<Homepage["bandIntro"]>["image"];
-} {
-  return Boolean(
-    bandIntro?.heading &&
-      bandIntro?.paragraphs &&
-      bandIntro.paragraphs.some((p) => p && p.trim().length > 0),
-  );
-}
-
-export interface NormalizedBandIntroImage {
-  src: string;
-  width: number;
-  height: number;
-  objectPosition: string;
-  alt: string;
-  /** Approved, unobtrusive attribution — never invented. `url` is `null`
-   * when no credit link was supplied, or when one was supplied but did not
-   * pass `safeExternalUrl` (degrades to unlinked text rather than dropping
-   * the whole image). */
-  credit: { label: string; url: string | null } | null;
-}
-
-const BAND_INTRO_IMAGE_WIDTH = 900;
-
-/**
- * `homepage.bandIntro.image` is optional and independent of every other
- * singleton's own image field (in particular `aboutPage.intro.heroImage`) —
- * the same underlying `mediaItem` may be selected in both places, but
- * neither selection affects the other. A missing reference, an unresolved
- * asset, or missing alt text all resolve to `null` here — the caller (
- * `index.astro`) treats `null` as "no image," never as a reason to hide the
- * heading/paragraphs, and falls back to a local development-only photo
- * outside production. Width only, like every other content photo on this
- * site — Sanity applies the editor's manual crop but forces no aspect
- * ratio, and the hotspot is handed to CSS `object-position`.
- */
-export function normalizeBandIntroImage(
-  raw: NonNullable<Homepage["bandIntro"]>["image"] | null | undefined,
-): NormalizedBandIntroImage | null {
-  const image = raw?.image;
-  const assetId = image?.asset?._id;
-  const alt = cleanText(raw?.alt);
-  if (!image || !assetId || !alt) return null;
-
-  const width = BAND_INTRO_IMAGE_WIDTH;
-  const creditLabel = cleanText(raw?.creditLine);
-  const credit = creditLabel ? { label: creditLabel, url: safeExternalUrl(raw?.creditUrl) } : null;
-
-  return {
-    src: sanityImageUrl(image, { width }),
-    width,
-    height: Math.round(width / computeCroppedAspectRatio(image)),
-    objectPosition: computeObjectPosition(image),
-    alt,
-    credit,
-  };
-}
-
-/**
  * Booking CTA's required core is heading + body + button text — the small
  * label is optional and omits independently in `BookingCTA.astro`.
  */
@@ -462,6 +328,155 @@ export function getOgImageUrl(ogImage: OgImage | null | undefined): string | nul
   return sanityImageUrl(ogImage, OG_IMAGE_SIZE);
 }
 
+/**
+ * The Homepage's "ELT Experience" section requires a heading, an
+ * introduction, a CTA button label, and exactly `REQUIRED_EXPERIENCE_HIGHLIGHTS`
+ * highlights — each with a non-blank title and description. Every string
+ * passes through `cleanText` before being checked, so a whitespace-only
+ * value (e.g. a single space) can never pass as complete — matching the
+ * requirement that whitespace-only Experience fields must fail this guard.
+ * `kicker` is optional and omits independently in `AboutExperience.astro`.
+ */
+export function isExperienceContentComplete(
+  experience: Homepage["experience"] | undefined,
+): boolean {
+  if (
+    !cleanText(experience?.heading) ||
+    !cleanText(experience?.introduction) ||
+    !cleanText(experience?.ctaLabel)
+  ) {
+    return false;
+  }
+  const highlights = experience?.highlights ?? [];
+  if (highlights.length !== REQUIRED_EXPERIENCE_HIGHLIGHTS) return false;
+  return highlights.every(
+    (highlight) => cleanText(highlight?.title) && cleanText(highlight?.description),
+  );
+}
+
+/* =========================================================================
+ * Homepage — Official Band Photos
+ *
+ * A restrained, Homepage-only, professionally-photographed showcase —
+ * editorially distinct from the fan/live imagery on the Gallery &
+ * Merchandise page and never pulled from it automatically. Optional: `null`/
+ * absent is always valid (the whole section is then omitted), but a
+ * PRESENT-but-invalid selection is a production-fail condition (unlike most
+ * optional Homepage blocks) — there is no fallback substitute, official
+ * general-purpose Gallery images, or invented content to fall back to, so
+ * publishing garbage here would be worse than failing loudly. `strict`
+ * mirrors every other production guard in this file.
+ * ====================================================================== */
+
+export interface NormalizedOfficialBandPhoto {
+  _key: string;
+  src: string;
+  width: number;
+  height: number;
+  objectPosition: string;
+  alt: string;
+  srcSet: string;
+  sizes: string;
+  credit: { label: string; url: string | null } | null;
+}
+
+const MAX_OFFICIAL_BAND_PHOTOS = 4;
+const OFFICIAL_BAND_PHOTO_WIDTH = 900;
+/** Candidates never exceed `OFFICIAL_BAND_PHOTO_WIDTH` — see
+ * `OfficialBandPhotos.astro`'s `sizes` (560px/980px breakpoints, matching
+ * `BandMembers.astro`'s grid, 270px desktop cap). */
+const OFFICIAL_BAND_PHOTO_WIDTHS = [280, 450, 900];
+
+type RawOfficialBandPhoto = NonNullable<
+  NonNullable<Homepage["officialBandPhotos"]>["photos"]
+>[number]["mediaItem"];
+
+/**
+ * A photo must resolve to a real image asset with intrinsic dimensions and
+ * non-blank alt text — the same bar every other content photo on this site
+ * is held to. In strict (production) mode, a `[TEST`-prefixed title or alt
+ * text also invalidates the photo — this is a production-only section, so a
+ * development test fixture selected into it must never silently reach a
+ * production build. Returns `null` for any reason the photo can't be
+ * honestly rendered; the caller decides whether that's fatal (strict) or a
+ * skip (lenient) — see `normalizeOfficialBandPhotos`.
+ */
+function normalizeOneOfficialBandPhoto(
+  media: RawOfficialBandPhoto | null | undefined,
+  strict: boolean,
+): Omit<NormalizedOfficialBandPhoto, "_key"> | null {
+  if (!media) return null;
+
+  const alt = cleanText(media.alt);
+  const image = media.image;
+  const assetId = image?.asset?._id;
+  const dimensions = image?.asset?.metadata?.dimensions;
+  if (!alt || !image || !assetId || !dimensions?.width || !dimensions?.height) return null;
+
+  if (strict) {
+    const title = media.title ?? "";
+    if (title.includes(TEST_MEDIA_ITEM_MARKER) || alt.includes(TEST_MEDIA_ITEM_MARKER)) {
+      return null;
+    }
+  }
+
+  const creditLabel = cleanText(media.creditLine);
+  const credit = creditLabel ? { label: creditLabel, url: safeExternalUrl(media.creditUrl) } : null;
+
+  const width = OFFICIAL_BAND_PHOTO_WIDTH;
+  return {
+    src: sanityImageUrl(image, { width }),
+    width,
+    height: Math.round(width / computeCroppedAspectRatio(image)),
+    objectPosition: computeObjectPosition(image),
+    alt,
+    srcSet: sanityImageSrcSet(image, OFFICIAL_BAND_PHOTO_WIDTHS),
+    sizes: "(max-width: 560px) 88vw, (max-width: 980px) 44vw, 270px",
+    credit,
+  };
+}
+
+/**
+ * `homepage.officialBandPhotos.photos` is the single source of truth for
+ * selection AND order — this loop never sorts or reorders. Capped at 4
+ * (`MAX_OFFICIAL_BAND_PHOTOS`), matching Studio's own `Rule.max(4)`; the cap
+ * counts *valid* photos only, so an invalid entry never consumes one of the
+ * four slots in lenient mode. A reference appearing twice is deduplicated by
+ * asset id, mirroring every other curated-selection normalizer in this file.
+ *
+ * Returns `[]` when the input is empty/absent — a fully valid state, the
+ * caller omits the section. Returns `null` only in strict mode when an
+ * invalid entry was selected — the caller treats that as a production-fail
+ * condition (no fallback substitution), never in lenient mode, where an
+ * invalid entry is simply skipped.
+ */
+export function normalizeOfficialBandPhotos(
+  entries: NonNullable<Homepage["officialBandPhotos"]>["photos"] | null | undefined,
+  strict: boolean,
+): NormalizedOfficialBandPhoto[] | null {
+  const items: NormalizedOfficialBandPhoto[] = [];
+  const seenAssetIds = new Set<string>();
+
+  for (const entry of entries ?? []) {
+    if (items.length >= MAX_OFFICIAL_BAND_PHOTOS) break;
+
+    const photo = normalizeOneOfficialBandPhoto(entry?.mediaItem, strict);
+    if (photo === null) {
+      if (strict) return null;
+      continue;
+    }
+    const assetId = entry.mediaItem?.image?.asset?._id;
+    if (assetId) {
+      if (seenAssetIds.has(assetId)) continue;
+      seenAssetIds.add(assetId);
+    }
+
+    items.push({ _key: entry._key, ...photo });
+  }
+
+  return items;
+}
+
 /* =========================================================================
  * About page (/about)
  *
@@ -477,12 +492,12 @@ export function getOgImageUrl(ogImage: OgImage | null | undefined): string | nul
  * diagnostic.
  * ====================================================================== */
 
-const MAX_STORY_PARAGRAPHS = 4;
 const MAX_BIOGRAPHY_PARAGRAPHS = 4;
 const MAX_MEMBER_LINKS = 6;
-/** The Experience section is defined as exactly three highlights, not "up to". */
-const REQUIRED_EXPERIENCE_HIGHLIGHTS = 3;
 const ABOUT_HERO_IMAGE_WIDTH = 1100;
+/** Candidates never exceed `ABOUT_HERO_IMAGE_WIDTH` — see `AboutHero.astro`'s
+ * `sizes` (860px breakpoint, 560px desktop cap). */
+const ABOUT_HERO_IMAGE_WIDTHS = [560, 900, 1100];
 
 type AboutPage = NonNullable<ABOUT_PAGE_QUERY_RESULT>;
 type RawMemberLink = NonNullable<
@@ -523,6 +538,11 @@ export interface NormalizedMemberProfileImage {
   height: number;
   objectPosition: string;
   alt: string;
+  /** Optional — present only for live Sanity-sourced images (never
+   * generated for the local dev-fallback photos built in `about.astro`).
+   * `<img srcset>`/`sizes` simply omit themselves when this is undefined. */
+  srcSet?: string;
+  sizes?: string;
 }
 
 export interface NormalizedAboutHeroImage {
@@ -531,6 +551,10 @@ export interface NormalizedAboutHeroImage {
   height: number;
   objectPosition: string;
   alt: string;
+  /** Optional — present only for live Sanity-sourced images (never
+   * generated for the local dev-fallback photo built in `about.astro`). */
+  srcSet?: string;
+  sizes?: string;
 }
 
 export interface NormalizedExperienceHighlight {
@@ -543,33 +567,16 @@ export interface NormalizedAboutPageContent {
   intro: {
     kicker: string | null;
     heading: string;
-    lede: string;
+    /** "Who We Are" — up to two paragraphs. Sourced from the new
+     * `aboutPage.intro.paragraphs` field, falling back (temporarily, during
+     * the phase-1 migration) to the deprecated `aboutPage.intro.lede` as a
+     * single-item array when `paragraphs` is empty. Remove this fallback
+     * once `lede` is deleted in phase 2. */
+    paragraphs: string[];
     heroImage: NormalizedAboutHeroImage;
   };
-  story: { kicker: string | null; heading: string; paragraphs: string[] };
-  /** `null` when the Sanity field is empty/incomplete — `about.astro` falls
-   * back to `siteConfig.heavyCrushRecords` rather than omitting the section
-   * or invalidating the rest of the page. See `normalizeAboutPageContent`.
-   * Treated as ONE coherent block: every field here (including
-   * `missionStatement` and every `socialLinks` URL) must be present and
-   * safe for this to be non-null — an incomplete live document never mixes
-   * partial live fields with fallback ones. */
-  labelAffiliation: {
-    kicker: string | null;
-    text: string;
-    logoAlt: string;
-    url: string;
-    missionStatement: string;
-    socialLinks: { facebookUrl: string; instagramUrl: string; youtubeUrl: string };
-  } | null;
   membersIntro: { kicker: string | null; heading: string; body: string | null };
   members: NormalizedBandMember[];
-  experience: {
-    kicker: string | null;
-    heading: string;
-    introduction: string;
-    highlights: NormalizedExperienceHighlight[];
-  };
   testimonialsIntro: { kicker: string; heading: string };
   bookingCta: {
     kicker: string | null;
@@ -669,6 +676,10 @@ function normalizeBandMember(
 }
 
 const MEMBER_PROFILE_IMAGE_WIDTH = 900;
+/** Candidates never exceed `MEMBER_PROFILE_IMAGE_WIDTH` — the card renders
+ * far smaller than 900px at every breakpoint (see `BandMembers.astro`'s
+ * `sizes`), so this only lets a narrow viewport request less, never more. */
+const MEMBER_PROFILE_IMAGE_WIDTHS = [280, 450, 900];
 
 function normalizeMemberProfileImage(
   profileImage: AboutPage["members"][number]["member"]["profileImage"] | null | undefined,
@@ -685,6 +696,8 @@ function normalizeMemberProfileImage(
     height: Math.round(width / computeCroppedAspectRatio(image)),
     objectPosition: computeObjectPosition(image),
     alt,
+    srcSet: sanityImageSrcSet(image, MEMBER_PROFILE_IMAGE_WIDTHS),
+    sizes: "(max-width: 560px) 88vw, (max-width: 980px) 44vw, 270px",
   };
 }
 
@@ -715,6 +728,8 @@ function normalizeAboutHeroImage(
     height: Math.round(width / computeCroppedAspectRatio(image)),
     objectPosition: computeObjectPosition(image),
     alt,
+    srcSet: sanityImageSrcSet(image, ABOUT_HERO_IMAGE_WIDTHS),
+    sizes: "(max-width: 860px) 88vw, 560px",
   };
 }
 
@@ -768,6 +783,9 @@ function safeYoutubeUrl(value: string | null | undefined): string | null {
   }
 }
 
+/** Cap on `aboutPage.intro.paragraphs` — mirrors the schema's `Rule.max(2)`. */
+const MAX_INTRO_PARAGRAPHS = 2;
+
 export function normalizeAboutPageContent(
   page: ABOUT_PAGE_QUERY_RESULT,
   options: NormalizeAboutOptions,
@@ -775,22 +793,24 @@ export function normalizeAboutPageContent(
   if (!page) return null;
 
   const introHeading = cleanText(page.intro?.heading);
-  const introLede = cleanText(page.intro?.lede);
   const heroImage = normalizeAboutHeroImage(page.intro?.heroImage);
 
-  const storyHeading = cleanText(page.story?.heading);
-  const storyParagraphs = (page.story?.paragraphs ?? [])
+  // Phase-1 migration dual read: prefer the new `paragraphs` field; fall back
+  // to wrapping the deprecated `lede` in a single-item array only when
+  // `paragraphs` is empty. Remove the `lede` fallback once that field is
+  // deleted in phase 2 (see docs/developer-guide.md §16/§18 and the ELT
+  // content-migration plan).
+  const introParagraphsFromNewField = (page.intro?.paragraphs ?? [])
     .map(cleanText)
     .filter((paragraph): paragraph is string => paragraph !== null)
-    .slice(0, MAX_STORY_PARAGRAPHS);
-
-  const labelAffiliationText = cleanText(page.labelAffiliation?.text);
-  const labelAffiliationLogoAlt = cleanText(page.labelAffiliation?.logoAlt);
-  const labelAffiliationUrl = safeExternalUrl(page.labelAffiliation?.url);
-  const labelAffiliationMission = cleanText(page.labelAffiliation?.missionStatement);
-  const labelAffiliationFacebook = safeFacebookUrl(page.labelAffiliation?.socialLinks?.facebookUrl);
-  const labelAffiliationInstagram = safeInstagramUrl(page.labelAffiliation?.socialLinks?.instagramUrl);
-  const labelAffiliationYoutube = safeYoutubeUrl(page.labelAffiliation?.socialLinks?.youtubeUrl);
+    .slice(0, MAX_INTRO_PARAGRAPHS);
+  const legacyLede = cleanText(page.intro?.lede);
+  const introParagraphs =
+    introParagraphsFromNewField.length > 0
+      ? introParagraphsFromNewField
+      : legacyLede
+        ? [legacyLede]
+        : [];
 
   const membersIntroHeading = cleanText(page.membersIntro?.heading);
 
@@ -806,17 +826,6 @@ export function normalizeAboutPageContent(
     members.push(member);
   }
 
-  const experienceHeading = cleanText(page.experience?.heading);
-  const experienceIntroduction = cleanText(page.experience?.introduction);
-  const highlights: NormalizedExperienceHighlight[] = [];
-  for (const highlight of page.experience?.highlights ?? []) {
-    if (highlights.length >= REQUIRED_EXPERIENCE_HIGHLIGHTS) break;
-    const title = cleanText(highlight?.title);
-    const description = cleanText(highlight?.description);
-    if (!title || !description) continue;
-    highlights.push({ _key: highlight._key, title, description });
-  }
-
   const testimonialsKicker = cleanText(page.testimonialsIntro?.kicker);
   const testimonialsHeading = cleanText(page.testimonialsIntro?.heading);
 
@@ -826,15 +835,10 @@ export function normalizeAboutPageContent(
 
   if (
     !introHeading ||
-    !introLede ||
+    introParagraphs.length === 0 ||
     !heroImage ||
-    !storyHeading ||
-    storyParagraphs.length === 0 ||
     !membersIntroHeading ||
     members.length === 0 ||
-    !experienceHeading ||
-    !experienceIntroduction ||
-    highlights.length !== REQUIRED_EXPERIENCE_HIGHLIGHTS ||
     !testimonialsKicker ||
     !testimonialsHeading ||
     !bookingHeading ||
@@ -848,59 +852,15 @@ export function normalizeAboutPageContent(
     intro: {
       kicker: cleanText(page.intro?.kicker),
       heading: introHeading,
-      lede: introLede,
+      paragraphs: introParagraphs,
       heroImage,
     },
-    story: {
-      kicker: cleanText(page.story?.kicker),
-      heading: storyHeading,
-      paragraphs: storyParagraphs,
-    },
-    // Independently optional — unlike every other field in this return
-    // value, an incomplete `labelAffiliation` does NOT invalidate the whole
-    // About page. `about.astro` falls back to the same approved facts
-    // already recorded in `siteConfig.heavyCrushRecords` when this is
-    // `null`, so the acknowledgment still renders correctly even before an
-    // editor has touched this specific field in Studio.
-    //
-    // Treated as ONE coherent block, not per-field: every one of the six
-    // fields below must be present and safe, or the whole object is `null`
-    // and the caller substitutes the complete code-owned default — a
-    // document missing only `socialLinks.youtubeUrl`, for example, must
-    // never render two real social buttons next to a fallback third one.
-    labelAffiliation:
-      labelAffiliationText &&
-      labelAffiliationLogoAlt &&
-      labelAffiliationUrl &&
-      labelAffiliationMission &&
-      labelAffiliationFacebook &&
-      labelAffiliationInstagram &&
-      labelAffiliationYoutube
-        ? {
-            kicker: cleanText(page.labelAffiliation?.kicker),
-            text: labelAffiliationText,
-            logoAlt: labelAffiliationLogoAlt,
-            url: labelAffiliationUrl,
-            missionStatement: labelAffiliationMission,
-            socialLinks: {
-              facebookUrl: labelAffiliationFacebook,
-              instagramUrl: labelAffiliationInstagram,
-              youtubeUrl: labelAffiliationYoutube,
-            },
-          }
-        : null,
     membersIntro: {
       kicker: cleanText(page.membersIntro?.kicker),
       heading: membersIntroHeading,
       body: cleanText(page.membersIntro?.body),
     },
     members,
-    experience: {
-      kicker: cleanText(page.experience?.kicker),
-      heading: experienceHeading,
-      introduction: experienceIntroduction,
-      highlights,
-    },
     testimonialsIntro: { kicker: testimonialsKicker, heading: testimonialsHeading },
     bookingCta: {
       kicker: cleanText(page.bookingCta?.kicker),
@@ -1166,8 +1126,7 @@ export function normalizePrivateEvents(
  * precedent, not the Homepage's: a curated selection is treated STRICTLY in
  * production (any invalid selected entry fails the whole build, exactly like
  * `normalizeBandMember` taking the whole About singleton down) and
- * LENIENTLY everywhere else (an invalid entry is silently dropped, exactly
- * like `normalizeFeaturedMedia`).
+ * LENIENTLY everywhere else (an invalid entry is silently dropped).
  *
  * Which behavior applies is controlled by `options.strict`, which callers set
  * from the configured DATASET (`isProductionDataset`), not from Astro's
@@ -1187,6 +1146,9 @@ const MAX_MERCH_ITEMS = 24;
 /** Thumbnail tiles never need more than this; the CDN and CSS `object-fit`
  * do the rest (see `computeObjectPosition`'s doc comment above). */
 const GALLERY_THUMB_WIDTH = 700;
+/** Candidates never exceed `GALLERY_THUMB_WIDTH` — see `MediaGallery.astro`'s
+ * `sizes` (900px/600px breakpoints, 282px desktop cap). */
+const GALLERY_THUMB_WIDTHS = [282, 450, 700];
 /** Bounded, not "full resolution" — the largest size the lightbox actually
  * displays, and the only other size requested for a gallery photo. */
 const GALLERY_LIGHTBOX_WIDTH = 1600;
@@ -1216,7 +1178,17 @@ export interface NormalizedGalleryPhoto {
   title: string;
   alt: string;
   category: MediaGalleryCategory | null;
-  thumbnail: { src: string; width: number; height: number; objectPosition: string };
+  /** `srcSet`/`sizes` are optional — present only for live Sanity-sourced
+   * photos, never generated for the local dev-fallback images built in
+   * `gallery-merch.astro`. */
+  thumbnail: {
+    src: string;
+    width: number;
+    height: number;
+    objectPosition: string;
+    srcSet?: string;
+    sizes?: string;
+  };
   /** A larger, still-bounded size for the lightbox — never a second,
    * undisplayed download and never the original asset unbounded. */
   full: { src: string; width: number; height: number };
@@ -1251,16 +1223,18 @@ export interface NormalizedGalleryVideo {
   credit: NormalizedGalleryCredit | null;
 }
 
-export interface NormalizedFeaturedVideo {
-  kicker: string | null;
-  heading: string | null;
-  /** The raw stored URL. `getYouTubeVideoId` (approved, untouched) does the
-   * actual validation, at the same layer `Hero.astro` already does it — this
-   * mirrors `getHeroVideoUrl` exactly rather than duplicating that check. */
-  videoUrl: string;
-  /** The referenced mediaItem's own `title`, for the player's accessible
-   * name. `FeaturedVideo.astro`'s caller falls back to a safe neutral
-   * string when this is `null`, mirroring `getHeroVideoTitle`. */
+/**
+ * The Music page's Featured video sub-object — deliberately NOT a "whole
+ * section" shape (see `NormalizedFeatured` near `normalizeMusicPageContent`
+ * for that). This is validated as a ready-to-render video or nothing: unlike
+ * the Homepage hero's `getHeroVideoUrl`/`getYouTubeVideoId` two-step (raw URL
+ * resolved now, ID validated later at render time), `videoId` here is already
+ * confirmed valid — there is no second validation step downstream.
+ */
+export interface NormalizedFeaturedVideoRef {
+  videoId: string;
+  /** The referenced mediaItem's own `title`. `music.astro` falls back to a
+   * safe neutral string when this is `null`, mirroring `getHeroVideoTitle`. */
   title: string | null;
 }
 
@@ -1283,7 +1257,10 @@ export interface NormalizedMerchItem {
 
 export interface NormalizedGallerySection {
   kicker: string | null;
-  heading: string | null;
+  /** Required — this is the Gallery & Merchandise page's only heading (its
+   * `<h1>`), always present once the page itself is non-null, even when
+   * `items`/`videos` are both empty. */
+  heading: string;
   body: string | null;
   items: NormalizedGalleryPhoto[];
   /** Independently ordered from `items` — see the module doc comment above
@@ -1324,7 +1301,6 @@ export interface NormalizedEventMediaSubmission {
 }
 
 export interface NormalizedGalleryPageContent {
-  intro: { kicker: string | null; heading: string; lede: string };
   gallery: NormalizedGallerySection;
   eventMediaSubmission: NormalizedEventMediaSubmission | null;
   merch: NormalizedMerchSection;
@@ -1385,8 +1361,7 @@ function normalizeGalleryCredit(
 
 /**
  * A gallery photo must resolve to a real image asset, with intrinsic
- * dimensions and non-blank alt text — the same bar `normalizeFeaturedMedia`
- * already holds the homepage gallery to. Returns `null` for ANY reason a
+ * dimensions and non-blank alt text. Returns `null` for ANY reason a
  * photo cannot be honestly rendered (unresolved reference, missing asset,
  * missing alt, an unknown category, or — in strict mode only — an invalid
  * credit URL). The caller decides what a `null` means: dropped in lenient
@@ -1430,6 +1405,8 @@ function normalizeOneGalleryPhoto(
       width: thumbWidth,
       height: Math.round(thumbWidth / computeCroppedAspectRatio(image)),
       objectPosition: computeObjectPosition(image),
+      srcSet: sanityImageSrcSet(image, GALLERY_THUMB_WIDTHS),
+      sizes: "(max-width: 600px) 44vw, (max-width: 900px) 29vw, 282px",
     },
     full: {
       src: sanityImageUrl(image, { width: lightboxWidth }),
@@ -1684,31 +1661,31 @@ function normalizeMerchItems(
  * locations today are only the Homepage hero (its own, separate
  * `getHeroVideoUrl`/`getHeroVideoTitle` pair below) and the Music page.
  */
-interface RawFeaturedVideoLike {
-  kicker?: string | null;
-  heading?: string | null;
-  video?: { videoUrl?: string | null; title?: string | null } | null;
+interface RawFeaturedVideoRefLike {
+  videoUrl?: string | null;
+  title?: string | null;
 }
 
 /**
- * Mirrors `getHeroVideoUrl` exactly: returns the stored URL, unvalidated, or
- * `null` if nothing is referenced. `getYouTubeVideoId` — approved and
- * untouched — does the actual YouTube-ID validation, at the same layer
- * (`FeaturedVideo.astro`, mirroring `Hero.astro`) the homepage already does
- * it at. A malformed or non-YouTube URL safely resolves to "no video" there,
- * exactly as it does on the homepage. Used by `musicPage.featuredVideo` —
- * see `RawFeaturedVideoLike` above.
+ * Validates one Music-page Featured video reference on its own — no
+ * "kicker"/"heading", and no page-level "null means omit the section"
+ * behavior (that lives in `normalizeMusicPageContent`'s `featured` handling,
+ * since the Featured section itself always renders regardless of whether a
+ * video is selected). Unlike the Homepage hero's two-step
+ * `getHeroVideoUrl`/`getYouTubeVideoId` split, this calls `getYouTubeVideoId`
+ * itself and returns an already-validated `videoId` — a malformed or
+ * non-YouTube URL resolves to `null` here, not downstream.
  */
-function normalizeFeaturedVideo(raw: RawFeaturedVideoLike | null | undefined): NormalizedFeaturedVideo | null {
-  const videoUrl = cleanText(raw?.video?.videoUrl);
+function normalizeFeaturedVideoRef(
+  raw: RawFeaturedVideoRefLike | null | undefined,
+): NormalizedFeaturedVideoRef | null {
+  const videoUrl = cleanText(raw?.videoUrl);
   if (!videoUrl) return null;
 
-  return {
-    kicker: cleanText(raw?.kicker),
-    heading: cleanText(raw?.heading),
-    videoUrl,
-    title: cleanText(raw?.video?.title),
-  };
+  const videoId = getYouTubeVideoId(videoUrl);
+  if (!videoId) return null;
+
+  return { videoId, title: cleanText(raw?.title) };
 }
 
 /**
@@ -1744,13 +1721,15 @@ function normalizeEventMediaSubmission(
 
 /**
  * Treats the Gallery & Merchandise singleton as one editorial unit for its
- * required core (intro + booking CTA), exactly like About and Shows —
- * anything required there that is missing or malformed returns `null` for
- * the whole document. The gallery and merch selections are handled by their
- * own strict/lenient normalizers above; a `null` from either also
- * invalidates the whole page, but ONLY in strict mode (see the module doc
- * comment). There is no featured-video field on this page at all — see the
- * module doc comment.
+ * required core (gallery heading + booking CTA), exactly like About and
+ * Shows — anything required there that is missing or malformed returns
+ * `null` for the whole document. There is no page-intro field on this page
+ * at all: `gallery.heading` is the page's only heading (its `<h1>`) and is
+ * always rendered, even with zero photos/videos selected. The gallery and
+ * merch selections are handled by their own strict/lenient normalizers
+ * above; a `null` from either also invalidates the whole page, but ONLY in
+ * strict mode (see the module doc comment). There is no featured-video field
+ * on this page at all — see the module doc comment.
  *
  * Do NOT fail merely because: the gallery (photos or videos) is empty,
  * merchandise is empty, a category is absent, a media credit is absent, a
@@ -1769,13 +1748,12 @@ export function normalizeGalleryPageContent(
 ): NormalizedGalleryPageContent | null {
   if (!page) return null;
 
-  const introHeading = cleanText(page.intro?.heading);
-  const introLede = cleanText(page.intro?.lede);
+  const galleryHeading = cleanText(page.gallery?.heading);
   const bookingHeading = cleanText(page.bookingCta?.heading);
   const bookingBody = cleanText(page.bookingCta?.body);
   const bookingCtaLabel = cleanText(page.bookingCta?.ctaLabel);
 
-  if (!introHeading || !introLede || !bookingHeading || !bookingBody || !bookingCtaLabel) {
+  if (!galleryHeading || !bookingHeading || !bookingBody || !bookingCtaLabel) {
     return null;
   }
 
@@ -1789,14 +1767,9 @@ export function normalizeGalleryPageContent(
   if (merchItems === null) return null;
 
   return {
-    intro: {
-      kicker: cleanText(page.intro?.kicker),
-      heading: introHeading,
-      lede: introLede,
-    },
     gallery: {
       kicker: cleanText(page.gallery?.kicker),
-      heading: cleanText(page.gallery?.heading),
+      heading: galleryHeading,
       body: cleanText(page.gallery?.body),
       items: galleryItems,
       videos: galleryVideos,
@@ -1934,10 +1907,19 @@ export function normalizeContactPageContent(
 /* =========================================================================
  * Music page (/music)
  *
+ * Visible order: Featured (always rendered, supplies the page's one heading)
+ * → Releases (released music only) → Heavy Crush Records label affiliation.
+ * There is no Upcoming Releases section, empty state, or countdown anywhere
+ * on this page — `musicRelease.state` is retained as a content-model fact
+ * (a release may still be authored as "upcoming" before release day), but
+ * `normalizeMusicReleases` below excludes any non-released entry before it
+ * ever reaches strict/`[TEST]` validation, so an upcoming release can never
+ * fail a production build — see that function's own doc comment.
+ *
  * `releases` is a curated, editor-ordered selection — the same editorial
  * weight as `aboutPage.members` and `galleryPage.gallery.items` — so it
- * follows their precedent: STRICT in production (any invalid selected
- * release fails the whole build) and LENIENT everywhere else (an invalid
+ * follows their precedent: STRICT in production (any invalid *released*
+ * entry fails the whole build) and LENIENT everywhere else (an invalid
  * entry is silently dropped). `options.strict` is set by the caller from
  * the configured DATASET, exactly like `NormalizeGalleryPageOptions.strict`.
  *
@@ -1979,10 +1961,43 @@ export interface NormalizedMusicRelease {
   watchVideoUrl: string | null;
 }
 
+/**
+ * Always rendered — never `null` on its own; a missing/incomplete `featured`
+ * invalidates the whole `NormalizedMusicPageContent`, since `heading` is the
+ * page's one `<h1>`. `video` is independently optional: the section still
+ * renders with just kicker/heading when no video is selected or resolved.
+ */
+export interface NormalizedFeatured {
+  kicker: string | null;
+  heading: string;
+  video: NormalizedFeaturedVideoRef | null;
+}
+
+/**
+ * `null` when the Sanity field is empty/incomplete — `music.astro` falls
+ * back to `siteConfig.heavyCrushRecords` rather than omitting the section
+ * or invalidating the rest of the page. Treated as ONE coherent block:
+ * every field here (including `missionStatement` and every `socialLinks`
+ * URL) must be present and safe for this to be non-null — an incomplete
+ * live document never mixes partial live fields with fallback ones. Moved
+ * here from the About page — the migration is complete: a read-only query
+ * confirmed `musicPage.labelAffiliation` published with real content, and
+ * the deprecated `aboutPage.labelAffiliation` field has since been removed
+ * from the schema entirely (no longer just deprecated/read-only).
+ */
+export interface NormalizedMusicLabelAffiliation {
+  kicker: string | null;
+  text: string;
+  logoAlt: string;
+  url: string;
+  missionStatement: string;
+  socialLinks: { facebookUrl: string; instagramUrl: string; youtubeUrl: string };
+}
+
 export interface NormalizedMusicPageContent {
-  intro: { kicker: string | null; heading: string; lede: string };
+  featured: NormalizedFeatured;
   releases: NormalizedMusicRelease[];
-  featuredVideo: NormalizedFeaturedVideo | null;
+  labelAffiliation: NormalizedMusicLabelAffiliation | null;
   seo: { metaTitle: string | null; metaDescription: string | null; ogImageUrl: string | null };
 }
 
@@ -2162,14 +2177,27 @@ function normalizeOneMusicRelease(
 
 /**
  * `musicPage.releases` is the single source of truth for release membership
- * AND order — this loop never sorts or reorders (`music.astro` derives the
- * Upcoming/Released groups from this one list by filtering on `state`,
- * preserving relative order within each). Invalid entries are filtered out
- * (lenient mode) BEFORE the cap is applied, so an invalid entry never
- * consumes one of the 40 slots. A reference to the same release appearing
- * twice is additionally deduplicated by `_id` — Studio's own custom
- * validation already blocks this in the Studio UI, re-checked here for the
- * same reason every other Studio-enforced rule is re-checked at this layer.
+ * AND order — this loop never sorts or reorders. Only released releases
+ * ever reach the public page: an entry whose raw `state === "upcoming"` is
+ * skipped BEFORE it reaches `normalizeOneMusicRelease`'s strict/`[TEST]`
+ * validation, so an upcoming release — even one carrying `[TEST]` in its
+ * title — can never trip strict mode's "whole list invalid" branch. This is
+ * a defensive, non-fatal exclusion (mirroring Studio's own `state ==
+ * "released"` reference filter on this field, in case it's ever bypassed by
+ * a raw API write), not a production error: an accidentally-selected
+ * upcoming release is silently ignored, exactly like a duplicate reference
+ * is silently deduplicated below.
+ *
+ * A **released** `[TEST]`-titled release is NOT given this early exemption —
+ * it still goes through full strict validation and still fails the whole
+ * build in production, exactly as before.
+ *
+ * Invalid (released) entries are filtered out (lenient mode) BEFORE the cap
+ * is applied, so an invalid entry never consumes one of the 40 slots. A
+ * reference to the same release appearing twice is additionally
+ * deduplicated by `_id` — Studio's own custom validation already blocks
+ * this in the Studio UI, re-checked here for the same reason every other
+ * Studio-enforced rule is re-checked at this layer.
  */
 function normalizeMusicReleases(
   entries: RawMusicReleases,
@@ -2180,6 +2208,8 @@ function normalizeMusicReleases(
 
   for (const entry of entries ?? []) {
     if (items.length >= MAX_MUSIC_RELEASES) break;
+
+    if (entry?.release?.state === "upcoming") continue;
 
     const release = normalizeOneMusicRelease(entry?.release, strict);
     if (release === null) {
@@ -2196,14 +2226,29 @@ function normalizeMusicReleases(
 }
 
 /**
- * Treats the Music singleton's `intro` as the required editorial core,
- * exactly like every other page singleton — missing/incomplete returns
- * `null` for the whole document. The curated `releases` selection is
+ * Treats the Music singleton's `featured` block as the required editorial
+ * core, exactly like every other page singleton's intro — missing/incomplete
+ * returns `null` for the whole document, since `featured.heading` is the
+ * page's one `<h1>` and always renders. The curated `releases` selection is
  * validated by its own strict/lenient rules above; a `null` from it also
  * invalidates the whole document, but ONLY in strict mode (see the module
  * doc comment). An empty or absent `releases` selection is always valid on
  * its own — a Music page with zero releases yet is a legitimate pre-launch
  * state, not an error.
+ *
+ * `featured`/`featuredVideo` migration (phase 1 — see the ELT content
+ * migration plan and `studio/schemaTypes/musicPage.ts`): treated as ONE
+ * coherent block, never merged field-by-field. If the new `featured.heading`
+ * is present, `featured.kicker`/`.video` are used exclusively and the
+ * deprecated `featuredVideo` is ignored entirely; otherwise the complete
+ * deprecated `featuredVideo` block is used instead. This prevents a
+ * still-unmigrated document from showing a new-field kicker next to a
+ * legacy-field video (or vice versa).
+ *
+ * `labelAffiliation` follows the exact same independently-optional,
+ * all-or-nothing contract `aboutPage.labelAffiliation` used to before that
+ * field was removed (migration complete, not just moved) — see
+ * `NormalizedMusicLabelAffiliation`'s doc comment.
  */
 export function normalizeMusicPageContent(
   page: MUSIC_PAGE_QUERY_RESULT,
@@ -2211,21 +2256,63 @@ export function normalizeMusicPageContent(
 ): NormalizedMusicPageContent | null {
   if (!page) return null;
 
-  const introHeading = cleanText(page.intro?.heading);
-  const introLede = cleanText(page.intro?.lede);
-  if (!introHeading || !introLede) return null;
+  const useNewFeatured = Boolean(cleanText(page.featured?.heading));
+  const featuredSource = useNewFeatured ? page.featured : page.featuredVideo;
+  const featuredHeading = cleanText(featuredSource?.heading);
+  if (!featuredHeading) return null;
+
+  const featured: NormalizedFeatured = {
+    kicker: cleanText(featuredSource?.kicker),
+    heading: featuredHeading,
+    video: normalizeFeaturedVideoRef(
+      featuredSource?.video
+        ? { videoUrl: featuredSource.video.videoUrl, title: featuredSource.video.title }
+        : null,
+    ),
+  };
 
   const releases = normalizeMusicReleases(page.releases, options.strict);
   if (releases === null) return null;
 
+  const labelAffiliationText = cleanText(page.labelAffiliation?.text);
+  const labelAffiliationLogoAlt = cleanText(page.labelAffiliation?.logoAlt);
+  const labelAffiliationUrl = safeExternalUrl(page.labelAffiliation?.url);
+  const labelAffiliationMission = cleanText(page.labelAffiliation?.missionStatement);
+  const labelAffiliationFacebook = safeFacebookUrl(page.labelAffiliation?.socialLinks?.facebookUrl);
+  const labelAffiliationInstagram = safeInstagramUrl(page.labelAffiliation?.socialLinks?.instagramUrl);
+  const labelAffiliationYoutube = safeYoutubeUrl(page.labelAffiliation?.socialLinks?.youtubeUrl);
+
   return {
-    intro: {
-      kicker: cleanText(page.intro?.kicker),
-      heading: introHeading,
-      lede: introLede,
-    },
+    featured,
     releases,
-    featuredVideo: normalizeFeaturedVideo(page.featuredVideo),
+    // Independently optional — an incomplete `labelAffiliation` does NOT
+    // invalidate the whole Music page. `music.astro` falls back to the same
+    // approved facts already recorded in `siteConfig.heavyCrushRecords` when
+    // this is `null`. Treated as ONE coherent block, not per-field: every
+    // one of the six fields below must be present and safe, or the whole
+    // object is `null` and the caller substitutes the complete code-owned
+    // default.
+    labelAffiliation:
+      labelAffiliationText &&
+      labelAffiliationLogoAlt &&
+      labelAffiliationUrl &&
+      labelAffiliationMission &&
+      labelAffiliationFacebook &&
+      labelAffiliationInstagram &&
+      labelAffiliationYoutube
+        ? {
+            kicker: cleanText(page.labelAffiliation?.kicker),
+            text: labelAffiliationText,
+            logoAlt: labelAffiliationLogoAlt,
+            url: labelAffiliationUrl,
+            missionStatement: labelAffiliationMission,
+            socialLinks: {
+              facebookUrl: labelAffiliationFacebook,
+              instagramUrl: labelAffiliationInstagram,
+              youtubeUrl: labelAffiliationYoutube,
+            },
+          }
+        : null,
     seo: {
       metaTitle: cleanText(page.seo?.metaTitle),
       metaDescription: cleanText(page.seo?.metaDescription),

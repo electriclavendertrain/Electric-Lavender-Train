@@ -24,59 +24,16 @@ export const aboutPage = defineType({
   icon: UsersIcon,
   initialValue: {
     intro: {
-      kicker: 'About the Band',
-      heading: 'The Electric Lavender Train',
-      lede: 'Dynamic rock ’n’ roll and exhilarating takes on the hit songs audiences know and love, played up and down California’s Central Coast.',
-    },
-    story: {
-      kicker: 'Our Story',
-      heading: 'Rooted in the Central Coast',
+      kicker: 'Who We Are',
+      heading: 'More Than a Band, We\'re Family.',
       paragraphs: [
-        'Electric Lavender Train plays the songs people already know and love, with enough energy to fill a dance floor and enough ease to keep a room comfortable. Winery patios, bar lounges, outdoor concerts, resorts, private celebrations — the set changes with the room, the enthusiasm does not.',
-        'The band is based on California’s Central Coast and plays across it. A night with ELT is meant to feel like a good night out: familiar hits, a band clearly enjoying itself, and a crowd that ends up singing along.',
+        'We\'re a local band with deep roots on the Central Coast. We know the crowd, we know the songs, and we know how to make every night one to remember — full of dancing, singing, and the kind of energy that turns strangers into friends. Whether it\'s a backyard celebration or a packed house downtown, we play it like family.',
+        'Thanks for riding the train with us.',
       ],
-    },
-    labelAffiliation: {
-      kicker: 'Our Label',
-      text: 'The Electric Lavender Train is part of Heavy Crush Records.',
-      logoAlt: 'Heavy Crush Records logo',
-      url: 'https://www.heavycrushrecords.com/',
-      missionStatement: 'Focus on intent. Empower through performance.',
-      socialLinks: {
-        facebookUrl: 'https://www.facebook.com/profile.php?id=61558015122991',
-        instagramUrl: 'https://www.instagram.com/heavycrushrecords',
-        youtubeUrl: 'https://www.youtube.com/c/thetens',
-      },
     },
     membersIntro: {
       kicker: 'The Lineup',
       heading: 'Meet the Band',
-    },
-    experience: {
-      kicker: 'What to Expect',
-      heading: 'The ELT Experience',
-      introduction:
-        'ELT brings exhilarating takes on the hit songs audiences know and love. Powerhouse vocals, guitar-forward chemistry, and a locked-in rhythm section give every performance plenty of energy, while the band’s easygoing presence keeps the room welcoming — from winery patios and lounge stages to outdoor concerts and private celebrations.',
-      highlights: [
-        {
-          _key: 'the-sound',
-          title: 'The Sound',
-          description:
-            'Dynamic rock ’n’ roll, and exhilarating takes on the hit songs a room already knows. Broad appeal without a fixed set list — the songs suit the night.',
-        },
-        {
-          _key: 'on-stage',
-          title: 'On Stage',
-          description:
-            'Powerhouse vocals, guitar-forward chemistry, and a bass-and-drums foundation that holds the whole thing together. Energetic and live, never overproduced.',
-        },
-        {
-          _key: 'in-the-room',
-          title: 'In the Room',
-          description:
-            'Welcoming and easygoing, and at home on a winery patio, a bar lounge stage, an outdoor concert, a resort lawn, or a private celebration anywhere on the Central Coast.',
-        },
-      ],
     },
     testimonialsIntro: {
       kicker: 'What People Are Saying',
@@ -98,6 +55,7 @@ export const aboutPage = defineType({
     defineField({
       name: 'intro',
       title: 'Page introduction',
+      description: '"Who We Are" — moved here from the Homepage, and now the page introduction.',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [
@@ -115,10 +73,19 @@ export const aboutPage = defineType({
         }),
         defineField({
           name: 'lede',
-          title: 'Lede',
-          description: 'One short paragraph introducing the band.',
+          title: 'Lede (deprecated)',
+          description:
+            'Deprecated. Superseded by "Paragraphs" below — kept only for migration reference and no longer read for anything but a fallback when Paragraphs is empty.',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          readOnly: true,
+        }),
+        defineField({
+          name: 'paragraphs',
+          title: 'Paragraphs',
+          description: 'One or two short paragraphs introducing the band.',
+          type: 'array',
+          of: [defineArrayMember({type: 'text', validation: (Rule) => Rule.required()})],
+          validation: (Rule) => Rule.required().min(1).max(2),
         }),
         defineField({
           name: 'heroImage',
@@ -129,152 +96,6 @@ export const aboutPage = defineType({
           to: [{type: 'mediaItem'}],
           options: {filter: 'mediaType == "image"'},
           validation: (Rule) => Rule.required(),
-        }),
-      ],
-    }),
-    defineField({
-      name: 'story',
-      title: 'Our story',
-      type: 'object',
-      validation: (Rule) => Rule.required(),
-      fields: [
-        defineField({
-          name: 'kicker',
-          title: 'Small label above heading',
-          type: 'string',
-        }),
-        defineField({
-          name: 'heading',
-          title: 'Heading',
-          type: 'string',
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'paragraphs',
-          title: 'Paragraphs',
-          description:
-            'One to four short paragraphs. Avoid stating a formation date or origin details that have not been confirmed.',
-          type: 'array',
-          of: [defineArrayMember({type: 'text', validation: (Rule) => Rule.required()})],
-          validation: (Rule) => Rule.required().min(1).max(4),
-        }),
-      ],
-    }),
-    defineField({
-      name: 'labelAffiliation',
-      title: 'Label affiliation',
-      description:
-        'A restrained, code-designed acknowledgment of the Heavy Crush Records relationship, rendered between Our Story and Meet the Band. The logo image itself is a fixed site asset, not uploaded here — this only manages the wording, its alt text, the destination link, the mission statement, and the label’s social links. Optional: while empty, the section still renders using the same approved wording and links as a built-in default. Treated as one coherent block on the frontend — if any part below is left incomplete, the whole section falls back to the approved defaults rather than mixing live and fallback content. Do not change the factual relationship claim without Hunter’s approval.',
-      type: 'object',
-      fields: [
-        defineField({
-          name: 'kicker',
-          title: 'Small label above the text',
-          type: 'string',
-        }),
-        defineField({
-          name: 'text',
-          title: 'Relationship text',
-          description: 'Keep to the approved wording: “The Electric Lavender Train is part of Heavy Crush Records.”',
-          type: 'string',
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'logoAlt',
-          title: 'Logo alternative text',
-          description: 'Accessible description of the Heavy Crush Records logo image.',
-          type: 'string',
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'url',
-          title: 'Heavy Crush Records URL',
-          description: 'The label’s official website. Kept as its own field for backward compatibility with the existing “Visit Heavy Crush Records” link.',
-          type: 'url',
-          validation: (Rule) => Rule.required().uri({scheme: ['http', 'https']}),
-        }),
-        defineField({
-          name: 'missionStatement',
-          title: 'Mission statement',
-          description: 'A short, editable statement of the label’s mission — rendered beneath the relationship text.',
-          type: 'text',
-          rows: 2,
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'socialLinks',
-          title: 'Social links',
-          description:
-            'Heavy Crush Records’ own social links — separate from The Electric Lavender Train’s own social links. Rendered as three buttons in this fixed order: Facebook, Instagram, YouTube. Each URL is checked against its platform’s real hostname so a button cannot silently point somewhere unrelated.',
-          type: 'object',
-          fields: [
-            defineField({
-              name: 'facebookUrl',
-              title: 'Facebook URL',
-              description: 'Must be a real facebook.com link.',
-              type: 'url',
-              validation: (Rule) =>
-                Rule.required()
-                  .uri({scheme: ['https']})
-                  .custom((value) => {
-                    if (!value) return true
-                    let parsed: URL
-                    try {
-                      parsed = new URL(value)
-                    } catch {
-                      return 'Must be a valid URL'
-                    }
-                    return (
-                      parsed.hostname.replace(/^www\./, '') === 'facebook.com' ||
-                      'Must be a real facebook.com link — not a lookalike domain'
-                    )
-                  }),
-            }),
-            defineField({
-              name: 'instagramUrl',
-              title: 'Instagram URL',
-              description: 'Must be a real instagram.com link.',
-              type: 'url',
-              validation: (Rule) =>
-                Rule.required()
-                  .uri({scheme: ['https']})
-                  .custom((value) => {
-                    if (!value) return true
-                    let parsed: URL
-                    try {
-                      parsed = new URL(value)
-                    } catch {
-                      return 'Must be a valid URL'
-                    }
-                    return (
-                      parsed.hostname.replace(/^www\./, '') === 'instagram.com' ||
-                      'Must be a real instagram.com link — not a lookalike domain'
-                    )
-                  }),
-            }),
-            defineField({
-              name: 'youtubeUrl',
-              title: 'YouTube URL',
-              description: 'Must be a real youtube.com link.',
-              type: 'url',
-              validation: (Rule) =>
-                Rule.required()
-                  .uri({scheme: ['https']})
-                  .custom((value) => {
-                    if (!value) return true
-                    let parsed: URL
-                    try {
-                      parsed = new URL(value)
-                    } catch {
-                      return 'Must be a valid URL'
-                    }
-                    return (
-                      parsed.hostname.replace(/^www\./, '') === 'youtube.com' ||
-                      'Must be a real youtube.com link — not a lookalike domain'
-                    )
-                  }),
-            }),
-          ],
         }),
       ],
     }),
@@ -314,9 +135,11 @@ export const aboutPage = defineType({
     }),
     defineField({
       name: 'experience',
-      title: 'The ELT experience',
+      title: 'The ELT experience (deprecated)',
+      description:
+        'Deprecated. Moved to the Homepage (homepage.experience) — no longer rendered on the About page. Read-only; kept only so its previously-entered content can be manually copied into homepage.experience in Studio.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      readOnly: true,
       fields: [
         defineField({
           name: 'kicker',
@@ -327,44 +150,27 @@ export const aboutPage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'introduction',
           title: 'Introduction',
-          description:
-            'One short paragraph answering what ELT sounds like and what a performance feels like.',
           type: 'text',
-          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'highlights',
           title: 'Highlights',
-          description:
-            'Exactly three: the sound, the performance, and the kinds of rooms and audiences that suit the band.',
           type: 'array',
           of: [
             defineArrayMember({
               type: 'object',
               name: 'experienceHighlight',
               fields: [
-                defineField({
-                  name: 'title',
-                  title: 'Title',
-                  type: 'string',
-                  validation: (Rule) => Rule.required(),
-                }),
-                defineField({
-                  name: 'description',
-                  title: 'Description',
-                  type: 'text',
-                  validation: (Rule) => Rule.required(),
-                }),
+                defineField({name: 'title', title: 'Title', type: 'string'}),
+                defineField({name: 'description', title: 'Description', type: 'text'}),
               ],
               preview: {select: {title: 'title', subtitle: 'description'}},
             }),
           ],
-          validation: (Rule) => Rule.required().length(3),
         }),
       ],
     }),

@@ -1,0 +1,174 @@
+---
+/**
+ * "Official Band Photos" — a restrained, Homepage-only showcase of
+ * professionally photographed, approved official band images
+ * (`homepage.officialBandPhotos`). Editorially distinct from the fan/live
+ * imagery on the Gallery & Merchandise page: this section never pulls from
+ * `galleryPage`, never falls back to fan photos or development fixtures, and
+ * simply omits itself when there's nothing valid to show — see
+ * `normalizeOfficialBandPhotos` in `sanity/normalize.ts` for the validation
+ * rules (1-4 photos, real image assets, non-blank alt text, no `[TEST`
+ * marker in production).
+ *
+ * Deliberately a restrained static grid, not a carousel: 1 to 4 strong
+ * photographs, all visible at once, requiring no JavaScript to display.
+ * `<figure>`/`<figcaption>` are used only for photos that carry a credit —
+ * an uncredited photo is a plain `<img>` in a plain grid cell, matching the
+ * "no nested structure without a reason" convention used elsewhere on this
+ * site (e.g. `GalleryPreview.astro` used to do the same before it was
+ * removed; `MediaGallery.astro` still does).
+ *
+ * Below the fold (the Hero owns the only above-the-fold imagery), so every
+ * photo is lazy-loaded — matches the same `loading="lazy"` convention as
+ * every other below-fold image on the site.
+ */
+
+import type { NormalizedOfficialBandPhoto } from "../sanity/normalize";
+
+interface Props {
+  kicker?: string | null;
+  heading: string;
+  body?: string | null;
+  photos: NormalizedOfficialBandPhoto[];
+}
+
+const { kicker, heading, body, photos } = Astro.props;
+---
+
+<section class="official-band-photos" aria-labelledby="official-band-photos-heading">
+  <div class="section-inner">
+    {kicker && <p class="kicker reveal">{kicker}</p>}
+    <h2 id="official-band-photos-heading" class="reveal reveal-1">{heading}</h2>
+    {body && <p class="official-band-photos__body reveal reveal-2">{body}</p>}
+
+    <ul class="official-band-photos__grid reveal reveal-3">
+      {
+        photos.map((photo) => (
+          <li class="official-band-photos__cell">
+            {photo.credit ? (
+              <figure class="official-band-photos__figure">
+                <img
+                  src={photo.src}
+                  srcset={photo.srcSet}
+                  sizes={photo.sizes}
+                  width={photo.width}
+                  height={photo.height}
+                  alt={photo.alt}
+                  loading="lazy"
+                  decoding="async"
+                  style={`--focal-point: ${photo.objectPosition}`}
+                />
+                <figcaption class="official-band-photos__credit">
+                  <span class="visually-hidden">Photo credit: </span>
+                  {photo.credit.url ? (
+                    <a href={photo.credit.url} target="_blank" rel="noopener noreferrer">
+                      {photo.credit.label}
+                      <span class="visually-hidden"> (opens in a new tab)</span>
+                    </a>
+                  ) : (
+                    photo.credit.label
+                  )}
+                </figcaption>
+              </figure>
+            ) : (
+              <img
+                src={photo.src}
+                srcset={photo.srcSet}
+                sizes={photo.sizes}
+                width={photo.width}
+                height={photo.height}
+                alt={photo.alt}
+                loading="lazy"
+                decoding="async"
+                style={`--focal-point: ${photo.objectPosition}`}
+              />
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .official-band-photos__body {
+    color: rgba(244, 232, 208, 0.85);
+    font-size: 1.02rem;
+    font-weight: 300;
+    max-width: 66ch;
+    margin-top: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .official-band-photos__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 22px;
+    margin-top: 40px;
+    list-style: none;
+  }
+
+  .official-band-photos__cell {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  }
+  .official-band-photos__cell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    border: 1px solid rgba(160, 123, 239, 0.25);
+    pointer-events: none;
+  }
+
+  .official-band-photos__figure {
+    display: contents;
+  }
+
+  .official-band-photos__cell img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    object-position: var(--focal-point, 50% 50%);
+  }
+
+  .official-band-photos__credit {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
+    max-width: calc(100% - 20px);
+    padding: 3px 9px;
+    border-radius: 8px;
+    background: rgba(11, 11, 18, 0.6);
+    font-size: 0.7rem;
+    color: rgba(244, 232, 208, 0.75);
+    overflow-wrap: anywhere;
+  }
+  .official-band-photos__credit a {
+    color: rgba(244, 232, 208, 0.75);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .official-band-photos__credit a:hover {
+    color: var(--lavender-soft);
+  }
+
+  @media (max-width: 900px) {
+    .official-band-photos__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 560px) {
+    .official-band-photos__grid {
+      grid-template-columns: 1fr;
+    }
+    .official-band-photos__cell img {
+      aspect-ratio: 16 / 10;
+    }
+  }
+</style>

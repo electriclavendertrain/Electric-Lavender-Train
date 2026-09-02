@@ -22,10 +22,32 @@ export const homepage = defineType({
         actionLabel: 'Follow Us on Instagram',
       },
     },
-    galleryIntro: {
-      kicker: 'Good Times & Great People',
-      heading: 'Live From the Last Show',
-      ctaLabel: 'View Full Gallery',
+    experience: {
+      kicker: 'What to Expect',
+      heading: 'The ELT Experience',
+      introduction:
+        'ELT brings exhilarating takes on the hit songs audiences know and love. Powerhouse vocals, guitar-forward chemistry, and a locked-in rhythm section give every performance plenty of energy, while the band’s easygoing presence keeps the room welcoming — from winery patios and lounge stages to outdoor concerts and private celebrations.',
+      highlights: [
+        {
+          _key: 'the-sound',
+          title: 'The Sound',
+          description:
+            'Dynamic rock ’n’ roll, and exhilarating takes on the hit songs a room already knows. Broad appeal without a fixed set list — the songs suit the night.',
+        },
+        {
+          _key: 'on-stage',
+          title: 'On Stage',
+          description:
+            'Powerhouse vocals, guitar-forward chemistry, and a bass-and-drums foundation that holds the whole thing together. Energetic and live, never overproduced.',
+        },
+        {
+          _key: 'in-the-room',
+          title: 'In the Room',
+          description:
+            'Welcoming and easygoing, and at home on a winery patio, a bar lounge stage, an outdoor concert, a resort lawn, or a private celebration anywhere on the Central Coast.',
+        },
+      ],
+      ctaLabel: 'Meet the Band',
     },
     testimonialsIntro: {
       kicker: 'What People Are Saying',
@@ -75,9 +97,11 @@ export const homepage = defineType({
     }),
     defineField({
       name: 'bandIntro',
-      title: 'Band introduction',
+      title: 'Band introduction (deprecated)',
+      description:
+        'Deprecated. No longer rendered anywhere on the site — the "Who We Are" content moved to the About page (aboutPage.intro). This field is read-only and kept only so its previously-entered content can be manually copied into aboutPage.intro in Studio; it will be removed once that copy is confirmed done.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      readOnly: true,
       fields: [
         defineField({
           name: 'kicker',
@@ -88,15 +112,12 @@ export const homepage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'paragraphs',
           title: 'Paragraphs',
-          description: 'A concise preview of the future About page — one or two short paragraphs.',
           type: 'array',
-          of: [defineArrayMember({type: 'text', validation: (Rule) => Rule.required()})],
-          validation: (Rule) => Rule.required().min(1).max(2),
+          of: [defineArrayMember({type: 'text'})],
         }),
         defineField({
           name: 'ctaLabel',
@@ -106,8 +127,6 @@ export const homepage = defineType({
         defineField({
           name: 'image',
           title: 'Band introduction image',
-          description:
-            'Optional. Image media items only. Independent of the About page’s hero image — choosing the same photo in both places is fine, but changing one never changes the other. If left empty, the heading and paragraphs above still render; a development-only local photo fills the space outside production while no image is selected.',
           type: 'reference',
           to: [{type: 'mediaItem'}],
           options: {filter: 'mediaType == "image"'},
@@ -115,27 +134,10 @@ export const homepage = defineType({
       ],
     }),
     defineField({
-      name: 'featuredMedia',
-      title: 'Featured gallery images',
+      name: 'experience',
+      title: 'The ELT experience',
       description:
-        'Image media items only, shown in the homepage gallery preview. Choose up to six images — they render in the order selected here.',
-      type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'reference',
-          to: [{type: 'mediaItem'}],
-          options: {
-            filter: 'mediaType == "image"',
-          },
-        }),
-      ],
-      validation: (Rule) => Rule.max(6),
-    }),
-    defineField({
-      name: 'galleryIntro',
-      title: 'Gallery section heading',
-      description:
-        'Homepage copy shown above the selected gallery images. The gallery images themselves are chosen in “Featured gallery images”.',
+        'Moved here from the About page — rendered on the Homepage between the hero and Upcoming Shows.',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [
@@ -143,7 +145,6 @@ export const homepage = defineType({
           name: 'kicker',
           title: 'Small label above heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
         }),
         defineField({
           name: 'heading',
@@ -152,11 +153,104 @@ export const homepage = defineType({
           validation: (Rule) => Rule.required(),
         }),
         defineField({
+          name: 'introduction',
+          title: 'Introduction',
+          description:
+            'One short paragraph answering what ELT sounds like and what a performance feels like.',
+          type: 'text',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'highlights',
+          title: 'Highlights',
+          description:
+            'Exactly three: the sound, the performance, and the kinds of rooms and audiences that suit the band.',
+          type: 'array',
+          of: [
+            defineArrayMember({
+              type: 'object',
+              name: 'experienceHighlight',
+              fields: [
+                defineField({
+                  name: 'title',
+                  title: 'Title',
+                  type: 'string',
+                  validation: (Rule) => Rule.required(),
+                }),
+                defineField({
+                  name: 'description',
+                  title: 'Description',
+                  type: 'text',
+                  validation: (Rule) => Rule.required(),
+                }),
+              ],
+              preview: {select: {title: 'title', subtitle: 'description'}},
+            }),
+          ],
+          validation: (Rule) => Rule.required().length(3),
+        }),
+        defineField({
           name: 'ctaLabel',
           title: 'Button text',
-          description: 'Links to the Media & Merch page.',
+          description:
+            'Links to the About page ("Meet the Band"). The destination is fixed in code, not editable here — only this visible label is.',
           type: 'string',
           validation: (Rule) => Rule.required(),
+        }),
+      ],
+    }),
+    defineField({
+      name: 'officialBandPhotos',
+      title: 'Official band photos',
+      description:
+        'A restrained, Homepage-only showcase of professionally photographed, approved official band images — distinct from the fan/live imagery on the Gallery & Merchandise page, and never sourced from it automatically. Optional: omitted from the page entirely when empty or when every selected photo is invalid. Choose 1 to 4 strong images — fewer, stronger photos are preferred over a large set.',
+      type: 'object',
+      fields: [
+        defineField({
+          name: 'kicker',
+          title: 'Small label above heading',
+          type: 'string',
+        }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          description: 'Required once this block has any photos selected.',
+          type: 'string',
+          validation: (Rule) => Rule.required(),
+        }),
+        defineField({
+          name: 'body',
+          title: 'Introductory text',
+          description: 'Optional short paragraph above the photos.',
+          type: 'text',
+        }),
+        defineField({
+          name: 'photos',
+          title: 'Photos — drag to order',
+          description:
+            'Image media items only. Choose 1 to 4 — this is the rendered order. Awaiting the professional photographs from Hunter; do not select fan/live Gallery images or development test fixtures here.',
+          type: 'array',
+          of: [
+            defineArrayMember({
+              type: 'reference',
+              to: [{type: 'mediaItem'}],
+              options: {filter: 'mediaType == "image"'},
+            }),
+          ],
+          validation: (Rule) =>
+            Rule.min(1)
+              .max(4)
+              .custom((value) => {
+                if (!value || value.length === 0) return true
+                const refs = value
+                  .map((entry) => (entry as {_ref?: string})._ref)
+                  .filter((ref): ref is string => Boolean(ref))
+                const uniqueRefs = new Set(refs)
+                return (
+                  uniqueRefs.size === refs.length ||
+                  'Each photo may only appear once — remove the duplicate.'
+                )
+              }),
         }),
       ],
     }),
