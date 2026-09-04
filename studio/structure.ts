@@ -31,6 +31,11 @@ export const structure: StructureResolver = (S) =>
         .icon(CalendarIcon)
         .child(S.document().schemaType('showsPage').documentId('showsPage')),
       S.listItem()
+        .title('Music Page')
+        .id('musicPage')
+        .icon(MicrophoneIcon)
+        .child(S.document().schemaType('musicPage').documentId('musicPage')),
+      S.listItem()
         .title('Gallery & Merchandise Page')
         .id('galleryPage')
         .icon(ImagesIcon)
@@ -40,11 +45,6 @@ export const structure: StructureResolver = (S) =>
         .id('contactPage')
         .icon(EnvelopeIcon)
         .child(S.document().schemaType('contactPage').documentId('contactPage')),
-      S.listItem()
-        .title('Music Page')
-        .id('musicPage')
-        .icon(MicrophoneIcon)
-        .child(S.document().schemaType('musicPage').documentId('musicPage')),
       S.divider(),
       // Reusable content — ordinary documents, created and deleted freely.
       S.listItem()
@@ -139,14 +139,4 @@ export const structure: StructureResolver = (S) =>
         .id('mediaLibrary')
         .icon(ImagesIcon)
         .child(S.documentTypeList('mediaItem').title('Media Library')),
-      // No entry here for the deprecated `mediaPage` (Media & Merch,
-      // pre-rename). The type stays registered in `schemaTypes/index.ts`
-      // and `SINGLETON_TYPES` (read-only, per its own doc comment) and its
-      // one document is untouched — this is deliberately just an omission
-      // from the *navigable list*, not a deletion, so Hunter is never
-      // presented with two "Gallery & Merch" choices in Studio, while the
-      // document remains fully intact for rollback/history. Reachable
-      // directly (e.g. the Vision plugin, or a hand-typed Studio URL) by
-      // anyone who specifically needs it; deleting the type/document
-      // outright needs separate authorization — see mediaPage.ts.
     ])

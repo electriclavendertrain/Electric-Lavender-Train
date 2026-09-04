@@ -5,13 +5,15 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
  * The Gallery & Merchandise page singleton, with the fixed `_id: "galleryPage"`.
  *
  * Renamed from `mediaPage` (visitor-facing "Media & Merch" → "Gallery &
- * Merchandise", route `/media-merch` → `/gallery-merch`). `mediaPage` itself
- * is retained, deprecated and read-only, as a legacy copy of the prior
- * content — see that schema file's own doc comment — this is the active
- * singleton going forward. The one content difference from `mediaPage`
- * (beyond the rename): **no featured-video field**. Featured, click-to-load
- * video locations are now only the Homepage hero and the Music page — see
- * `docs/gallery-merch.md` and `docs/music.md`.
+ * Merchandise", route `/media-merch` → `/gallery-merch`). The legacy
+ * `mediaPage` schema type has since been retired (its Studio registration
+ * removed) now that this singleton's content has been confirmed complete;
+ * its one dataset document was deliberately left untouched rather than
+ * deleted, so it remains available directly via the API or Vision as a
+ * historical reference. The one content difference from the old `mediaPage`
+ * shape (beyond the rename): **no featured-video field**. Featured,
+ * click-to-load video locations are now only the Homepage hero and the
+ * Music page — see `docs/gallery-merch.md` and `docs/music.md`.
  *
  * Same singleton conventions as every other page singleton: one fixed
  * Structure entry, stripped from `schema.templates` and the global "+" menu

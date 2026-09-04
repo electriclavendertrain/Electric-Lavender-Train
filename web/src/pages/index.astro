@@ -131,7 +131,7 @@ const upcomingShowsContent = hasCompleteUpcomingShowsContent
   : upcomingShowsFallback;
 
 // "The ELT Experience" — moved here from the About page. `isExperienceContentComplete`
-// trims every string (heading, introduction, CTA label, and each highlight's
+// trims every string (heading, introduction, and each highlight's
 // title/description) before checking it, so a whitespace-only value can
 // never pass as complete — see that function's doc comment in normalize.ts.
 const hasCompleteExperienceContent = isExperienceContentComplete(homepage?.experience);
@@ -168,9 +168,24 @@ if (officialBandPhotosResult === null && isProductionDataset) {
   );
 }
 const officialBandPhotos = officialBandPhotosResult ?? [];
+const officialBandPhotosCtaLabel = homepage?.officialBandPhotos?.ctaLabel?.trim();
 const hasCompleteOfficialBandPhotos = Boolean(
-  homepage?.officialBandPhotos?.heading && officialBandPhotos.length > 0,
+  homepage?.officialBandPhotos?.heading?.trim() &&
+  officialBandPhotosCtaLabel &&
+  officialBandPhotos.length > 0,
 );
+
+if (
+  isProductionDataset &&
+  (homepage?.officialBandPhotos?.photos?.length ?? 0) > 0 &&
+  !hasCompleteOfficialBandPhotos
+) {
+  throw new Error(
+    "The Sanity `homepage.officialBandPhotos` section is incomplete in the production dataset. " +
+      "A selected official photo requires a heading, a Meet the Band button label, and valid image content. " +
+      "Complete the section in Sanity Studio before building for production.",
+  );
+}
 
 // A production dataset must own all required Homepage editorial content in
 // Studio. The code fallbacks are migration/development scaffolding, not a way
@@ -188,7 +203,7 @@ if (
 ) {
   throw new Error(
     "The Sanity `homepage` singleton is incomplete in the production dataset. " +
-      "Complete the hero, the ELT Experience section (heading, introduction, CTA label, and " +
+      "Complete the hero, the ELT Experience section (heading, introduction, and " +
       "exactly three highlights each with a title and description), upcoming-shows " +
       "copy, testimonial heading, newsletter section, and booking call to action in " +
       "Studio before building for production.",
@@ -215,25 +230,25 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
     )
   }
 
-  <AboutExperience
-    headingId={EXPERIENCE_HEADING_ID}
-    kicker={experienceContent.kicker}
-    heading={experienceContent.heading}
-    introduction={experienceContent.introduction}
-    highlights={experienceContent.highlights}
-    ctaLabel={experienceContent.ctaLabel}
-  />
-
   {
     hasCompleteOfficialBandPhotos && (
       <OfficialBandPhotos
         kicker={homepage!.officialBandPhotos!.kicker}
         heading={homepage!.officialBandPhotos!.heading}
         body={homepage!.officialBandPhotos!.body}
+        ctaLabel={officialBandPhotosCtaLabel!}
         photos={officialBandPhotos}
       />
     )
   }
+
+  <AboutExperience
+    headingId={EXPERIENCE_HEADING_ID}
+    kicker={experienceContent.kicker}
+    heading={experienceContent.heading}
+    introduction={experienceContent.introduction}
+    highlights={experienceContent.highlights}
+  />
 
   <UpcomingShows
     kicker={upcomingShowsContent.kicker}

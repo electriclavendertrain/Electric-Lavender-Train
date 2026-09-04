@@ -4,8 +4,8 @@ import {defineField, defineType} from 'sanity'
  * A reusable ELT music release. Ordinary generated `_id`s, selected into
  * `musicPage.releases` in editor-chosen order — the same "reusable document
  * + ordered reference array in the page singleton" convention already used
- * by `aboutPage.members`, `mediaPage.gallery.items`, and
- * `mediaPage.merch.items`.
+ * by `aboutPage.members`, `galleryPage.gallery.items`, and
+ * `galleryPage.merch.items`.
  *
  * `state` decides which of the two page sections a release appears in
  * (Upcoming vs. Released) — it is a fact about the release itself, not

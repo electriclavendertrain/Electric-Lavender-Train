@@ -21,18 +21,23 @@
  * Below the fold (the Hero owns the only above-the-fold imagery), so every
  * photo is lazy-loaded — matches the same `loading="lazy"` convention as
  * every other below-fold image on the site.
+ *
+ * The editable "Meet the Band" label lives with this section in Studio;
+ * its About-page destination remains a code-owned route.
  */
 
+import siteConfig from "../data/siteConfig";
 import type { NormalizedOfficialBandPhoto } from "../sanity/normalize";
 
 interface Props {
   kicker?: string | null;
   heading: string;
   body?: string | null;
+  ctaLabel: string;
   photos: NormalizedOfficialBandPhoto[];
 }
 
-const { kicker, heading, body, photos } = Astro.props;
+const { kicker, heading, body, ctaLabel, photos } = Astro.props;
 ---
 
 <section class="official-band-photos" aria-labelledby="official-band-photos-heading">
@@ -87,6 +92,12 @@ const { kicker, heading, body, photos } = Astro.props;
         ))
       }
     </ul>
+
+    <div class="official-band-photos__cta reveal reveal-4">
+      <a href={siteConfig.routes.about} class="btn btn-ghost">
+        {ctaLabel} &rarr;
+      </a>
+    </div>
   </div>
 </section>
 
@@ -106,6 +117,10 @@ const { kicker, heading, body, photos } = Astro.props;
     gap: 22px;
     margin-top: 40px;
     list-style: none;
+  }
+
+  .official-band-photos__cta {
+    margin-top: 40px;
   }
 
   .official-band-photos__cell {

@@ -19,8 +19,6 @@ const SINGLETON_TYPES = [
   'aboutPage',
   'showsPage',
   'galleryPage',
-  // Deprecated legacy singleton, retained read-only — see mediaPage.ts.
-  'mediaPage',
   'contactPage',
   'musicPage',
 ]

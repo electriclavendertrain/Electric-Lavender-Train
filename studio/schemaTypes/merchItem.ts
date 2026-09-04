@@ -5,7 +5,7 @@ import {defineField, defineType} from 'sanity'
  * A reusable, editorial, inquiry-only merchandise item.
  *
  * Ordinary Sanity-generated `_id`s — this is NOT a singleton. Display order is
- * controlled entirely by `mediaPage.merch.items`, the same "reference array
+ * controlled entirely by `galleryPage.merch.items`, the same "reference array
  * order is render order" convention as `homepage.featuredMedia` and
  * `aboutPage.members`, so no `displayOrder` field is added here.
  *

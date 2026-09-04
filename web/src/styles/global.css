@@ -377,10 +377,19 @@ h2 {
    * permanent and skips the animation, so the block does not fade in again
    * once focus moves on.
    *
+   * `:not(.in)` scopes this to elements not yet revealed — its only real job.
+   * Without it, this rule also matches an already-`.in` element that a mouse
+   * click focuses directly (e.g. a `<summary>` inside a `<details class="reveal">`,
+   * like the Contact page's FAQ): `animation: none` there cancels an already-
+   * finished `eltEnter` that CSS has no further reason to touch, and cancelling
+   * a running/held animation is a one-frame flash back to the un-animated
+   * `opacity: 0` base in Chromium before this rule's own `opacity: 1` repaints
+   * — visible as a brief "reload" flicker exactly when a FAQ entry is toggled.
+   *
    * Must stay AFTER the `.in` rule above: same specificity, so source order
-   * is what lets `animation: none` win.
+   * is what lets `animation: none` win for the `:not(.in)` case it still covers.
    */
-  html.js-reveal .reveal:focus-within,
+  html.js-reveal .reveal:not(.in):focus-within,
   html.js-reveal .reveal.reveal-instant {
     opacity: 1;
     animation: none;

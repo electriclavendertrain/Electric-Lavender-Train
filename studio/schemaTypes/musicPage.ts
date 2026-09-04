@@ -57,7 +57,7 @@ export const musicPage = defineType({
       name: 'featured',
       title: 'Featured',
       description:
-        'Always rendered as the page\'s first section and its one heading — unlike the deprecated "Featured video" below, this is never conditionally omitted. The video is optional: the section still renders with just the heading when no video is selected.',
+        'Always rendered as the page\'s first section and its one heading — this is never conditionally omitted. The video is optional: the section still renders with just the heading when no video is selected.',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [
@@ -77,27 +77,6 @@ export const musicPage = defineType({
           name: 'video',
           title: 'Video',
           description: 'Optional. YouTube video items only — the approved player is YouTube-only.',
-          type: 'reference',
-          to: [{type: 'mediaItem'}],
-          options: {
-            filter: 'mediaType == "video" && videoProvider == "youtube"',
-          },
-        }),
-      ],
-    }),
-    defineField({
-      name: 'featuredVideo',
-      title: 'Featured video (deprecated)',
-      description:
-        'Deprecated. Superseded by "Featured" above. Read-only; kept only so its previously-entered content can be manually copied into "Featured" in Studio.',
-      type: 'object',
-      readOnly: true,
-      fields: [
-        defineField({name: 'kicker', title: 'Small label above heading', type: 'string'}),
-        defineField({name: 'heading', title: 'Heading', type: 'string'}),
-        defineField({
-          name: 'video',
-          title: 'Video',
           type: 'reference',
           to: [{type: 'mediaItem'}],
           options: {

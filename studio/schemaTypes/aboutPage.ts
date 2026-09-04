@@ -72,17 +72,9 @@ export const aboutPage = defineType({
           validation: (Rule) => Rule.required(),
         }),
         defineField({
-          name: 'lede',
-          title: 'Lede (deprecated)',
-          description:
-            'Deprecated. Superseded by "Paragraphs" below — kept only for migration reference and no longer read for anything but a fallback when Paragraphs is empty.',
-          type: 'text',
-          readOnly: true,
-        }),
-        defineField({
           name: 'paragraphs',
           title: 'Paragraphs',
-          description: 'One or two short paragraphs introducing the band.',
+          description: 'One or two short paragraphs introducing the band. The sole source for the About page introduction.',
           type: 'array',
           of: [defineArrayMember({type: 'text', validation: (Rule) => Rule.required()})],
           validation: (Rule) => Rule.required().min(1).max(2),
@@ -132,47 +124,6 @@ export const aboutPage = defineType({
       type: 'array',
       of: [defineArrayMember({type: 'reference', to: [{type: 'bandMember'}]})],
       validation: (Rule) => Rule.required().min(1).max(8),
-    }),
-    defineField({
-      name: 'experience',
-      title: 'The ELT experience (deprecated)',
-      description:
-        'Deprecated. Moved to the Homepage (homepage.experience) — no longer rendered on the About page. Read-only; kept only so its previously-entered content can be manually copied into homepage.experience in Studio.',
-      type: 'object',
-      readOnly: true,
-      fields: [
-        defineField({
-          name: 'kicker',
-          title: 'Small label above heading',
-          type: 'string',
-        }),
-        defineField({
-          name: 'heading',
-          title: 'Heading',
-          type: 'string',
-        }),
-        defineField({
-          name: 'introduction',
-          title: 'Introduction',
-          type: 'text',
-        }),
-        defineField({
-          name: 'highlights',
-          title: 'Highlights',
-          type: 'array',
-          of: [
-            defineArrayMember({
-              type: 'object',
-              name: 'experienceHighlight',
-              fields: [
-                defineField({name: 'title', title: 'Title', type: 'string'}),
-                defineField({name: 'description', title: 'Description', type: 'text'}),
-              ],
-              preview: {select: {title: 'title', subtitle: 'description'}},
-            }),
-          ],
-        }),
-      ],
     }),
     defineField({
       name: 'testimonialsIntro',

@@ -39,7 +39,8 @@ export const upcomingShowsFallback = {
   viewAllLabel: "View All Shows",
   emptyState: {
     title: "No shows on the calendar right now",
-    message: "Check back soon, or follow along on Instagram for the latest announcements.",
+    message:
+      "Check back soon, or follow along on Instagram for the latest announcements.",
     actionLabel: "Follow Us on Instagram",
   },
 };
@@ -93,7 +94,6 @@ export const experienceFallback = {
         "Welcoming and easygoing, and at home on a winery patio, a bar lounge stage, an outdoor concert, a resort lawn, or a private celebration anywhere on the Central Coast.",
     },
   ],
-  ctaLabel: "Meet the Band",
 };
 
 export const testimonialsIntroFallback = {

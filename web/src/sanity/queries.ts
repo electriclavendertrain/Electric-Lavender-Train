@@ -1,4 +1,4 @@
-import {defineQuery} from 'groq'
+import { defineQuery } from "groq";
 
 /**
  * Fetches the homepage singleton by its fixed `_id`. Fetched once, at build
@@ -8,17 +8,11 @@ export const HOMEPAGE_QUERY = defineQuery(`
   *[_type == "homepage" && _id == "homepage"][0]{
     hero,
     heroVideo->{ videoUrl, videoProvider, title },
-    experience{
-      kicker,
-      heading,
-      introduction,
-      highlights[]{ _key, title, description },
-      ctaLabel
-    },
     officialBandPhotos{
       kicker,
       heading,
       body,
+      ctaLabel,
       photos[]{
         _key,
         "mediaItem": @->{
@@ -37,6 +31,12 @@ export const HOMEPAGE_QUERY = defineQuery(`
         }
       }
     },
+    experience{
+      kicker,
+      heading,
+      introduction,
+      highlights[]{ _key, title, description }
+    },
     upcomingShows{
       kicker,
       heading,
@@ -48,7 +48,7 @@ export const HOMEPAGE_QUERY = defineQuery(`
     newsletter{ kicker, heading, body, ctaLabel },
     seo
   }
-`)
+`);
 
 /* -------------------------------------------------------------------------
  * Reusable testimonials
@@ -94,7 +94,7 @@ export const TESTIMONIALS_QUERY = defineQuery(`
       }
     }
   }
-`)
+`);
 
 /* -------------------------------------------------------------------------
  * About page (/about)
@@ -125,7 +125,6 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
       kicker,
       heading,
       paragraphs,
-      lede,
       heroImage->{
         _id,
         title,
@@ -166,7 +165,7 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
     bookingCta{ kicker, heading, body, ctaLabel },
     seo{ metaTitle, metaDescription, ogImage }
   }
-`)
+`);
 
 /**
  * The next three chronologically upcoming public scheduled events, fetched
@@ -183,7 +182,7 @@ export const UPCOMING_PUBLIC_EVENTS_QUERY = defineQuery(`
     _id, title, slug, startDateTime, endDateTime,
     venue, location, externalEventUrl
   }
-`)
+`);
 
 /* -------------------------------------------------------------------------
  * Shows page (/shows)
@@ -220,7 +219,7 @@ export const SHOWS_PAGE_QUERY = defineQuery(`
     bookingCta{ kicker, heading, body, ctaLabel },
     seo{ metaTitle, metaDescription, ogImage }
   }
-`)
+`);
 
 /**
  * Every upcoming PUBLIC event, as one chronological stream — including
@@ -252,7 +251,7 @@ export const SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY = defineQuery(`
     description,
     externalEventUrl
   }
-`)
+`);
 
 /**
  * Upcoming private bookings, reduced to nothing but an id and two times.
@@ -279,7 +278,7 @@ export const SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY = defineQuery(`
     startDateTime,
     endDateTime
   }
-`)
+`);
 
 /**
  * The twelve most recent public shows that actually happened, newest first.
@@ -307,7 +306,7 @@ export const SHOWS_RECENT_PUBLIC_EVENTS_QUERY = defineQuery(`
     description,
     externalEventUrl
   }
-`)
+`);
 
 /* -------------------------------------------------------------------------
  * Gallery & Merchandise page (/gallery-merch)
@@ -345,7 +344,7 @@ export const CONTACT_PAGE_QUERY = defineQuery(`
     faq[]{ _key, question, answer },
     seo{ metaTitle, metaDescription, ogImage }
   }
-`)
+`);
 
 /* -------------------------------------------------------------------------
  * Music page (/music)
@@ -356,14 +355,12 @@ export const CONTACT_PAGE_QUERY = defineQuery(`
  * Music page renders released music only; there is no Upcoming Releases
  * section, empty state, or countdown.
  *
- * `featured` (live) and `featuredVideo` (deprecated, read-only — see
- * `studio/schemaTypes/musicPage.ts`) are both selected here so
- * `normalizeMusicPageContent` can prefer the new field while the old one is
- * still being migrated by hand in Studio: see that function's doc comment
- * for the whole-block (never per-field) selection rule.
+ * `featured` is the sole source for the page's Featured section — see
+ * `studio/schemaTypes/musicPage.ts`. The deprecated `featuredVideo` field
+ * has been removed from the schema and is no longer selected here.
  *
- * Field order below (featured, featuredVideo, labelAffiliation, releases,
- * seo) matches the editorial placement on the page: Featured renders first
+ * Field order below (featured, labelAffiliation, releases, seo) matches
+ * the editorial placement on the page: Featured renders first
  * and supplies the page's one heading, then Releases, then the Heavy Crush
  * Records label affiliation — see `music.astro` and the matching field
  * order in `studio/schemaTypes/musicPage.ts`. GROQ doesn't care about
@@ -374,15 +371,6 @@ export const CONTACT_PAGE_QUERY = defineQuery(`
 export const MUSIC_PAGE_QUERY = defineQuery(`
   *[_type == "musicPage" && _id == "musicPage"][0]{
     featured{
-      kicker,
-      heading,
-      video->{
-        videoUrl,
-        videoProvider,
-        title
-      }
-    },
-    featuredVideo{
       kicker,
       heading,
       video->{
@@ -428,7 +416,7 @@ export const MUSIC_PAGE_QUERY = defineQuery(`
     },
     seo{ metaTitle, metaDescription, ogImage }
   }
-`)
+`);
 
 /* -------------------------------------------------------------------------
  * Gallery & Merchandise page (/gallery-merch)
@@ -522,4 +510,4 @@ export const GALLERY_PAGE_QUERY = defineQuery(`
     bookingCta{ kicker, heading, body, ctaLabel },
     seo{ metaTitle, metaDescription, ogImage }
   }
-`)
+`);

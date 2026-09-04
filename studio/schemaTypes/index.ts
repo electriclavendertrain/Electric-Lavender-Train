@@ -5,7 +5,6 @@ import {event} from './event'
 import {galleryPage} from './galleryPage'
 import {homepage} from './homepage'
 import {mediaItem} from './mediaItem'
-import {mediaPage} from './mediaPage'
 import {merchItem} from './merchItem'
 import {musicPage} from './musicPage'
 import {musicRelease} from './musicRelease'
@@ -23,9 +22,6 @@ export const schemaTypes = [
   aboutPage,
   showsPage,
   galleryPage,
-  // Deprecated legacy type — retained read-only, not queried by the
-  // frontend. See mediaPage.ts's own doc comment.
-  mediaPage,
   contactPage,
   musicPage,
 ]

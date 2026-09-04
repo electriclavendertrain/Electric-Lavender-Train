@@ -1,10 +1,15 @@
 import { sanityImageUrl, sanityImageSrcSet } from "./image";
 import { isValidDateTime, isValidCalendarDateOnly } from "../lib/dateFormat";
+import { TEST_BIOGRAPHY_MARKER } from "../data/aboutData";
 import {
-  TEST_BIOGRAPHY_MARKER,
-} from "../data/aboutData";
-import { TEST_PRODUCT_MARKER, TEST_MEDIA_ITEM_MARKER, TEST_VIDEO_ID } from "../data/galleryMerchData";
-import { TEST_NEWSLETTER_MARKER, REQUIRED_EXPERIENCE_HIGHLIGHTS } from "../data/homeData";
+  TEST_PRODUCT_MARKER,
+  TEST_MEDIA_ITEM_MARKER,
+  TEST_VIDEO_ID,
+} from "../data/galleryMerchData";
+import {
+  TEST_NEWSLETTER_MARKER,
+  REQUIRED_EXPERIENCE_HIGHLIGHTS,
+} from "../data/homeData";
 import { TEST_RELEASE_MARKER } from "../data/musicData";
 import { getYouTubeVideoId } from "../lib/youtube";
 import type {
@@ -200,7 +205,8 @@ function normalizeTestimonialLogo(
 
   // No resolved reference, no asset, or no intrinsic dimensions to reserve
   // space with — omit the logo rather than ship a broken or shifting image.
-  if (!image || !assetId || !dimensions?.width || !dimensions?.height) return null;
+  if (!image || !assetId || !dimensions?.width || !dimensions?.height)
+    return null;
 
   const width = TESTIMONIAL_LOGO_WIDTH;
   return {
@@ -229,8 +235,14 @@ export function normalizeUpcomingEvents(
     .filter(
       (
         event,
-      ): event is typeof event & { title: string; venue: string; location: string } =>
-        Boolean(event.title && event.venue && event.location && event.startDateTime),
+      ): event is typeof event & {
+        title: string;
+        venue: string;
+        location: string;
+      } =>
+        Boolean(
+          event.title && event.venue && event.location && event.startDateTime,
+        ),
     )
     .map((event) => ({
       _id: event._id,
@@ -261,8 +273,15 @@ export function isHeroContentComplete(
  */
 export function isBookingCtaComplete(
   bookingCta: Homepage["bookingCta"],
-): bookingCta is { kicker?: string; heading: string; body: string; ctaLabel: string } {
-  return Boolean(bookingCta?.heading && bookingCta?.body && bookingCta?.ctaLabel);
+): bookingCta is {
+  kicker?: string;
+  heading: string;
+  body: string;
+  ctaLabel: string;
+} {
+  return Boolean(
+    bookingCta?.heading && bookingCta?.body && bookingCta?.ctaLabel,
+  );
 }
 
 /**
@@ -284,11 +303,23 @@ export function isBookingCtaComplete(
 export function isNewsletterComplete(
   newsletter: Homepage["newsletter"],
   strict: boolean,
-): newsletter is { kicker: string | null; heading: string; body: string; ctaLabel: string } {
-  if (!newsletter?.heading || !newsletter?.body || !newsletter?.ctaLabel) return false;
+): newsletter is {
+  kicker: string | null;
+  heading: string;
+  body: string;
+  ctaLabel: string;
+} {
+  if (!newsletter?.heading || !newsletter?.body || !newsletter?.ctaLabel)
+    return false;
   if (strict) {
-    const values = [newsletter.kicker, newsletter.heading, newsletter.body, newsletter.ctaLabel];
-    if (values.some((value) => value?.includes(TEST_NEWSLETTER_MARKER))) return false;
+    const values = [
+      newsletter.kicker,
+      newsletter.heading,
+      newsletter.body,
+      newsletter.ctaLabel,
+    ];
+    if (values.some((value) => value?.includes(TEST_NEWSLETTER_MARKER)))
+      return false;
   }
   return true;
 }
@@ -300,7 +331,9 @@ export function isNewsletterComplete(
  * URL, so a malformed or non-YouTube reference safely renders the static
  * logo without any extra checking here.
  */
-export function getHeroVideoUrl(heroVideo: Homepage["heroVideo"] | undefined): string | null {
+export function getHeroVideoUrl(
+  heroVideo: Homepage["heroVideo"] | undefined,
+): string | null {
   return heroVideo?.videoUrl ?? null;
 }
 
@@ -310,7 +343,9 @@ export function getHeroVideoUrl(heroVideo: Homepage["heroVideo"] | undefined): s
  * `null` — a missing/unresolved reference, or a reference with a blank
  * title, is not a reason to fail anything here.
  */
-export function getHeroVideoTitle(heroVideo: Homepage["heroVideo"] | undefined): string | null {
+export function getHeroVideoTitle(
+  heroVideo: Homepage["heroVideo"] | undefined,
+): string | null {
   return cleanText(heroVideo?.title);
 }
 
@@ -323,15 +358,17 @@ const OG_IMAGE_SIZE = { width: 1200, height: 630 };
  * — `seo.ogImage` can exist as an empty `{_type: "image"}` object with no
  * upload, which would otherwise build a broken CDN URL.
  */
-export function getOgImageUrl(ogImage: OgImage | null | undefined): string | null {
+export function getOgImageUrl(
+  ogImage: OgImage | null | undefined,
+): string | null {
   if (!ogImage?.asset) return null;
   return sanityImageUrl(ogImage, OG_IMAGE_SIZE);
 }
 
 /**
  * The Homepage's "ELT Experience" section requires a heading, an
- * introduction, a CTA button label, and exactly `REQUIRED_EXPERIENCE_HIGHLIGHTS`
- * highlights — each with a non-blank title and description. Every string
+ * introduction, and exactly `REQUIRED_EXPERIENCE_HIGHLIGHTS` highlights —
+ * each with a non-blank title and description. Every string
  * passes through `cleanText` before being checked, so a whitespace-only
  * value (e.g. a single space) can never pass as complete — matching the
  * requirement that whitespace-only Experience fields must fail this guard.
@@ -340,17 +377,14 @@ export function getOgImageUrl(ogImage: OgImage | null | undefined): string | nul
 export function isExperienceContentComplete(
   experience: Homepage["experience"] | undefined,
 ): boolean {
-  if (
-    !cleanText(experience?.heading) ||
-    !cleanText(experience?.introduction) ||
-    !cleanText(experience?.ctaLabel)
-  ) {
+  if (!cleanText(experience?.heading) || !cleanText(experience?.introduction)) {
     return false;
   }
   const highlights = experience?.highlights ?? [];
   if (highlights.length !== REQUIRED_EXPERIENCE_HIGHLIGHTS) return false;
   return highlights.every(
-    (highlight) => cleanText(highlight?.title) && cleanText(highlight?.description),
+    (highlight) =>
+      cleanText(highlight?.title) && cleanText(highlight?.description),
   );
 }
 
@@ -411,17 +445,23 @@ function normalizeOneOfficialBandPhoto(
   const image = media.image;
   const assetId = image?.asset?._id;
   const dimensions = image?.asset?.metadata?.dimensions;
-  if (!alt || !image || !assetId || !dimensions?.width || !dimensions?.height) return null;
+  if (!alt || !image || !assetId || !dimensions?.width || !dimensions?.height)
+    return null;
 
   if (strict) {
     const title = media.title ?? "";
-    if (title.includes(TEST_MEDIA_ITEM_MARKER) || alt.includes(TEST_MEDIA_ITEM_MARKER)) {
+    if (
+      title.includes(TEST_MEDIA_ITEM_MARKER) ||
+      alt.includes(TEST_MEDIA_ITEM_MARKER)
+    ) {
       return null;
     }
   }
 
   const creditLabel = cleanText(media.creditLine);
-  const credit = creditLabel ? { label: creditLabel, url: safeExternalUrl(media.creditUrl) } : null;
+  const credit = creditLabel
+    ? { label: creditLabel, url: safeExternalUrl(media.creditUrl) }
+    : null;
 
   const width = OFFICIAL_BAND_PHOTO_WIDTH;
   return {
@@ -451,7 +491,8 @@ function normalizeOneOfficialBandPhoto(
  * invalid entry is simply skipped.
  */
 export function normalizeOfficialBandPhotos(
-  entries: NonNullable<Homepage["officialBandPhotos"]>["photos"] | null | undefined,
+  entries:
+    NonNullable<Homepage["officialBandPhotos"]>["photos"] | null | undefined,
   strict: boolean,
 ): NormalizedOfficialBandPhoto[] | null {
   const items: NormalizedOfficialBandPhoto[] = [];
@@ -567,11 +608,9 @@ export interface NormalizedAboutPageContent {
   intro: {
     kicker: string | null;
     heading: string;
-    /** "Who We Are" — up to two paragraphs. Sourced from the new
-     * `aboutPage.intro.paragraphs` field, falling back (temporarily, during
-     * the phase-1 migration) to the deprecated `aboutPage.intro.lede` as a
-     * single-item array when `paragraphs` is empty. Remove this fallback
-     * once `lede` is deleted in phase 2. */
+    /** "Who We Are" — up to two paragraphs. `aboutPage.intro.paragraphs` is
+     * the sole source; the deprecated `aboutPage.intro.lede` field has been
+     * removed from the schema. */
     paragraphs: string[];
     heroImage: NormalizedAboutHeroImage;
   };
@@ -614,7 +653,9 @@ function isMemberLinkType(value: unknown): value is MemberLinkType {
  *
  * Malformed links are dropped individually; they never invalidate the member.
  */
-function normalizeMemberLinks(links: RawMemberLink[] | null): NormalizedMemberLink[] {
+function normalizeMemberLinks(
+  links: RawMemberLink[] | null,
+): NormalizedMemberLink[] {
   if (!links) return [];
 
   const normalized: NormalizedMemberLink[] = [];
@@ -682,7 +723,8 @@ const MEMBER_PROFILE_IMAGE_WIDTH = 900;
 const MEMBER_PROFILE_IMAGE_WIDTHS = [280, 450, 900];
 
 function normalizeMemberProfileImage(
-  profileImage: AboutPage["members"][number]["member"]["profileImage"] | null | undefined,
+  profileImage:
+    AboutPage["members"][number]["member"]["profileImage"] | null | undefined,
 ): NormalizedMemberProfileImage | null {
   const image = profileImage?.image;
   const assetId = image?.asset?._id;
@@ -747,7 +789,8 @@ function safeFacebookUrl(value: string | null | undefined): string | null {
   if (!raw) return null;
   try {
     const parsed = new URL(raw);
-    return parsed.protocol === "https:" && parsed.hostname.replace(/^www\./, "") === "facebook.com"
+    return parsed.protocol === "https:" &&
+      parsed.hostname.replace(/^www\./, "") === "facebook.com"
       ? raw
       : null;
   } catch {
@@ -761,7 +804,8 @@ function safeInstagramUrl(value: string | null | undefined): string | null {
   if (!raw) return null;
   try {
     const parsed = new URL(raw);
-    return parsed.protocol === "https:" && parsed.hostname.replace(/^www\./, "") === "instagram.com"
+    return parsed.protocol === "https:" &&
+      parsed.hostname.replace(/^www\./, "") === "instagram.com"
       ? raw
       : null;
   } catch {
@@ -775,7 +819,8 @@ function safeYoutubeUrl(value: string | null | undefined): string | null {
   if (!raw) return null;
   try {
     const parsed = new URL(raw);
-    return parsed.protocol === "https:" && parsed.hostname.replace(/^www\./, "") === "youtube.com"
+    return parsed.protocol === "https:" &&
+      parsed.hostname.replace(/^www\./, "") === "youtube.com"
       ? raw
       : null;
   } catch {
@@ -795,22 +840,12 @@ export function normalizeAboutPageContent(
   const introHeading = cleanText(page.intro?.heading);
   const heroImage = normalizeAboutHeroImage(page.intro?.heroImage);
 
-  // Phase-1 migration dual read: prefer the new `paragraphs` field; fall back
-  // to wrapping the deprecated `lede` in a single-item array only when
-  // `paragraphs` is empty. Remove the `lede` fallback once that field is
-  // deleted in phase 2 (see docs/developer-guide.md §16/§18 and the ELT
-  // content-migration plan).
-  const introParagraphsFromNewField = (page.intro?.paragraphs ?? [])
+  // `paragraphs` is the sole source for the About introduction — the
+  // deprecated `lede` field has been removed from the schema.
+  const introParagraphs = (page.intro?.paragraphs ?? [])
     .map(cleanText)
     .filter((paragraph): paragraph is string => paragraph !== null)
     .slice(0, MAX_INTRO_PARAGRAPHS);
-  const legacyLede = cleanText(page.intro?.lede);
-  const introParagraphs =
-    introParagraphsFromNewField.length > 0
-      ? introParagraphsFromNewField
-      : legacyLede
-        ? [legacyLede]
-        : [];
 
   const membersIntroHeading = cleanText(page.membersIntro?.heading);
 
@@ -861,7 +896,10 @@ export function normalizeAboutPageContent(
       body: cleanText(page.membersIntro?.body),
     },
     members,
-    testimonialsIntro: { kicker: testimonialsKicker, heading: testimonialsHeading },
+    testimonialsIntro: {
+      kicker: testimonialsKicker,
+      heading: testimonialsHeading,
+    },
     bookingCta: {
       kicker: cleanText(page.bookingCta?.kicker),
       heading: bookingHeading,
@@ -926,7 +964,8 @@ export interface NormalizedPrivateEvent {
   endDateTime: string | null;
 }
 
-export type NormalizedShowsEvent = NormalizedPublicShow | NormalizedPrivateEvent;
+export type NormalizedShowsEvent =
+  NormalizedPublicShow | NormalizedPrivateEvent;
 
 /** Both public Shows queries project identically, so one normalizer serves both. */
 type RawPublicShow =
@@ -949,8 +988,17 @@ export interface NormalizedShowsPageContent {
   upcoming: { heading: string };
   recent: { kicker: string | null; heading: string };
   emptyState: { title: string; message: string; actionLabel: string };
-  bookingCta: { kicker: string | null; heading: string; body: string; ctaLabel: string };
-  seo: { metaTitle: string | null; metaDescription: string | null; ogImageUrl: string | null };
+  bookingCta: {
+    kicker: string | null;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
+  seo: {
+    metaTitle: string | null;
+    metaDescription: string | null;
+    ogImageUrl: string | null;
+  };
 }
 
 /**
@@ -1057,7 +1105,9 @@ function isPublicShowStatus(value: unknown): value is PublicShowStatus {
  * build logs are not a place to echo event text. A document `_id` would be
  * the only safe diagnostic if one is ever needed.
  */
-export function normalizePublicShows(events: RawPublicShow[]): NormalizedPublicShow[] {
+export function normalizePublicShows(
+  events: RawPublicShow[],
+): NormalizedPublicShow[] {
   const shows: NormalizedPublicShow[] = [];
 
   for (const event of events) {
@@ -1079,7 +1129,9 @@ export function normalizePublicShows(events: RawPublicShow[]): NormalizedPublicS
       startDateTime: event.startDateTime,
       // An unparseable end time degrades to "no end time" rather than
       // invalidating an otherwise renderable show.
-      endDateTime: isValidDateTime(event.endDateTime) ? event.endDateTime : null,
+      endDateTime: isValidDateTime(event.endDateTime)
+        ? event.endDateTime
+        : null,
       description: cleanText(event.description),
       externalEventUrl: safeExternalUrl(event.externalEventUrl),
     });
@@ -1105,7 +1157,9 @@ export function normalizePrivateEvents(
       _id: event._id,
       kind: "private",
       startDateTime: event.startDateTime,
-      endDateTime: isValidDateTime(event.endDateTime) ? event.endDateTime : null,
+      endDateTime: isValidDateTime(event.endDateTime)
+        ? event.endDateTime
+        : null,
     });
   }
 
@@ -1139,7 +1193,10 @@ export function normalizePrivateEvents(
 
 export type MediaGalleryCategory = "performance" | "venue-crowd";
 
-const GALLERY_CATEGORIES: readonly MediaGalleryCategory[] = ["performance", "venue-crowd"];
+const GALLERY_CATEGORIES: readonly MediaGalleryCategory[] = [
+  "performance",
+  "venue-crowd",
+];
 
 const MAX_GALLERY_ITEMS = 24;
 const MAX_MERCH_ITEMS = 24;
@@ -1155,8 +1212,12 @@ const GALLERY_LIGHTBOX_WIDTH = 1600;
 const MERCH_IMAGE_WIDTH = 640;
 
 type GalleryPage = NonNullable<GALLERY_PAGE_QUERY_RESULT>;
-type RawGalleryPhoto = NonNullable<GalleryPage["gallery"]["items"]>[number]["media"];
-type RawGalleryVideo = NonNullable<GalleryPage["gallery"]["videos"]>[number]["media"];
+type RawGalleryPhoto = NonNullable<
+  GalleryPage["gallery"]["items"]
+>[number]["media"];
+type RawGalleryVideo = NonNullable<
+  GalleryPage["gallery"]["videos"]
+>[number]["media"];
 type RawMerchItem = NonNullable<GalleryPage["merch"]["items"]>[number]["item"];
 
 /** Mirrors Studio's `Rule.max(12)` on `galleryPage.gallery.videos` — Studio
@@ -1304,8 +1365,17 @@ export interface NormalizedGalleryPageContent {
   gallery: NormalizedGallerySection;
   eventMediaSubmission: NormalizedEventMediaSubmission | null;
   merch: NormalizedMerchSection;
-  bookingCta: { kicker: string | null; heading: string; body: string; ctaLabel: string };
-  seo: { metaTitle: string | null; metaDescription: string | null; ogImageUrl: string | null };
+  bookingCta: {
+    kicker: string | null;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  };
+  seo: {
+    metaTitle: string | null;
+    metaDescription: string | null;
+    ogImageUrl: string | null;
+  };
 }
 
 export interface NormalizeGalleryPageOptions {
@@ -1318,7 +1388,10 @@ export interface NormalizeGalleryPageOptions {
 }
 
 function isGalleryCategory(value: unknown): value is MediaGalleryCategory {
-  return typeof value === "string" && (GALLERY_CATEGORIES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (GALLERY_CATEGORIES as readonly string[]).includes(value)
+  );
 }
 
 /**
@@ -1378,7 +1451,14 @@ function normalizeOneGalleryPhoto(
   const image = media.image;
   const assetId = image?.asset?._id;
   const dimensions = image?.asset?.metadata?.dimensions;
-  if (!title || !alt || !image || !assetId || !dimensions?.width || !dimensions?.height) {
+  if (
+    !title ||
+    !alt ||
+    !image ||
+    !assetId ||
+    !dimensions?.width ||
+    !dimensions?.height
+  ) {
     return null;
   }
 
@@ -1387,7 +1467,11 @@ function normalizeOneGalleryPhoto(
     if (strict) return null;
   }
 
-  const credit = normalizeGalleryCredit(media.creditLine, media.creditUrl, strict);
+  const credit = normalizeGalleryCredit(
+    media.creditLine,
+    media.creditUrl,
+    strict,
+  );
   if (credit === "invalid") return null;
 
   const thumbWidth = GALLERY_THUMB_WIDTH;
@@ -1505,7 +1589,8 @@ function normalizeOneGalleryVideo(
   strict: boolean,
 ): Omit<NormalizedGalleryVideo, "_key"> | null {
   if (!media) return null;
-  if (media.mediaType !== "video" || media.videoProvider !== "youtube") return null;
+  if (media.mediaType !== "video" || media.videoProvider !== "youtube")
+    return null;
 
   const title = cleanText(media.title);
   if (!title) return null;
@@ -1519,7 +1604,11 @@ function normalizeOneGalleryVideo(
   const poster = normalizeGalleryVideoPoster(media.videoPoster, strict);
   if (poster === "invalid") return null;
 
-  const credit = normalizeGalleryCredit(media.creditLine, media.creditUrl, strict);
+  const credit = normalizeGalleryCredit(
+    media.creditLine,
+    media.creditUrl,
+    strict,
+  );
   if (credit === "invalid") return null;
 
   return {
@@ -1614,7 +1703,11 @@ function normalizeOneMerchItem(
   const description = cleanText(item.description);
   if (!name || !description) return null;
 
-  if (strict && (name.includes(TEST_PRODUCT_MARKER) || description.includes(TEST_PRODUCT_MARKER))) {
+  if (
+    strict &&
+    (name.includes(TEST_PRODUCT_MARKER) ||
+      description.includes(TEST_PRODUCT_MARKER))
+  ) {
     return null;
   }
 
@@ -1757,10 +1850,16 @@ export function normalizeGalleryPageContent(
     return null;
   }
 
-  const galleryItems = normalizeGalleryItems(page.gallery?.items, options.strict);
+  const galleryItems = normalizeGalleryItems(
+    page.gallery?.items,
+    options.strict,
+  );
   if (galleryItems === null) return null;
 
-  const galleryVideos = normalizeGalleryVideos(page.gallery?.videos, options.strict);
+  const galleryVideos = normalizeGalleryVideos(
+    page.gallery?.videos,
+    options.strict,
+  );
   if (galleryVideos === null) return null;
 
   const merchItems = normalizeMerchItems(page.merch?.items, options.strict);
@@ -1773,11 +1872,17 @@ export function normalizeGalleryPageContent(
       body: cleanText(page.gallery?.body),
       items: galleryItems,
       videos: galleryVideos,
-      hasPerformance: galleryItems.some((item) => item.category === "performance"),
-      hasVenueCrowd: galleryItems.some((item) => item.category === "venue-crowd"),
+      hasPerformance: galleryItems.some(
+        (item) => item.category === "performance",
+      ),
+      hasVenueCrowd: galleryItems.some(
+        (item) => item.category === "venue-crowd",
+      ),
       hasVideos: galleryVideos.length > 0,
     },
-    eventMediaSubmission: normalizeEventMediaSubmission(page.eventMediaSubmission),
+    eventMediaSubmission: normalizeEventMediaSubmission(
+      page.eventMediaSubmission,
+    ),
     merch: {
       kicker: cleanText(page.merch?.kicker),
       heading: cleanText(page.merch?.heading),
@@ -1826,10 +1931,19 @@ export interface NormalizedFaqEntry {
 }
 
 export interface NormalizedContactPageContent {
-  intro: { kicker: string | null; heading: string; lede: string; explanation: string };
+  intro: {
+    kicker: string | null;
+    heading: string;
+    lede: string;
+    explanation: string;
+  };
   newsletterCta: { heading: string; body: string; linkLabel: string } | null;
   faq: NormalizedFaqEntry[];
-  seo: { metaTitle: string | null; metaDescription: string | null; ogImageUrl: string | null };
+  seo: {
+    metaTitle: string | null;
+    metaDescription: string | null;
+    ogImageUrl: string | null;
+  };
 }
 
 export interface NormalizeContactPageOptions {
@@ -1880,7 +1994,11 @@ export function normalizeContactPageContent(
   const newsletterLinkLabel = cleanText(page.newsletterCta?.linkLabel);
   const newsletterCta =
     newsletterHeading && newsletterBody && newsletterLinkLabel
-      ? { heading: newsletterHeading, body: newsletterBody, linkLabel: newsletterLinkLabel }
+      ? {
+          heading: newsletterHeading,
+          body: newsletterBody,
+          linkLabel: newsletterLinkLabel,
+        }
       : null;
 
   const faq = normalizeFaqEntries(page.faq);
@@ -1991,14 +2109,22 @@ export interface NormalizedMusicLabelAffiliation {
   logoAlt: string;
   url: string;
   missionStatement: string;
-  socialLinks: { facebookUrl: string; instagramUrl: string; youtubeUrl: string };
+  socialLinks: {
+    facebookUrl: string;
+    instagramUrl: string;
+    youtubeUrl: string;
+  };
 }
 
 export interface NormalizedMusicPageContent {
   featured: NormalizedFeatured;
   releases: NormalizedMusicRelease[];
   labelAffiliation: NormalizedMusicLabelAffiliation | null;
-  seo: { metaTitle: string | null; metaDescription: string | null; ogImageUrl: string | null };
+  seo: {
+    metaTitle: string | null;
+    metaDescription: string | null;
+    ogImageUrl: string | null;
+  };
 }
 
 export interface NormalizeMusicPageOptions {
@@ -2069,7 +2195,9 @@ function safeGoogleFormUrl(value: string | null | undefined): string | null {
     return /^\/[^/]+$/.test(parsed.pathname) ? raw : null;
   }
   if (hostname === "docs.google.com") {
-    return /^\/forms\/d\/e\/[^/]+\/viewform$/.test(parsed.pathname) ? raw : null;
+    return /^\/forms\/d\/e\/[^/]+\/viewform$/.test(parsed.pathname)
+      ? raw
+      : null;
   }
   return null;
 }
@@ -2083,7 +2211,8 @@ function safeSpotifyUrl(value: string | null | undefined): string | null {
   try {
     const parsed = new URL(raw);
     const hostname = parsed.hostname.replace(/^www\./, "");
-    return parsed.protocol === "https:" && (hostname === "open.spotify.com" || hostname === "spotify.com")
+    return parsed.protocol === "https:" &&
+      (hostname === "open.spotify.com" || hostname === "spotify.com")
       ? raw
       : null;
   } catch {
@@ -2098,7 +2227,8 @@ function safeAppleMusicUrl(value: string | null | undefined): string | null {
   if (!raw) return null;
   try {
     const parsed = new URL(raw);
-    return parsed.protocol === "https:" && parsed.hostname.replace(/^www\./, "") === "music.apple.com"
+    return parsed.protocol === "https:" &&
+      parsed.hostname.replace(/^www\./, "") === "music.apple.com"
       ? raw
       : null;
   } catch {
@@ -2113,7 +2243,9 @@ function safeAppleMusicUrl(value: string | null | undefined): string | null {
  * be honestly rendered (no selection, unresolved reference, missing alt) —
  * never fatal to the release itself.
  */
-function normalizeMusicArtwork(raw: RawMusicRelease["coverArtwork"]): NormalizedMusicArtwork | null {
+function normalizeMusicArtwork(
+  raw: RawMusicRelease["coverArtwork"],
+): NormalizedMusicArtwork | null {
   const image = raw?.image;
   const assetId = image?.asset?._id;
   const alt = cleanText(raw?.alt);
@@ -2155,7 +2287,11 @@ function normalizeOneMusicRelease(
   if (!isValidCalendarDateOnly(raw.releaseDate)) return null;
 
   const description = cleanText(raw.description);
-  if (strict && (title.includes(TEST_RELEASE_MARKER) || description?.includes(TEST_RELEASE_MARKER))) {
+  if (
+    strict &&
+    (title.includes(TEST_RELEASE_MARKER) ||
+      description?.includes(TEST_RELEASE_MARKER))
+  ) {
     return null;
   }
 
@@ -2236,14 +2372,9 @@ function normalizeMusicReleases(
  * its own — a Music page with zero releases yet is a legitimate pre-launch
  * state, not an error.
  *
- * `featured`/`featuredVideo` migration (phase 1 — see the ELT content
- * migration plan and `studio/schemaTypes/musicPage.ts`): treated as ONE
- * coherent block, never merged field-by-field. If the new `featured.heading`
- * is present, `featured.kicker`/`.video` are used exclusively and the
- * deprecated `featuredVideo` is ignored entirely; otherwise the complete
- * deprecated `featuredVideo` block is used instead. This prevents a
- * still-unmigrated document from showing a new-field kicker next to a
- * legacy-field video (or vice versa).
+ * `featured` is the sole source for the page's Featured section — the
+ * deprecated `featuredVideo` field has been removed from the schema (see
+ * `studio/schemaTypes/musicPage.ts`).
  *
  * `labelAffiliation` follows the exact same independently-optional,
  * all-or-nothing contract `aboutPage.labelAffiliation` used to before that
@@ -2256,17 +2387,18 @@ export function normalizeMusicPageContent(
 ): NormalizedMusicPageContent | null {
   if (!page) return null;
 
-  const useNewFeatured = Boolean(cleanText(page.featured?.heading));
-  const featuredSource = useNewFeatured ? page.featured : page.featuredVideo;
-  const featuredHeading = cleanText(featuredSource?.heading);
+  const featuredHeading = cleanText(page.featured?.heading);
   if (!featuredHeading) return null;
 
   const featured: NormalizedFeatured = {
-    kicker: cleanText(featuredSource?.kicker),
+    kicker: cleanText(page.featured?.kicker),
     heading: featuredHeading,
     video: normalizeFeaturedVideoRef(
-      featuredSource?.video
-        ? { videoUrl: featuredSource.video.videoUrl, title: featuredSource.video.title }
+      page.featured?.video
+        ? {
+            videoUrl: page.featured.video.videoUrl,
+            title: page.featured.video.title,
+          }
         : null,
     ),
   };
@@ -2277,10 +2409,18 @@ export function normalizeMusicPageContent(
   const labelAffiliationText = cleanText(page.labelAffiliation?.text);
   const labelAffiliationLogoAlt = cleanText(page.labelAffiliation?.logoAlt);
   const labelAffiliationUrl = safeExternalUrl(page.labelAffiliation?.url);
-  const labelAffiliationMission = cleanText(page.labelAffiliation?.missionStatement);
-  const labelAffiliationFacebook = safeFacebookUrl(page.labelAffiliation?.socialLinks?.facebookUrl);
-  const labelAffiliationInstagram = safeInstagramUrl(page.labelAffiliation?.socialLinks?.instagramUrl);
-  const labelAffiliationYoutube = safeYoutubeUrl(page.labelAffiliation?.socialLinks?.youtubeUrl);
+  const labelAffiliationMission = cleanText(
+    page.labelAffiliation?.missionStatement,
+  );
+  const labelAffiliationFacebook = safeFacebookUrl(
+    page.labelAffiliation?.socialLinks?.facebookUrl,
+  );
+  const labelAffiliationInstagram = safeInstagramUrl(
+    page.labelAffiliation?.socialLinks?.instagramUrl,
+  );
+  const labelAffiliationYoutube = safeYoutubeUrl(
+    page.labelAffiliation?.socialLinks?.youtubeUrl,
+  );
 
   return {
     featured,

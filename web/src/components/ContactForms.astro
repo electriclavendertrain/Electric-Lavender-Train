@@ -51,7 +51,7 @@ import {
   contactCopy,
 } from "../data/contactData";
 import { getFormspreeEndpoint, HONEYPOT_FIELD_NAME, SUBJECT_FIELD_NAME } from "../lib/formDelivery";
-import siteConfig from "../data/siteConfig";
+import siteConfig, { formatMailingAddressLines } from "../data/siteConfig";
 
 interface Props {
   headingId: string;
@@ -60,6 +60,7 @@ interface Props {
 }
 
 const { headingId, emailConfigured, contactEmail } = Astro.props;
+const mailingAddressLines = formatMailingAddressLines();
 ---
 
 <section class="contact-forms" id={headingId} aria-labelledby={contactCopy.formsHeadingId}>
@@ -156,6 +157,8 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                 {fieldsByInquiry[tab.value].map((field) => {
                   const fieldId = `${tab.value}-${field.name}`;
                   const errorId = `${fieldId}-error`;
+                  const helperId = `${fieldId}-helper`;
+                  const describedBy = field.helperText ? `${helperId} ${errorId}` : errorId;
                   return (
                     <div class:list={["field", { "field--wide": field.type === "textarea" }]}>
                       <label for={fieldId} class="field__label">
@@ -177,7 +180,8 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                           class="field__control"
                           required={field.required}
                           maxlength={field.maxLength}
-                          aria-describedby={errorId}
+                          placeholder={field.placeholder}
+                          aria-describedby={describedBy}
                           data-field
                           data-label={field.label}
                           data-merch-item-field={field.isMerchItemField}
@@ -189,7 +193,7 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                           name={field.name}
                           class="field__control"
                           required={field.required}
-                          aria-describedby={errorId}
+                          aria-describedby={describedBy}
                           data-field
                           data-label={field.label}
                         >
@@ -206,13 +210,16 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                           maxlength={field.maxLength}
                           autocomplete={field.autoComplete}
                           placeholder={field.placeholder}
-                          aria-describedby={errorId}
+                          aria-describedby={describedBy}
                           data-field
                           data-label={field.label}
                           data-merch-item-field={field.isMerchItemField}
                         />
                       )}
 
+                      {field.helperText && (
+                        <p class="field__helper" id={helperId}>{field.helperText}</p>
+                      )}
                       <p class="field__error" id={errorId} role="alert" hidden />
                     </div>
                   );
@@ -253,6 +260,15 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
         <p class="contact-forms__direct-email reveal reveal-4">
           {contactCopy.directEmailIntro} <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
         </p>
+      )
+    }
+
+    {
+      mailingAddressLines && (
+        <address class="contact-forms__mailing-address reveal reveal-4">
+          <span>{mailingAddressLines[0]}</span>
+          <span>{mailingAddressLines[1]}</span>
+        </address>
       )
     }
 
@@ -419,6 +435,11 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
   .field__control[aria-invalid="true"] {
     border-color: var(--burgundy);
   }
+  .field__helper {
+    font-size: 0.78rem;
+    color: rgba(244, 232, 208, 0.55);
+    overflow-wrap: anywhere;
+  }
   .field__error {
     font-size: 0.8rem;
     color: #e8a5ab;
@@ -482,6 +503,18 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
   }
   .contact-forms__direct-email a:hover {
     color: var(--gold);
+  }
+
+  /* Browsers italicize <address> by default; reset to match the surrounding
+     prose treatment, not because default styling is otherwise unwanted. */
+  .contact-forms__mailing-address {
+    font-style: normal;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: rgba(244, 232, 208, 0.7);
+  }
+  .contact-forms__mailing-address span {
+    display: block;
   }
 
   .contact-forms__privacy {

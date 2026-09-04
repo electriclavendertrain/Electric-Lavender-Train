@@ -12,6 +12,12 @@
  *   points at the Linktree URL (not a real YouTube URL), and the functional
  *   reference flags an unresolved placeholder video ID — contradictory
  *   signals, so this is treated as unverified rather than guessed.
+ * - appleMusic, spotify (confirmed 2026-09-02): official ELT artist pages on
+ *   each platform, supplied directly and verified — not placeholder-shaped.
+ * - mailingAddress (confirmed 2026-09-03): "PO Box 813, Avila Beach, CA
+ *   93424" — supplied directly by the client as confirmed public contact
+ *   information. No recipient name, street address, phone number, or
+ *   country line was supplied, so none is invented here.
  * - email (confirmed 2026-08-14): electriclavendertrain@gmail.com is the
  *   approved public contact/booking address — used for the visible
  *   direct-email/Footer fallback and as the intended Formspree notification
@@ -21,15 +27,14 @@
  * - phone: both references show different, placeholder-shaped values (a
  *   "555"/sequential-digit number). Not real; left null so nothing fake
  *   ships.
- * - siteUrl (PROVISIONAL, corrected 2026-08-18 — an earlier note here
- *   incorrectly said "confirmed"): the domain has not actually been
- *   purchased yet. This value is a placeholder canonical origin used only
- *   to build canonical/og:url values during development; nothing fetches
- *   from it, and no page depends on it resolving. Treat final domain
- *   confirmation as an outstanding launch blocker — see
- *   docs/client-questions.md — and update this value (and re-verify every
- *   canonical/og:url output) once the real domain is purchased and
- *   confirmed, not before.
+ * - siteUrl (client-selected domain recorded 2026-09-03): the client chose
+ *   `theelectriclavendertrain.com` as the production domain — see
+ *   `ELT-LAUNCH-007` in `DEFERRED-WORK.md`. This confirms the NAME only.
+ *   It is NOT evidence the domain has been purchased, ownership verified,
+ *   DNS configured, or HTTPS provisioned — `ELT-LAUNCH-007` and
+ *   `ELT-ACCESS-006` remain open until each of those is independently
+ *   verified. This value is used to build every canonical/og:url output;
+ *   nothing fetches from it, and no page depends on it resolving.
  */
 
 export interface SiteConfig {
@@ -38,9 +43,11 @@ export interface SiteConfig {
   tagline: string;
   location: string;
   /**
-   * The confirmed canonical origin. Every page's `<link rel="canonical">` and
-   * `og:url` are built from this plus the route path, in `BaseLayout.astro`.
-   * No trailing slash — the layout joins the path itself.
+   * The client-selected canonical origin (name confirmed; purchase/DNS/HTTPS
+   * not — see the verification notes above and `ELT-LAUNCH-007`). Every
+   * page's `<link rel="canonical">` and `og:url` are built from this plus
+   * the route path, in `BaseLayout.astro`. No trailing slash — the layout
+   * joins the path itself.
    */
   siteUrl: string;
   routes: {
@@ -71,6 +78,10 @@ export interface SiteConfig {
     youtube: string | null;
     linktree: string | null;
     venmo: string | null;
+    /** Official ELT artist page — verified 2026-09-02. */
+    appleMusic: string | null;
+    /** Official ELT artist page — verified 2026-09-02. */
+    spotify: string | null;
   };
   venmoLabel: string;
   /**
@@ -105,6 +116,19 @@ export interface SiteConfig {
   contact: {
     email: string | null;
     phone: string | null;
+    /**
+     * Structured, not a loose pre-formatted string, so each consumer
+     * (Footer, Contact & Booking page) renders it with its own semantic
+     * markup instead of duplicating a hand-built multi-line string. `null`
+     * whenever no confirmed mailing address exists — see
+     * `formatMailingAddressLines` below for the two display lines.
+     */
+    mailingAddress: {
+      poBox: string;
+      city: string;
+      state: string;
+      postalCode: string;
+    } | null;
   };
 }
 
@@ -113,7 +137,7 @@ export const siteConfig: SiteConfig = {
   bandNameShort: "ELT",
   tagline: "The Central Coast's Favorite Dance Band.",
   location: "Central Coast California",
-  siteUrl: "https://electriclavendertrain.com",
+  siteUrl: "https://theelectriclavendertrain.com",
 
   routes: {
     home: "/",
@@ -137,6 +161,8 @@ export const siteConfig: SiteConfig = {
     youtube: null,
     linktree: "https://linktr.ee/electriclavendertrain",
     venmo: "https://venmo.com/u/heavycrushrecords",
+    appleMusic: "https://music.apple.com/us/artist/the-electric-lavender-train/6774378427",
+    spotify: "https://open.spotify.com/artist/6ndUytStOTBMrvOggBzCRf",
   },
   venmoLabel: "Tip the Band",
 
@@ -155,6 +181,12 @@ export const siteConfig: SiteConfig = {
   contact: {
     email: "electriclavendertrain@gmail.com",
     phone: null,
+    mailingAddress: {
+      poBox: "PO Box 813",
+      city: "Avila Beach",
+      state: "CA",
+      postalCode: "93424",
+    },
   },
 };
 
@@ -187,6 +219,19 @@ export function isContactEmailConfigured(): boolean {
  */
 export function formatPageTitle(pageTitle: string): string {
   return `${pageTitle.trim()} — ${siteConfig.bandNameFormal}`;
+}
+
+/**
+ * Renders `siteConfig.contact.mailingAddress` as the two conventional
+ * postal lines (PO box; city, state, and postal code) for a consumer to
+ * place inside its own semantic `<address>` markup. Returns `null` when no
+ * mailing address is configured, so a consumer can omit the whole block
+ * rather than rendering an empty `<address>`.
+ */
+export function formatMailingAddressLines(): [string, string] | null {
+  const address = siteConfig.contact.mailingAddress;
+  if (!address) return null;
+  return [address.poBox, `${address.city}, ${address.state} ${address.postalCode}`];
 }
 
 export type ContactInquiryType = "booking" | "merch" | "other" | "removal";

@@ -17,8 +17,7 @@ export const homepage = defineType({
       viewAllLabel: 'View All Shows',
       emptyState: {
         title: 'No shows on the calendar right now',
-        message:
-          'Check back soon, or follow along on Instagram for the latest announcements.',
+        message: 'Check back soon, or follow along on Instagram for the latest announcements.',
         actionLabel: 'Follow Us on Instagram',
       },
     },
@@ -47,7 +46,6 @@ export const homepage = defineType({
             'Welcoming and easygoing, and at home on a winery patio, a bar lounge stage, an outdoor concert, a resort lawn, or a private celebration anywhere on the Central Coast.',
         },
       ],
-      ctaLabel: 'Meet the Band',
     },
     testimonialsIntro: {
       kicker: 'What People Are Saying',
@@ -96,12 +94,11 @@ export const homepage = defineType({
       },
     }),
     defineField({
-      name: 'bandIntro',
-      title: 'Band introduction (deprecated)',
+      name: 'officialBandPhotos',
+      title: 'Official band photos',
       description:
-        'Deprecated. No longer rendered anywhere on the site — the "Who We Are" content moved to the About page (aboutPage.intro). This field is read-only and kept only so its previously-entered content can be manually copied into aboutPage.intro in Studio; it will be removed once that copy is confirmed done.',
+        'A restrained, Homepage-only showcase of professionally photographed, approved official band images — distinct from the fan/live imagery on the Gallery & Merchandise page, and never sourced from it automatically. Rendered immediately after the Hero, before The ELT Experience. Optional: omitted from the page entirely when empty or when every selected photo is invalid. Choose 1 to 4 strong images — fewer, stronger photos are preferred over a large set.',
       type: 'object',
-      readOnly: true,
       fields: [
         defineField({
           name: 'kicker',
@@ -111,25 +108,51 @@ export const homepage = defineType({
         defineField({
           name: 'heading',
           title: 'Heading',
+          description: 'Required once this block has any photos selected.',
           type: 'string',
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
-          name: 'paragraphs',
-          title: 'Paragraphs',
-          type: 'array',
-          of: [defineArrayMember({type: 'text'})],
+          name: 'body',
+          title: 'Introductory text',
+          description: 'Optional short paragraph above the photos.',
+          type: 'text',
         }),
         defineField({
           name: 'ctaLabel',
           title: 'Button text',
+          description:
+            'Links to the About page ("Meet the Band"). The destination is fixed in code, not editable here — only this visible label is.',
           type: 'string',
+          validation: (Rule) => Rule.required(),
         }),
         defineField({
-          name: 'image',
-          title: 'Band introduction image',
-          type: 'reference',
-          to: [{type: 'mediaItem'}],
-          options: {filter: 'mediaType == "image"'},
+          name: 'photos',
+          title: 'Photos — drag to order',
+          description:
+            'Image media items only. Choose 1 to 4 — this is the rendered order. Awaiting the professional photographs from Hunter; do not select fan/live Gallery images or development test fixtures here.',
+          type: 'array',
+          of: [
+            defineArrayMember({
+              type: 'reference',
+              to: [{type: 'mediaItem'}],
+              options: {filter: 'mediaType == "image"'},
+            }),
+          ],
+          validation: (Rule) =>
+            Rule.min(1)
+              .max(4)
+              .custom((value) => {
+                if (!value || value.length === 0) return true
+                const refs = value
+                  .map((entry) => (entry as {_ref?: string})._ref)
+                  .filter((ref): ref is string => Boolean(ref))
+                const uniqueRefs = new Set(refs)
+                return (
+                  uniqueRefs.size === refs.length ||
+                  'Each photo may only appear once — remove the duplicate.'
+                )
+              }),
         }),
       ],
     }),
@@ -137,7 +160,7 @@ export const homepage = defineType({
       name: 'experience',
       title: 'The ELT experience',
       description:
-        'Moved here from the About page — rendered on the Homepage between the hero and Upcoming Shows.',
+        'Moved here from the About page — rendered on the Homepage after Official Band Photos, before Upcoming Shows.',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [
@@ -189,69 +212,6 @@ export const homepage = defineType({
           ],
           validation: (Rule) => Rule.required().length(3),
         }),
-        defineField({
-          name: 'ctaLabel',
-          title: 'Button text',
-          description:
-            'Links to the About page ("Meet the Band"). The destination is fixed in code, not editable here — only this visible label is.',
-          type: 'string',
-          validation: (Rule) => Rule.required(),
-        }),
-      ],
-    }),
-    defineField({
-      name: 'officialBandPhotos',
-      title: 'Official band photos',
-      description:
-        'A restrained, Homepage-only showcase of professionally photographed, approved official band images — distinct from the fan/live imagery on the Gallery & Merchandise page, and never sourced from it automatically. Optional: omitted from the page entirely when empty or when every selected photo is invalid. Choose 1 to 4 strong images — fewer, stronger photos are preferred over a large set.',
-      type: 'object',
-      fields: [
-        defineField({
-          name: 'kicker',
-          title: 'Small label above heading',
-          type: 'string',
-        }),
-        defineField({
-          name: 'heading',
-          title: 'Heading',
-          description: 'Required once this block has any photos selected.',
-          type: 'string',
-          validation: (Rule) => Rule.required(),
-        }),
-        defineField({
-          name: 'body',
-          title: 'Introductory text',
-          description: 'Optional short paragraph above the photos.',
-          type: 'text',
-        }),
-        defineField({
-          name: 'photos',
-          title: 'Photos — drag to order',
-          description:
-            'Image media items only. Choose 1 to 4 — this is the rendered order. Awaiting the professional photographs from Hunter; do not select fan/live Gallery images or development test fixtures here.',
-          type: 'array',
-          of: [
-            defineArrayMember({
-              type: 'reference',
-              to: [{type: 'mediaItem'}],
-              options: {filter: 'mediaType == "image"'},
-            }),
-          ],
-          validation: (Rule) =>
-            Rule.min(1)
-              .max(4)
-              .custom((value) => {
-                if (!value || value.length === 0) return true
-                const refs = value
-                  .map((entry) => (entry as {_ref?: string})._ref)
-                  .filter((ref): ref is string => Boolean(ref))
-                const uniqueRefs = new Set(refs)
-                return (
-                  uniqueRefs.size === refs.length ||
-                  'Each photo may only appear once — remove the duplicate.'
-                )
-              }),
-        }),
       ],
     }),
     defineField({
@@ -301,8 +261,7 @@ export const homepage = defineType({
             defineField({
               name: 'actionLabel',
               title: 'Instagram button text',
-              description:
-                'The destination is the verified Instagram URL in site configuration.',
+              description: 'The destination is the verified Instagram URL in site configuration.',
               type: 'string',
               validation: (Rule) => Rule.required(),
             }),

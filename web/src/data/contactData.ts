@@ -97,21 +97,6 @@ export const EVENT_TYPE_OPTIONS = [
   "Other",
 ];
 
-/**
- * Optional, non-binding budget bands for a booking inquiry. Selecting one
- * never implies a guaranteed price, availability, travel terms, or that the
- * inquiry is accepted — it only helps ELT understand the inquiry before
- * replying by email. Deliberately generic ranges, not a quote calculator.
- */
-export const BUDGET_RANGE_OPTIONS = [
-  "Under $1,000",
-  "$1,000–$1,999",
-  "$2,000–$3,499",
-  "$3,500–$4,999",
-  "$5,000+",
-  "Not sure yet",
-];
-
 export interface ContactFieldConfig {
   name: string;
   label: string;
@@ -122,6 +107,15 @@ export interface ContactFieldConfig {
   options?: string[];
   /** Marks the one field the `?item=` URL parameter prefills. */
   isMerchItemField?: boolean;
+  /**
+   * Optional, short persistent line rendered beneath the field's control and
+   * linked to it via `aria-describedby` — for a field whose plain label
+   * could otherwise read as a promise (e.g. "we'll play whatever you
+   * request"). Mirrors the same expectation-setting role `panelNote` already
+   * plays per inquiry type (e.g. Content Removal Request's "does not
+   * guarantee removal"), just scoped to one field instead of a whole panel.
+   */
+  helperText?: string;
   /**
    * Rendered as the HTML `maxlength` attribute (browser-enforced) on text/
    * textarea fields, and re-checked in `contactForms.ts` as a defensive
@@ -179,11 +173,21 @@ export const bookingFields: ContactFieldConfig[] = [
     maxLength: 20,
   },
   {
-    name: "budgetRange",
-    label: "Budget Range",
-    type: "select",
+    name: "budget",
+    label: "Budget",
+    type: "text",
     required: false,
-    options: BUDGET_RANGE_OPTIONS,
+    placeholder: "e.g. $2,500",
+    maxLength: 60,
+  },
+  {
+    name: "specialSongRequests",
+    label: "Special Song Requests",
+    type: "textarea",
+    required: false,
+    placeholder: "e.g. a favorite song, or a must-play for your event",
+    helperText: "We'll do our best, but a request isn't a guarantee it'll be in the set.",
+    maxLength: 500,
   },
   { name: "message", label: "Event Details", type: "textarea", required: true, maxLength: 3000 },
 ];
