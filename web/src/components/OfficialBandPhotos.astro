@@ -18,9 +18,19 @@
  * site (e.g. `GalleryPreview.astro` used to do the same before it was
  * removed; `MediaGallery.astro` still does).
  *
- * Below the fold (the Hero owns the only above-the-fold imagery), so every
- * photo is lazy-loaded — matches the same `loading="lazy"` convention as
- * every other below-fold image on the site.
+ * Below the fold, but deliberately NOT lazy-loaded (unlike most below-fold
+ * images on this site): it's a restrained 1-4 photo showcase, so the eager
+ * download cost is small, and starting the request at parse time — rather
+ * than waiting for `loading="lazy"`'s viewport-intersection trigger — gives
+ * Sanity's image CDN the most possible head start on generating each
+ * derivative. That matters here specifically: on a first-ever request for a
+ * given crop/width combination (e.g. right after new photos are published),
+ * the CDN generates it on demand, and that generation can occasionally be
+ * slow enough that a lazy-triggered request — fired only once the section is
+ * nearly in view — doesn't resolve before the visitor scrolls to it, so the
+ * photo appears to silently fail to load until a later reload (when the
+ * derivative is already cached). Eager loading does not eliminate that cold-
+ * cache latency, but it maximizes the time available to hide it.
  *
  * The editable "Meet the Band" label lives with this section in Studio;
  * its About-page destination remains a code-owned route.
@@ -59,7 +69,6 @@ const { kicker, heading, body, ctaLabel, photos } = Astro.props;
                   width={photo.width}
                   height={photo.height}
                   alt={photo.alt}
-                  loading="lazy"
                   decoding="async"
                   style={`--focal-point: ${photo.objectPosition}`}
                 />
@@ -83,7 +92,6 @@ const { kicker, heading, body, ctaLabel, photos } = Astro.props;
                 width={photo.width}
                 height={photo.height}
                 alt={photo.alt}
-                loading="lazy"
                 decoding="async"
                 style={`--focal-point: ${photo.objectPosition}`}
               />

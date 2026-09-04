@@ -54,6 +54,35 @@ document.addEventListener("focusin", (event) => {
   target.closest(".reveal:not(.in)")?.classList.add("in", "reveal-instant");
 });
 
+/**
+ * A page restored from the back/forward cache (bfcache) — e.g. clicking
+ * Back after navigating Home → About → Back — reuses the exact frozen DOM
+ * and JS state rather than re-running this script or re-fetching anything.
+ * That's normally invisible and desirable, but an `<img>` that was still
+ * mid-decode at the instant the page was frozen can come back un-painted:
+ * `img.complete`/`naturalWidth` report the image as fully loaded (the
+ * browser did finish decoding it, at some point during the freeze), yet the
+ * compositor never actually painted that frame before restore, so it stays
+ * visually blank until something else forces a repaint — a known class of
+ * browser bfcache-repaint bugs, not specific to any one image or component.
+ *
+ * `pageshow`'s `persisted` flag is exactly "was this a bfcache restore,
+ * not a fresh navigation" — this never fires (or never matters) on an
+ * ordinary load, so it can't introduce a flash there. The nudge itself is
+ * an imperceptible opacity change on the next frame, enough to force the
+ * browser to recomposite the whole page (including any stuck image layers)
+ * without any visible flicker of its own.
+ */
+window.addEventListener("pageshow", (event) => {
+  if (!event.persisted) return;
+  const root = document.documentElement;
+  const previousOpacity = root.style.opacity;
+  root.style.opacity = "0.999999";
+  requestAnimationFrame(() => {
+    root.style.opacity = previousOpacity;
+  });
+});
+
 const spark = document.getElementById("track-spark");
 if (spark) {
   const updateTrack = () => {
