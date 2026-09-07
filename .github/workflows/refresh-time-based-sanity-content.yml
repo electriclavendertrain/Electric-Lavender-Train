@@ -1,0 +1,43 @@
+name: Refresh time-based Sanity content
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+      timezone: "America/Los_Angeles"
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: Trigger the Netlify build even when no event crossed the time boundary
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-time-based-sanity-content
+  cancel-in-progress: false
+
+jobs:
+  refresh-if-needed:
+    name: Check event time boundaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Trigger Netlify only when the static event lists are stale
+        env:
+          SANITY_PROJECT_ID: "4bysltwo"
+          SANITY_DATASET: ${{ vars.SANITY_DATASET }}
+          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
+          FORCE_DEPLOY: ${{ inputs.force_deploy || 'false' }}
+          LOOKBACK_HOURS: "25"
+        run: node .github/scripts/trigger-netlify-on-event-transition.mjs
