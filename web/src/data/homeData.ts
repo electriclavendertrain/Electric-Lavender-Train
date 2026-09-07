@@ -113,7 +113,7 @@ export const homepageSeoFallback = {
 
 export const heroFallback = {
   eyebrow: "Central Coast Live Music",
-  headline: "The Central Coast's Favorite Dance Band.",
+  headline: "test",
   subcopy:
     "Playing the songs you love with the people you love. Good vibes, great music, unforgettable nights.",
 };
