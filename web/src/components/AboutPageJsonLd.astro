@@ -9,11 +9,11 @@
  * - No `foundingDate` / `foundingLocation` — never confirmed.
  * - No `genre` — the approved copy describes the sound in prose; turning that
  *   into a genre taxonomy would be an unsupported claim.
- * - No `email` or `telephone` — the site publishes neither.
- * - `address` (added 2026-09-03): a `PostalAddress` built from the client's
- *   confirmed mailing address (`siteConfig.contact.mailingAddress`), the
- *   same one rendered in the Footer and on the Contact & Booking page. No
- *   `addressCountry` — not supplied, and not invented here.
+ * - No `email`, `telephone`, or `address` — the site publishes none of these
+ *   publicly. A `PostalAddress` was briefly emitted here (2026-09-03); the
+ *   client decided against public display and it was removed (2026-09-07,
+ *   see `ELT-CONTENT-006`) along with `siteConfig.contact.mailingAddress`
+ *   and its Footer/Contact-page renderers.
  * - No per-member `sameAs` or `url` — member links are only emitted if the
  *   client supplied and approved them, and none has been supplied.
  * - No member-page `url` — `/about/<slug>` does not exist.
@@ -44,8 +44,6 @@ const sameAs = [
   siteConfig.social.spotify,
 ].filter((url): url is string => Boolean(url));
 
-const mailingAddress = siteConfig.contact.mailingAddress;
-
 const musicGroup = {
   "@context": "https://schema.org",
   "@type": "MusicGroup",
@@ -53,17 +51,6 @@ const musicGroup = {
   alternateName: siteConfig.bandNameShort,
   url: pageUrl,
   ...(sameAs.length > 0 ? { sameAs } : {}),
-  ...(mailingAddress
-    ? {
-        address: {
-          "@type": "PostalAddress",
-          postOfficeBoxNumber: mailingAddress.poBox,
-          addressLocality: mailingAddress.city,
-          addressRegion: mailingAddress.state,
-          postalCode: mailingAddress.postalCode,
-        },
-      }
-    : {}),
   ...(members.length > 0
     ? {
         member: members.map((member) => ({

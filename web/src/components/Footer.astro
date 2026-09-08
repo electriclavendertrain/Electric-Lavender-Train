@@ -11,9 +11,7 @@
  * automatically track the link's own normal/hover/focus-visible color,
  * with no separate icon-specific color rule needed anywhere.
  */
-import siteConfig, { contactInquiryHref, formatMailingAddressLines } from "../data/siteConfig";
-
-const mailingAddressLines = formatMailingAddressLines();
+import siteConfig, { contactInquiryHref } from "../data/siteConfig";
 
 const socialLinks = [
   { key: "instagram", label: "Instagram", href: siteConfig.social.instagram },
@@ -92,14 +90,6 @@ const labelNotePrefix = siteConfig.heavyCrushRecords.relationshipText.replace(
     <div class="footer-col">
       <h2>Contact</h2>
       <span>{siteConfig.location}</span>
-      {
-        mailingAddressLines && (
-          <address class="footer-address">
-            <span>{mailingAddressLines[0]}</span>
-            <span>{mailingAddressLines[1]}</span>
-          </address>
-        )
-      }
       {
         siteConfig.contact.email && (
           <a
@@ -264,20 +254,6 @@ const labelNotePrefix = siteConfig.heavyCrushRecords.relationshipText.replace(
   }
   .footer-label-note a:hover {
     color: var(--lavender-soft);
-  }
-  /* Browsers italicize <address> by default; this site's type treatment
-     doesn't use italics for plain contact info, so it's reset here. Matches
-     `.footer-col > span`'s sizing/color rather than inheriting it, since
-     `<address>` doesn't match that `>` child selector. */
-  .footer-address {
-    font-style: normal;
-    display: block;
-    font-size: 0.88rem;
-    color: rgba(244, 232, 208, 0.75);
-    margin-bottom: 8px;
-  }
-  .footer-address span {
-    display: block;
   }
   /* The public email is deliberately conspicuous — gold, not the muted
      default link color other footer links use — since this is the site's

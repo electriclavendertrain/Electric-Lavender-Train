@@ -51,7 +51,7 @@ import {
   contactCopy,
 } from "../data/contactData";
 import { getFormspreeEndpoint, HONEYPOT_FIELD_NAME, SUBJECT_FIELD_NAME } from "../lib/formDelivery";
-import siteConfig, { formatMailingAddressLines } from "../data/siteConfig";
+import siteConfig from "../data/siteConfig";
 
 interface Props {
   headingId: string;
@@ -60,7 +60,6 @@ interface Props {
 }
 
 const { headingId, emailConfigured, contactEmail } = Astro.props;
-const mailingAddressLines = formatMailingAddressLines();
 ---
 
 <section class="contact-forms" id={headingId} aria-labelledby={contactCopy.formsHeadingId}>
@@ -260,15 +259,6 @@ const mailingAddressLines = formatMailingAddressLines();
         <p class="contact-forms__direct-email reveal reveal-4">
           {contactCopy.directEmailIntro} <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
         </p>
-      )
-    }
-
-    {
-      mailingAddressLines && (
-        <address class="contact-forms__mailing-address reveal reveal-4">
-          <span>{mailingAddressLines[0]}</span>
-          <span>{mailingAddressLines[1]}</span>
-        </address>
       )
     }
 
@@ -503,18 +493,6 @@ const mailingAddressLines = formatMailingAddressLines();
   }
   .contact-forms__direct-email a:hover {
     color: var(--gold);
-  }
-
-  /* Browsers italicize <address> by default; reset to match the surrounding
-     prose treatment, not because default styling is otherwise unwanted. */
-  .contact-forms__mailing-address {
-    font-style: normal;
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: rgba(244, 232, 208, 0.7);
-  }
-  .contact-forms__mailing-address span {
-    display: block;
   }
 
   .contact-forms__privacy {

@@ -55,7 +55,8 @@ export const musicRelease = defineType({
     defineField({
       name: 'state',
       title: 'State',
-      description: 'Which section of the Music page this release appears in.',
+      description:
+        'Released releases appear on the public Music page. Upcoming releases stay in Studio only — not shown publicly — so you can prepare content ahead of time, then switch this to Released when it’s out.',
       type: 'string',
       options: {
         list: [
@@ -70,7 +71,7 @@ export const musicRelease = defineType({
     defineField({
       name: 'releaseDate',
       title: 'Release date',
-      description: 'For an upcoming release, this may also drive the optional countdown.',
+      description: 'The release date shown alongside this release once it’s Released.',
       type: 'date',
       validation: (Rule) => Rule.required(),
     }),

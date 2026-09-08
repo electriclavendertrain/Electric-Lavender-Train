@@ -69,9 +69,8 @@ export const galleryPage = defineType({
         }),
         defineField({
           name: 'heading',
-          title: 'Heading',
-          description:
-            'Always rendered, even with zero photos/videos selected — this is the page’s only heading (its `<h1>`). Required for the page to build.',
+          title: 'Main gallery heading',
+          description: 'The page’s main heading. Required even when the gallery is empty.',
           type: 'string',
           validation: (Rule) => Rule.required(),
         }),
@@ -102,7 +101,7 @@ export const galleryPage = defineType({
           name: 'videos',
           title: 'Gallery videos — drag to order',
           description:
-            'YouTube videos displayed in the Media Gallery, in this order — drag to reorder. Dragging changes their display order; it does not affect the photo order above. These do not use the image categories (Performances / Venue & Crowd) — every gallery video automatically appears under "All" and under a code-owned "Videos" filter on the public site, and never under a photo category. Each entry must be a video media item with a normal YouTube URL (e.g. a watch or share link) or a supported youtube-nocookie.com/embed/ link configured on it — raw video files are never uploaded to Sanity here. Choose up to 12, each only once.',
+            'YouTube videos only. Drag to set their display order. Videos appear under All and Videos, not the photo categories. Choose up to 12.',
           type: 'array',
           of: [
             defineArrayMember({
@@ -132,7 +131,7 @@ export const galleryPage = defineType({
       name: 'eventMediaSubmission',
       title: 'Share Your Event Media',
       description:
-        'Rendered between Media Gallery and Merchandise. Links out to a Google Form for the visitor to upload their own event photos/video — this site never handles the upload itself. This is an approved, planned production feature; it stays hidden (if "Enabled" is off) or shows a clear configuration notice (if enabled but no Google Form URL is set yet) until a real Google Form actually exists — see web/src/sanity/normalize.ts and docs/gallery-merch.md.',
+        'Links to a Google Form where visitors can share their own event photos and videos. Stays hidden until Enabled is on and a Form URL is set below.',
       type: 'object',
       fields: [
         defineField({
@@ -167,7 +166,7 @@ export const galleryPage = defineType({
           name: 'formUrl',
           title: 'Google Form URL',
           description:
-            'Optional. This is validated for URL *structure and host* only — a real docs.google.com/forms/d/e/<id>/viewform link (a prefilled-link variant with query parameters is also accepted) or a real forms.gle/<code> short link. Nothing else passes: not the bare root of either host, not an arbitrary /forms/... path, not a /edit link, not a /formResponse submission endpoint, not an empty id, and not a lookalike or unrelated domain. This check cannot and does not confirm the form actually exists, is published, has the right sharing/access permissions, or carries the approved consent language — that still has to be verified by hand before this field is filled in. Leave empty until the form actually exists.',
+            'Paste the public Google Forms visitor link. Leave this blank until the form is live and tested.',
           type: 'url',
           validation: (Rule) =>
             Rule.custom((value) => {

@@ -8,7 +8,7 @@ export const homepage = defineType({
     newsletter: {
       kicker: 'Stay in the Loop',
       heading: 'Join the ELT Newsletter',
-      body: 'Weekly updates from Electric Lavender Train, straight to your inbox. Subscribers can separately opt in to new-show alerts when a public date is added. Signup uses email confirmation (double opt-in) once the hosted form is live.',
+      body: 'Get the weekly ELT performance schedule delivered to your inbox. Signup uses email confirmation (double opt-in) once the hosted form is live.',
       ctaLabel: 'Sign Up for the Newsletter',
     },
     upcomingShows: {
@@ -122,7 +122,7 @@ export const homepage = defineType({
           name: 'ctaLabel',
           title: 'Button text',
           description:
-            'Links to the About page ("Meet the Band"). The destination is fixed in code, not editable here — only this visible label is.',
+            'Links to the About page. The destination is fixed in code, not editable here — only this visible label is.',
           type: 'string',
           validation: (Rule) => Rule.required(),
         }),
@@ -130,7 +130,7 @@ export const homepage = defineType({
           name: 'photos',
           title: 'Photos — drag to order',
           description:
-            'Image media items only. Choose 1 to 4 — this is the rendered order. Awaiting the professional photographs from Hunter; do not select fan/live Gallery images or development test fixtures here.',
+            'Image media items only. Choose 1 to 4 professional photographs from the Media Library. Drag to set their display order.',
           type: 'array',
           of: [
             defineArrayMember({
@@ -158,9 +158,8 @@ export const homepage = defineType({
     }),
     defineField({
       name: 'experience',
-      title: 'The ELT experience',
-      description:
-        'Moved here from the About page — rendered on the Homepage after Official Band Photos, before Upcoming Shows.',
+      title: 'What an ELT performance feels like',
+      description: 'Rendered on the Homepage after Official Band Photos, before Upcoming Shows.',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [
@@ -324,9 +323,9 @@ export const homepage = defineType({
     }),
     defineField({
       name: 'newsletter',
-      title: 'Newsletter section',
+      title: 'Weekly schedule newsletter',
       description:
-        'Renders in a dedicated "#newsletter" section near the end of the homepage, and is linked from the hero, the footer, and the Contact page. The signup button itself is code-controlled: it only appears once a real hosted signup URL is configured outside Sanity (PUBLIC_NEWSLETTER_SIGNUP_URL), and shows a clear "not yet configured" notice otherwise. No email field is ever collected directly on this site.',
+        'The one weekly schedule newsletter — not a separate show-alert subscription. The signup button appears only once the hosted signup link is configured; no email is collected on this site directly.',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [
@@ -343,9 +342,9 @@ export const homepage = defineType({
         }),
         defineField({
           name: 'body',
-          title: 'Body',
+          title: 'Newsletter description',
           description:
-            'Explain: (1) this is a weekly newsletter, (2) subscribers may separately choose new-show alerts, and (3) signup uses email confirmation (double opt-in) once the hosted form is configured.',
+            'Briefly describe the weekly newsletter. Mention that signup uses double opt-in email confirmation. Do not promise a specific delivery day, or a separate new-show-alert subscription.',
           type: 'text',
           validation: (Rule) => Rule.required(),
         }),

@@ -376,7 +376,7 @@ export const contactPageFallback = {
   },
   newsletterCta: {
     heading: "Stay in the Loop",
-    body: "Get weekly ELT updates, plus optional new-show alerts, straight to your inbox.",
+    body: "Get the weekly ELT performance schedule delivered to your inbox.",
     linkLabel: "Join the Newsletter",
   },
   faq: [

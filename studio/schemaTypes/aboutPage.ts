@@ -55,7 +55,6 @@ export const aboutPage = defineType({
     defineField({
       name: 'intro',
       title: 'Page introduction',
-      description: '"Who We Are" — moved here from the Homepage, and now the page introduction.',
       type: 'object',
       validation: (Rule) => Rule.required(),
       fields: [

@@ -87,9 +87,9 @@ export const musicPage = defineType({
     }),
     defineField({
       name: 'labelAffiliation',
-      title: 'Label affiliation',
+      title: 'Heavy Crush Records information',
       description:
-        'A restrained, code-designed acknowledgment of the Heavy Crush Records relationship, rendered on the Music page immediately after Releases. Moved here from the About page — this is now the live owner. The logo image itself is a fixed site asset, not uploaded here — this only manages the wording, its alt text, the destination link, the mission statement, and the label’s social links. Optional: while empty, the section still renders using the same approved wording and links as a built-in default. Treated as one coherent block on the frontend — if any part below is left incomplete, the whole section falls back to the approved defaults rather than mixing live and fallback content. Do not change the factual relationship claim without Hunter’s approval.',
+        'Editable wording, mission statement, and social links for the Heavy Crush Records relationship, shown after Releases. Leave blank to use the approved default wording and links. Keep the relationship wording factual — check with Hunter before changing it.',
       type: 'object',
       fields: [
         defineField({

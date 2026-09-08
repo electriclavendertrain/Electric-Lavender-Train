@@ -128,6 +128,6 @@ export const bookingCtaFallback = {
 export const newsletterFallback = {
   kicker: "Stay in the Loop",
   heading: "Join the ELT Newsletter",
-  body: "Weekly updates from Electric Lavender Train, straight to your inbox. Subscribers can separately opt in to new-show alerts when a public date is added. Signup uses email confirmation (double opt-in) once the hosted form is live.",
+  body: "Get the weekly ELT performance schedule delivered to your inbox. Signup uses email confirmation (double opt-in) once the hosted form is live.",
   ctaLabel: "Sign Up for the Newsletter",
 };

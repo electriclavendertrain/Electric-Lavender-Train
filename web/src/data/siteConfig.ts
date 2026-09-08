@@ -14,10 +14,12 @@
  *   signals, so this is treated as unverified rather than guessed.
  * - appleMusic, spotify (confirmed 2026-09-02): official ELT artist pages on
  *   each platform, supplied directly and verified — not placeholder-shaped.
- * - mailingAddress (confirmed 2026-09-03): "PO Box 813, Avila Beach, CA
- *   93424" — supplied directly by the client as confirmed public contact
- *   information. No recipient name, street address, phone number, or
- *   country line was supplied, so none is invented here.
+ * - mailingAddress: a confirmed PO Box (`docs/client-questions.md`) was
+ *   published here and publicly rendered from 2026-09-03. The client later
+ *   decided against public display (2026-09-07); the field and every
+ *   consumer were removed. The confirmed address itself remains recorded,
+ *   privately, in `docs/client-questions.md` — not deleted, just no longer
+ *   surfaced anywhere public. See `ELT-CONTENT-006` in `DEFERRED-WORK.md`.
  * - email (confirmed 2026-08-14): electriclavendertrain@gmail.com is the
  *   approved public contact/booking address — used for the visible
  *   direct-email/Footer fallback and as the intended Formspree notification
@@ -116,19 +118,6 @@ export interface SiteConfig {
   contact: {
     email: string | null;
     phone: string | null;
-    /**
-     * Structured, not a loose pre-formatted string, so each consumer
-     * (Footer, Contact & Booking page) renders it with its own semantic
-     * markup instead of duplicating a hand-built multi-line string. `null`
-     * whenever no confirmed mailing address exists — see
-     * `formatMailingAddressLines` below for the two display lines.
-     */
-    mailingAddress: {
-      poBox: string;
-      city: string;
-      state: string;
-      postalCode: string;
-    } | null;
   };
 }
 
@@ -181,12 +170,6 @@ export const siteConfig: SiteConfig = {
   contact: {
     email: "electriclavendertrain@gmail.com",
     phone: null,
-    mailingAddress: {
-      poBox: "PO Box 813",
-      city: "Avila Beach",
-      state: "CA",
-      postalCode: "93424",
-    },
   },
 };
 
@@ -219,19 +202,6 @@ export function isContactEmailConfigured(): boolean {
  */
 export function formatPageTitle(pageTitle: string): string {
   return `${pageTitle.trim()} — ${siteConfig.bandNameFormal}`;
-}
-
-/**
- * Renders `siteConfig.contact.mailingAddress` as the two conventional
- * postal lines (PO box; city, state, and postal code) for a consumer to
- * place inside its own semantic `<address>` markup. Returns `null` when no
- * mailing address is configured, so a consumer can omit the whole block
- * rather than rendering an empty `<address>`.
- */
-export function formatMailingAddressLines(): [string, string] | null {
-  const address = siteConfig.contact.mailingAddress;
-  if (!address) return null;
-  return [address.poBox, `${address.city}, ${address.state} ${address.postalCode}`];
 }
 
 export type ContactInquiryType = "booking" | "merch" | "other" | "removal";
