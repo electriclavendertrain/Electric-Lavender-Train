@@ -7,11 +7,11 @@ import {defineArrayMember, defineField, defineType} from 'sanity'
  * Renamed from `mediaPage` (visitor-facing "Media & Merch" → "Gallery &
  * Merchandise", route `/media-merch` → `/gallery-merch`). The legacy
  * `mediaPage` schema type has since been retired (its Studio registration
- * removed) now that this singleton's content has been confirmed complete;
- * its one dataset document was deliberately left untouched rather than
- * deleted, so it remains available directly via the API or Vision as a
- * historical reference. The one content difference from the old `mediaPage`
- * shape (beyond the rename): **no featured-video field**. Featured,
+ * removed) now that this singleton's content has been confirmed complete.
+ * Its obsolete development-dataset document was deleted on 2026-09-08 so it
+ * cannot retain references to reusable records. The one content difference
+ * from the old `mediaPage` shape (beyond the rename): **no featured-video
+ * field**. Featured,
  * click-to-load video locations are now only the Homepage hero and the
  * Music page — see `docs/gallery-merch.md` and `docs/music.md`.
  *

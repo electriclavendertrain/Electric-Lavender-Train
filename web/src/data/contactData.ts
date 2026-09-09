@@ -100,11 +100,17 @@ export const EVENT_TYPE_OPTIONS = [
 export interface ContactFieldConfig {
   name: string;
   label: string;
-  type: "text" | "email" | "tel" | "date" | "select" | "textarea";
+  type: "text" | "email" | "tel" | "number" | "date" | "select" | "textarea";
   required: boolean;
   autoComplete?: string;
   placeholder?: string;
   options?: string[];
+  inputMode?: "decimal" | "email" | "numeric" | "search" | "tel" | "text" | "url";
+  min?: number;
+  max?: number;
+  step?: number;
+  pattern?: string;
+  validationKind?: "phone" | "budget";
   /** Marks the one field the `?item=` URL parameter prefills. */
   isMerchItemField?: boolean;
   /**
@@ -137,7 +143,19 @@ export const bookingFields: ContactFieldConfig[] = [
     autoComplete: "email",
     maxLength: 254,
   },
-  { name: "phone", label: "Phone", type: "tel", required: false, autoComplete: "tel", maxLength: 40 },
+  {
+    name: "phone",
+    label: "Phone",
+    type: "tel",
+    required: false,
+    autoComplete: "tel",
+    inputMode: "tel",
+    placeholder: "e.g. (805) 555-0123",
+    helperText: "Use 7 to 15 digits. Spaces, parentheses, +, periods, and hyphens are okay.",
+    maxLength: 25,
+    pattern: "(?=(?:.*[0-9]){7})(?:[0-9]|\\+|\\(|\\)| |\\.|-){7,25}",
+    validationKind: "phone",
+  },
   {
     name: "organization",
     label: "Organization or Venue",
@@ -175,10 +193,14 @@ export const bookingFields: ContactFieldConfig[] = [
   {
     name: "budget",
     label: "Budget",
-    type: "text",
+    type: "number",
     required: false,
-    placeholder: "e.g. $2,500",
-    maxLength: 60,
+    inputMode: "numeric",
+    placeholder: "e.g. 2500",
+    helperText: "Enter a non-negative whole-dollar amount without symbols or commas.",
+    min: 0,
+    step: 1,
+    validationKind: "budget",
   },
   {
     name: "specialSongRequests",
@@ -350,6 +372,8 @@ export const contactCopy = {
   validation: {
     required: (label: string) => `${label} is required.`,
     email: "Enter a valid email address.",
+    phone: "Enter a valid phone number using 7 to 15 digits.",
+    budget: "Enter a non-negative whole-dollar budget without symbols or commas.",
     tooLong: (label: string, max: number) => `${label} must be ${max} characters or fewer.`,
   },
 

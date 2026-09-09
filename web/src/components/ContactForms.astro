@@ -208,10 +208,16 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                           required={field.required}
                           maxlength={field.maxLength}
                           autocomplete={field.autoComplete}
+                          inputmode={field.inputMode}
                           placeholder={field.placeholder}
+                          min={field.min}
+                          max={field.max}
+                          step={field.step}
+                          pattern={field.pattern}
                           aria-describedby={describedBy}
                           data-field
                           data-label={field.label}
+                          data-validation-kind={field.validationKind}
                           data-merch-item-field={field.isMerchItemField}
                         />
                       )}

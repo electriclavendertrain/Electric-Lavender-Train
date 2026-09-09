@@ -21,6 +21,8 @@ import { contactCopy } from "../data/contactData";
 import { submitForm } from "../lib/formDelivery";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_CHARACTERS_PATTERN = /^\+?[0-9() .-]+$/;
+const WHOLE_DOLLAR_PATTERN = /^\d+$/;
 const MAX_ITEM_PARAM_LENGTH = 200;
 const ALLOWED_INQUIRIES = ["booking", "merch", "other", "removal"];
 
@@ -131,6 +133,16 @@ function validateForm(form: HTMLFormElement): HTMLElement | null {
       message = contactCopy.validation.required(label);
     } else if (field instanceof HTMLInputElement && field.type === "email" && value && !EMAIL_PATTERN.test(value)) {
       message = contactCopy.validation.email;
+    } else if (field.dataset.validationKind === "phone" && value) {
+      const digitCount = value.replace(/\D/g, "").length;
+      if (!PHONE_CHARACTERS_PATTERN.test(value) || digitCount < 7 || digitCount > 15) {
+        message = contactCopy.validation.phone;
+      }
+    } else if (field.dataset.validationKind === "budget" && value) {
+      const amount = Number(value);
+      if (!WHOLE_DOLLAR_PATTERN.test(value) || !Number.isSafeInteger(amount) || amount < 0) {
+        message = contactCopy.validation.budget;
+      }
     } else if (!(field instanceof HTMLSelectElement) && field.maxLength >= 0 && value.length > field.maxLength) {
       message = contactCopy.validation.tooLong(label, field.maxLength);
     }
