@@ -29,7 +29,6 @@ import {
   aboutHeroFallbackAlt,
   memberProfileFallbackAssets,
 } from "../data/aboutData";
-import { withTestimonialFallbacks } from "../data/testimonialsData";
 import { sanityClient } from "../sanity/client";
 import { ABOUT_PAGE_QUERY, TESTIMONIALS_QUERY } from "../sanity/queries";
 import {
@@ -136,13 +135,12 @@ if (normalizedAboutPage) {
   };
 }
 
-// Shared with the homepage. Use the same three-card fallback as one complete
-// set in non-production until all three live documents are valid. Production
-// requires all three; never mix live and placeholder endorsements.
-const testimonials = withTestimonialFallbacks(
-  normalizeTestimonials(rawTestimonials),
-  !isProductionDataset,
-);
+// Shared with the homepage. Zero to three valid documents render, in query
+// order; no invented placeholder is substituted, and no minimum count is
+// required for production. `Testimonials.astro` itself omits the whole
+// section — kicker and heading included — whenever there are zero valid
+// testimonials.
+const testimonials = normalizeTestimonials(rawTestimonials);
 
 const title = formatPageTitle(pageContent.seo.metaTitle ?? "About");
 const description = pageContent.seo.metaDescription ?? siteConfig.tagline;

@@ -36,7 +36,7 @@ export const INQUIRY_TABS: {
   tabLabel: string;
   panelHeading: string;
   /**
-   * The Formspree `_subject` value — a clear, fixed email subject line so
+   * The Formspree `subject` value — a clear, fixed email subject line so
    * each inquiry type's notification is immediately distinguishable in an
    * inbox. Deliberately static rather than computed from the visitor's own
    * field values (e.g. event type): a static hidden input works identically
@@ -85,6 +85,23 @@ export const INQUIRY_TABS: {
   },
 ];
 
+/**
+ * Native (no-JS) approximation of "contains at least one Unicode letter" —
+ * used by every Name field and by Merchandise Item, so a value like "123" or
+ * blank fails while "Jean-Luc", "O'Brien", "María", "Louis XIV", and "Al3x"
+ * (a real nickname with an embedded digit) all pass. The HTML `pattern`
+ * attribute's value is compiled into a JavaScript regular expression using
+ * Unicode Sets (`v`) mode per the current HTML spec (**corrected 2026-09-10**
+ * — an earlier version of this comment said the older Unicode (`u`) mode),
+ * so `\p{L}` (any Unicode letter) works natively either way — no ASCII-only
+ * `[A-Za-z]` restriction that would reject accented or non-Latin names. This
+ * correction is to the comment only; the actual matching behavior was
+ * already correct and unchanged. `contactForms.ts` re-checks the identical
+ * rule in JavaScript as the authoritative, always-available check; this
+ * `pattern` is only the no-JS fallback.
+ */
+const REQUIRES_LETTER_PATTERN = ".*\\p{L}.*";
+
 /** Generic event categories, not invented client-specific facts — reused as
  * plain descriptive options the same way `bandMember`'s link-type list is a
  * fixed vocabulary rather than editorial content. */
@@ -99,8 +116,33 @@ export const EVENT_TYPE_OPTIONS = [
 
 export interface ContactFieldConfig {
   name: string;
+  /**
+   * The literal HTML `name` attribute this field submits to Formspree.
+   * Defaults to `name` above when absent — that default is correct for
+   * `name`, `email`, `phone`, and `message` (Formspree's own reserved field
+   * names, which must stay exactly as-is), and for any other field that
+   * happens not to need a different Formspree-facing name.
+   *
+   * `name` (this object's `name` field, above) stays the internal,
+   * code-facing identifier: it drives this field's DOM `id`
+   * (`${inquiry}-${name}`, in `ContactForms.astro`), the error-element id
+   * lookup, `fieldsByInquiry` access, and every other piece of code in this
+   * project — none of that changes when `submissionName` is set. Only the
+   * value Formspree actually receives as that input's `name=` attribute (and
+   * therefore the column/label Formspree's dashboard and email
+   * notifications show the client) does.
+   *
+   * **Historical note (added 2026-09-10):** submissions made before a given
+   * field's `submissionName` was introduced or changed were delivered under
+   * whatever field name was live at the time (e.g. `contentDescription`,
+   * `requestedAction`, or the old `_subject` hidden field) — renaming here
+   * has no effect on those past submissions. Review any Formspree dashboard
+   * rule, integration/Zapier mapping, or CSV export that references an old
+   * field key after changing this.
+   */
+  submissionName?: string;
   label: string;
-  type: "text" | "email" | "tel" | "number" | "date" | "select" | "textarea";
+  type: "text" | "email" | "tel" | "number" | "date" | "url" | "select" | "textarea";
   required: boolean;
   autoComplete?: string;
   placeholder?: string;
@@ -110,7 +152,7 @@ export interface ContactFieldConfig {
   max?: number;
   step?: number;
   pattern?: string;
-  validationKind?: "phone" | "budget";
+  validationKind?: "phone" | "budget" | "requiresLetter" | "positiveInteger" | "url";
   /** Marks the one field the `?item=` URL parameter prefills. */
   isMerchItemField?: boolean;
   /**
@@ -134,7 +176,16 @@ export interface ContactFieldConfig {
 }
 
 export const bookingFields: ContactFieldConfig[] = [
-  { name: "name", label: "Name", type: "text", required: true, autoComplete: "name", maxLength: 100 },
+  {
+    name: "name",
+    label: "Name",
+    type: "text",
+    required: true,
+    autoComplete: "name",
+    maxLength: 100,
+    pattern: REQUIRES_LETTER_PATTERN,
+    validationKind: "requiresLetter",
+  },
   {
     name: "email",
     label: "Email",
@@ -158,6 +209,7 @@ export const bookingFields: ContactFieldConfig[] = [
   },
   {
     name: "organization",
+    submissionName: "Organization or Venue",
     label: "Organization or Venue",
     type: "text",
     required: false,
@@ -166,32 +218,46 @@ export const bookingFields: ContactFieldConfig[] = [
   },
   {
     name: "eventType",
+    submissionName: "Event Type",
     label: "Event Type",
     type: "select",
     required: true,
     options: EVENT_TYPE_OPTIONS,
   },
-  { name: "preferredDate", label: "Preferred Date", type: "date", required: false },
+  {
+    name: "preferredDate",
+    submissionName: "Preferred Date",
+    label: "Preferred Date",
+    type: "date",
+    required: true,
+  },
   {
     name: "location",
+    submissionName: "Event Location",
     label: "Event Location",
     type: "text",
     required: true,
     // Deliberately steers away from a residential street address — a city
-    // and venue name is what's actually useful for a booking inquiry.
-    placeholder: "City and venue, if known",
+    // and/or venue name is what's actually useful for a booking inquiry.
+    placeholder: "City and/or venue location",
     maxLength: 200,
   },
   {
     name: "audienceSize",
+    submissionName: "Estimated Audience Size",
     label: "Estimated Audience Size",
-    type: "text",
+    type: "number",
     required: false,
+    inputMode: "numeric",
     placeholder: "e.g. 150",
-    maxLength: 20,
+    helperText: "If entered, use a whole number greater than zero.",
+    min: 1,
+    step: 1,
+    validationKind: "positiveInteger",
   },
   {
     name: "budget",
+    submissionName: "Budget",
     label: "Budget",
     type: "number",
     required: false,
@@ -204,6 +270,7 @@ export const bookingFields: ContactFieldConfig[] = [
   },
   {
     name: "specialSongRequests",
+    submissionName: "Special Song Requests",
     label: "Special Song Requests",
     type: "textarea",
     required: false,
@@ -215,7 +282,16 @@ export const bookingFields: ContactFieldConfig[] = [
 ];
 
 export const merchFields: ContactFieldConfig[] = [
-  { name: "name", label: "Name", type: "text", required: true, autoComplete: "name", maxLength: 100 },
+  {
+    name: "name",
+    label: "Name",
+    type: "text",
+    required: true,
+    autoComplete: "name",
+    maxLength: 100,
+    pattern: REQUIRES_LETTER_PATTERN,
+    validationKind: "requiresLetter",
+  },
   {
     name: "email",
     label: "Email",
@@ -226,14 +302,18 @@ export const merchFields: ContactFieldConfig[] = [
   },
   {
     name: "merchItem",
+    submissionName: "Merchandise Item",
     label: "Merchandise Item",
     type: "text",
     required: true,
     isMerchItemField: true,
     maxLength: 150,
+    pattern: REQUIRES_LETTER_PATTERN,
+    validationKind: "requiresLetter",
   },
   {
     name: "details",
+    submissionName: "Quantity, Size, or Other Details",
     label: "Quantity, Size, or Other Details",
     type: "textarea",
     required: false,
@@ -243,7 +323,16 @@ export const merchFields: ContactFieldConfig[] = [
 ];
 
 export const otherFields: ContactFieldConfig[] = [
-  { name: "name", label: "Name", type: "text", required: true, autoComplete: "name", maxLength: 100 },
+  {
+    name: "name",
+    label: "Name",
+    type: "text",
+    required: true,
+    autoComplete: "name",
+    maxLength: 100,
+    pattern: REQUIRES_LETTER_PATTERN,
+    validationKind: "requiresLetter",
+  },
   {
     name: "email",
     label: "Email",
@@ -252,7 +341,21 @@ export const otherFields: ContactFieldConfig[] = [
     autoComplete: "email",
     maxLength: 254,
   },
-  { name: "subject", label: "Subject", type: "text", required: true, maxLength: 150 },
+  {
+    name: "subject",
+    // Not left to the `name`-based default: every form also carries a
+    // static hidden field literally named `subject` (Formspree's own
+    // reserved notification-subject field — see `SUBJECT_FIELD_NAME` in
+    // `formDelivery.ts`), so this visitor-entered field needs its own,
+    // different Formspree-facing name or the two would collide under the
+    // same `name=` attribute in the submitted form data. The internal key
+    // (`subject`) and this field's DOM id (`other-subject`) are unaffected.
+    submissionName: "Inquiry Subject",
+    label: "Subject",
+    type: "text",
+    required: true,
+    maxLength: 150,
+  },
   { name: "message", label: "Message", type: "textarea", required: true, maxLength: 3000 },
 ];
 
@@ -261,7 +364,16 @@ export const otherFields: ContactFieldConfig[] = [
  * requester's basis for asking, without requiring an unnecessary legal
  * declaration (e.g. no sworn-statement checkbox) to submit. */
 export const removalFields: ContactFieldConfig[] = [
-  { name: "name", label: "Name", type: "text", required: true, autoComplete: "name", maxLength: 100 },
+  {
+    name: "name",
+    label: "Name",
+    type: "text",
+    required: true,
+    autoComplete: "name",
+    maxLength: 100,
+    pattern: REQUIRES_LETTER_PATTERN,
+    validationKind: "requiresLetter",
+  },
   {
     name: "email",
     label: "Email",
@@ -272,14 +384,23 @@ export const removalFields: ContactFieldConfig[] = [
   },
   {
     name: "contentLocation",
-    label: "URL or Location of the Content",
-    type: "text",
-    required: true,
-    placeholder: "Link, page, or where you saw it",
+    submissionName: "Content URL",
+    label: "URL of the Content",
+    type: "url",
+    required: false,
+    placeholder: "https://example.com/…",
+    // Optional: format-checked only when entered (see `validationKind:
+    // "url"`) — this only confirms the text is a syntactically valid
+    // absolute http(s) link, never that the page exists or belongs to ELT.
+    // No direct link? Describe where you saw it in the required field below.
+    helperText: "Optional. If you don't have a direct link, describe where you saw it below.",
     maxLength: 300,
+    pattern: "https?://.+",
+    validationKind: "url",
   },
   {
     name: "contentDescription",
+    submissionName: "Content Description",
     label: "Description of the Photo, Video, or Content",
     type: "textarea",
     required: true,
@@ -287,6 +408,7 @@ export const removalFields: ContactFieldConfig[] = [
   },
   {
     name: "reason",
+    submissionName: "Reason for Request",
     label: "Reason for the Request or Relationship to the Content",
     type: "textarea",
     required: true,
@@ -294,6 +416,7 @@ export const removalFields: ContactFieldConfig[] = [
   },
   {
     name: "requestedAction",
+    submissionName: "Requested Action",
     label: "Requested Action or Details",
     type: "textarea",
     required: true,
@@ -335,10 +458,10 @@ export const contactCopy = {
   optionalSuffix: " (optional)",
 
   submitLabel: "Send Inquiry",
+  /** Shown on the submit button only after a *valid* submission has begun —
+   * see `contactForms.ts`'s pending-state handling. Never shown for an
+   * invalid submission, which is blocked before this label ever changes. */
   submittingLabel: "Sending…",
-  successMessage: "Thanks — your inquiry has been sent.",
-  errorMessage:
-    "Something went wrong and your inquiry was not sent. Please try again, or use the direct email address below.",
 
   devEmailNotice: `${TEST_EMAIL_MARKER} Contact delivery is not yet configured for this site. These forms are shown for layout and review only and cannot send a real inquiry until a public contact email is approved.`,
 
@@ -374,6 +497,9 @@ export const contactCopy = {
     email: "Enter a valid email address.",
     phone: "Enter a valid phone number using 7 to 15 digits.",
     budget: "Enter a non-negative whole-dollar budget without symbols or commas.",
+    requiresLetter: (label: string) => `${label} must include at least one letter.`,
+    positiveInteger: (label: string) => `${label} must be a whole number greater than zero.`,
+    url: "Enter a valid link starting with http:// or https://, or leave this blank.",
     tooLong: (label: string, max: number) => `${label} must be ${max} characters or fewer.`,
   },
 

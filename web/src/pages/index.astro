@@ -19,7 +19,6 @@ import {
   bookingCtaFallback,
   newsletterFallback,
 } from "../data/homeData";
-import { withTestimonialFallbacks } from "../data/testimonialsData";
 import { sanityClient } from "../sanity/client";
 import {
   HOMEPAGE_QUERY,
@@ -106,14 +105,12 @@ const heroVideoTitle =
   getHeroVideoTitle(homepage?.heroVideo) ?? `${siteConfig.bandNameFormal} — Featured Video`;
 
 // Testimonials come from their own reusable documents and are entirely
-// independent of whether the homepage singleton exists. Use the shared
-// three-card fallback as one complete set in non-production until all three
-// live documents are valid. Production requires all three; live and
-// placeholder endorsements are never mixed in the same section.
-const testimonials = withTestimonialFallbacks(
-  normalizeTestimonials(rawTestimonials),
-  !isProductionDataset,
-);
+// independent of whether the homepage singleton exists. Zero to three valid
+// documents render, in query order; no invented placeholder is substituted,
+// and no minimum count is required for production. `Testimonials.astro`
+// itself omits the whole section — kicker and heading included — whenever
+// there are zero valid testimonials.
+const testimonials = normalizeTestimonials(rawTestimonials);
 
 // These editorial blocks were added after the original singleton was already
 // in use. Each falls back as one complete unit while a non-production dataset

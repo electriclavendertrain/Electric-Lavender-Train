@@ -14,17 +14,29 @@
  * attribute is only ever set by that same script. Without JavaScript, all
  * four panels render in document order with no `hidden` attribute
  * anywhere in the server-rendered markup, so nothing is inaccessible and
- * there is no dead switcher control sitting in the tab order. A no-JS
- * submission goes straight to Formspree (a standards-based HTML `<form
- * method="POST" action="https://formspree.io/f/…">`, not something the
- * script constructs) — see docs/contact-booking.md for what could and could
- * not be verified about that path without a real configured endpoint.
+ * there is no dead switcher control sitting in the tab order.
+ *
+ * The FIRST valid submission — with or without JavaScript — is the exact
+ * same standards-based HTML `<form method="POST" action="https://formspree.io/f/…">`
+ * navigating the browser to Formspree; nothing here constructs a request or
+ * intercepts that navigation. This is deliberate: Formspree's built-in
+ * CAPTCHA protection stays enabled, and it rejects an AJAX submission
+ * without a separate custom reCAPTCHA integration this project isn't
+ * adding — see `docs/contact-booking.md` §9 and
+ * `web/src/scripts/contactForms.ts`'s module doc comment. JavaScript adds
+ * two things around that same native submission, neither of which ever
+ * blocks it: validation *before* it (calling `event.preventDefault()` only
+ * to block an invalid submission, showing accessible errors and focusing
+ * the first invalid field), and a purely cosmetic pending state *at* it
+ * (disabling the submit button and swapping `<span data-submit-label>` to
+ * "Sending…", so only a *second*, duplicate `submit` event gets
+ * `preventDefault()`-ed — the first, valid one never does).
  *
  * No `novalidate` here, deliberately: with JavaScript unavailable, the
  * browser's own native `required`/`type`/`maxlength` validation is what a
  * visitor gets, and it must not be suppressed. `contactForms.ts` adds
  * `novalidate` itself, dynamically, ONLY once it has confirmed it can drive
- * a given form's enhanced submit flow — at that point its own accessible
+ * a given form's enhanced validation — at that point its own accessible
  * `aria-invalid`/error-text validation takes over, which is a peer-or-better
  * replacement for native browser popups, never a weaker one.
  *
@@ -39,9 +51,43 @@
  * The DOM-visible state this component exposes is provider-neutral —
  * `data-delivery-configured` (read by `contactForms.ts`), not
  * `data-formspree-configured` — even though the values it's built from
- * (the honeypot field name, the `_subject` field, the endpoint itself) do
+ * (the honeypot field name, the `subject` field, the endpoint itself) do
  * come from Formspree today. See `formDelivery.ts`'s doc comment for
  * exactly what a future provider migration would and wouldn't touch.
+ *
+ * **Every field's `name=` attribute — what Formspree actually receives and
+ * displays in its dashboard/notification emails — is a human-readable
+ * string** (`Organization or Venue`, `Estimated Audience Size`, `Content
+ * URL`, etc.), not this project's own internal field key. `name`, `email`,
+ * `phone`, and `message` stay exactly named that way (Formspree's own
+ * reserved/expected field names); every other field uses
+ * `field.submissionName` (falling back to `field.name`, the internal key,
+ * when a field has no override) — see `contactData.ts`'s
+ * `ContactFieldConfig.submissionName` doc comment for the full mapping and
+ * why the Other form's visitor-facing "Subject" field submits under
+ * `Inquiry Subject` rather than `subject` (which the hidden
+ * `SUBJECT_FIELD_NAME` field on every form already uses).
+ *
+ * **Correction (2026-09-10):** an earlier version of this comment claimed
+ * `contactForms.ts`'s internal field lookups are "keyed by `id`/`name`...
+ * unaffected by `submissionName`" — the `name`/`id` pairing there was wrong.
+ * The rendered DOM `name=` attribute genuinely DOES change to
+ * `field.submissionName` where one is set; that's the entire point of this
+ * property.
+ *
+ * **Second correction (2026-09-10):** the first correction above then
+ * overstated the opposite — that `contactForms.ts` "never reads a field's
+ * `name` attribute at all." It does: `validateForm()` reads `field.name` as
+ * a *fallback* validation-error label (`field.dataset.label ?? field.name`)
+ * for the rare case a field has no `data-label`. In practice this fallback
+ * never actually triggers, because every field this component renders
+ * always supplies `data-label={field.label}` (see the field-rendering loop
+ * below) — but the code path exists and does read `field.name`. What
+ * actually makes field lookups and validation stable across a
+ * `submissionName` rename is that they're keyed by `id`
+ * (`document.getElementById`) and the `[data-field]`/`data-validation-kind`/
+ * `data-merch-item-field` attributes, none of which derive from
+ * `submissionName` — not a blanket claim that `name` is never read.
  */
 
 import {
@@ -50,7 +96,12 @@ import {
   fieldsByInquiry,
   contactCopy,
 } from "../data/contactData";
-import { getFormspreeEndpoint, HONEYPOT_FIELD_NAME, SUBJECT_FIELD_NAME } from "../lib/formDelivery";
+import {
+  getFormspreeEndpoint,
+  HONEYPOT_FIELD_NAME,
+  SUBJECT_FIELD_NAME,
+  INQUIRY_TYPE_FIELD_NAME,
+} from "../lib/formDelivery";
 import siteConfig from "../data/siteConfig";
 
 interface Props {
@@ -139,7 +190,7 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                  provider migration reviews this block alongside
                  formDelivery.ts — see that file's doc comment. */}
               <input type="hidden" name={SUBJECT_FIELD_NAME} value={tab.emailSubject} />
-              <input type="hidden" name="inquiryType" value={tab.value} />
+              <input type="hidden" name={INQUIRY_TYPE_FIELD_NAME} value={tab.value} />
 
               {/* Formspree's honeypot convention: a real, empty text field
                  named `_gotcha`. Hidden from sight, the accessibility tree,
@@ -175,7 +226,7 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                       {field.type === "textarea" ? (
                         <textarea
                           id={fieldId}
-                          name={field.name}
+                          name={field.submissionName ?? field.name}
                           class="field__control"
                           required={field.required}
                           maxlength={field.maxLength}
@@ -189,7 +240,7 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                       ) : field.type === "select" ? (
                         <select
                           id={fieldId}
-                          name={field.name}
+                          name={field.submissionName ?? field.name}
                           class="field__control"
                           required={field.required}
                           aria-describedby={describedBy}
@@ -202,7 +253,7 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                       ) : (
                         <input
                           id={fieldId}
-                          name={field.name}
+                          name={field.submissionName ?? field.name}
                           type={field.type}
                           class="field__control"
                           required={field.required}
@@ -238,22 +289,6 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                 {contactCopy.jitPrivacyNotice}{" "}
                 <a href={siteConfig.routes.privacy}>{contactCopy.privacyLinkText}</a>.
               </p>
-
-              <p
-                class="contact-forms__status"
-                data-form-status
-                role="status"
-                aria-live="polite"
-                tabindex="-1"
-                hidden
-              />
-              <p
-                class="contact-forms__status contact-forms__status--error"
-                data-form-error
-                role="alert"
-                tabindex="-1"
-                hidden
-              />
             </form>
           </div>
         );
@@ -466,24 +501,6 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
   }
   .contact-forms__jit-privacy a:hover {
     color: var(--gold);
-  }
-
-  .contact-forms__status {
-    margin-top: 18px;
-    padding: 16px 18px;
-    border-radius: 12px;
-    background: rgba(160, 123, 239, 0.1);
-    border: 1px solid rgba(160, 123, 239, 0.3);
-    font-size: 0.88rem;
-    color: rgba(244, 232, 208, 0.9);
-    overflow-wrap: anywhere;
-  }
-  /* Failure is communicated by this distinct background/border AND the
-     message text itself — never by color alone. */
-  .contact-forms__status--error {
-    background: rgba(139, 42, 58, 0.16);
-    border-color: rgba(232, 165, 171, 0.5);
-    color: #e8a5ab;
   }
 
   .contact-forms__direct-email {

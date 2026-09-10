@@ -12,8 +12,8 @@
  *    reaching for these — never mixing real Sanity content with placeholder
  *    text in the same render.
  *
- * Shared testimonial fallbacks live in `testimonialsData.ts`, not in either
- * page singleton's fallback block.
+ * Testimonials have no fallback of any kind — zero to three real documents
+ * render as-is; see `normalizeTestimonials` in `sanity/normalize.ts`.
  *
  * There is no event fallback of any kind, anywhere, ever — see
  * `web/src/pages/index.astro` and docs/phase3-plan.md §15.
