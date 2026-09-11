@@ -1,93 +1,8 @@
 ---
 /**
- * The switcher + four inquiry forms + direct-email fallback + privacy note.
- * Kept as one component (rather than one file per form) because Astro's
- * scoped `<style>` only applies to markup rendered directly in the same
- * file — splitting the forms into separate components would mean either
- * duplicating this file's field/button CSS four times or promoting it to
- * `is:global`, neither of which is worth it for four closely related
- * panels that share one interactive feature (the switcher) end to end.
- *
- * Progressive enhancement, exactly like `MediaGallery.astro`'s filters:
- * the switcher (`role="tablist"`) stays hidden until `contactForms.ts`
- * confirms it can drive it (`.is-active`), and every panel's `hidden`
- * attribute is only ever set by that same script. Without JavaScript, all
- * four panels render in document order with no `hidden` attribute
- * anywhere in the server-rendered markup, so nothing is inaccessible and
- * there is no dead switcher control sitting in the tab order.
- *
- * The FIRST valid submission — with or without JavaScript — is the exact
- * same standards-based HTML `<form method="POST" action="https://formspree.io/f/…">`
- * navigating the browser to Formspree; nothing here constructs a request or
- * intercepts that navigation. This is deliberate: Formspree's built-in
- * CAPTCHA protection stays enabled, and it rejects an AJAX submission
- * without a separate custom reCAPTCHA integration this project isn't
- * adding — see `docs/contact-booking.md` §9 and
- * `web/src/scripts/contactForms.ts`'s module doc comment. JavaScript adds
- * two things around that same native submission, neither of which ever
- * blocks it: validation *before* it (calling `event.preventDefault()` only
- * to block an invalid submission, showing accessible errors and focusing
- * the first invalid field), and a purely cosmetic pending state *at* it
- * (disabling the submit button and swapping `<span data-submit-label>` to
- * "Sending…", so only a *second*, duplicate `submit` event gets
- * `preventDefault()`-ed — the first, valid one never does).
- *
- * No `novalidate` here, deliberately: with JavaScript unavailable, the
- * browser's own native `required`/`type`/`maxlength` validation is what a
- * visitor gets, and it must not be suppressed. `contactForms.ts` adds
- * `novalidate` itself, dynamically, ONLY once it has confirmed it can drive
- * a given form's enhanced validation — at that point its own accessible
- * `aria-invalid`/error-text validation takes over, which is a peer-or-better
- * replacement for native browser popups, never a weaker one.
- *
- * Each form's `disabled`/`action` state is decided at build time from
- * `getFormspreeEndpoint(tab.value)` — independent of whether the public
- * contact email is configured (`emailConfigured` only controls the direct
- * mailto: fallback below). A real Gmail address must never make an
- * unconfigured Formspree form appear functional: an inquiry type whose
- * endpoint is missing/invalid renders disabled with `formNotConfiguredNotice`
- * pointing at the direct email fallback instead.
- *
- * The DOM-visible state this component exposes is provider-neutral —
- * `data-delivery-configured` (read by `contactForms.ts`), not
- * `data-formspree-configured` — even though the values it's built from
- * (the honeypot field name, the `subject` field, the endpoint itself) do
- * come from Formspree today. See `formDelivery.ts`'s doc comment for
- * exactly what a future provider migration would and wouldn't touch.
- *
- * **Every field's `name=` attribute — what Formspree actually receives and
- * displays in its dashboard/notification emails — is a human-readable
- * string** (`Organization or Venue`, `Estimated Audience Size`, `Content
- * URL`, etc.), not this project's own internal field key. `name`, `email`,
- * `phone`, and `message` stay exactly named that way (Formspree's own
- * reserved/expected field names); every other field uses
- * `field.submissionName` (falling back to `field.name`, the internal key,
- * when a field has no override) — see `contactData.ts`'s
- * `ContactFieldConfig.submissionName` doc comment for the full mapping and
- * why the Other form's visitor-facing "Subject" field submits under
- * `Inquiry Subject` rather than `subject` (which the hidden
- * `SUBJECT_FIELD_NAME` field on every form already uses).
- *
- * **Correction (2026-09-10):** an earlier version of this comment claimed
- * `contactForms.ts`'s internal field lookups are "keyed by `id`/`name`...
- * unaffected by `submissionName`" — the `name`/`id` pairing there was wrong.
- * The rendered DOM `name=` attribute genuinely DOES change to
- * `field.submissionName` where one is set; that's the entire point of this
- * property.
- *
- * **Second correction (2026-09-10):** the first correction above then
- * overstated the opposite — that `contactForms.ts` "never reads a field's
- * `name` attribute at all." It does: `validateForm()` reads `field.name` as
- * a *fallback* validation-error label (`field.dataset.label ?? field.name`)
- * for the rare case a field has no `data-label`. In practice this fallback
- * never actually triggers, because every field this component renders
- * always supplies `data-label={field.label}` (see the field-rendering loop
- * below) — but the code path exists and does read `field.name`. What
- * actually makes field lookups and validation stable across a
- * `submissionName` rename is that they're keyed by `id`
- * (`document.getElementById`) and the `[data-field]`/`data-validation-kind`/
- * `data-merch-item-field` attributes, none of which derive from
- * `submissionName` — not a blanket claim that `name` is never read.
+ * Four progressively enhanced inquiry forms. Valid submissions remain native
+ * Formspree navigations; JavaScript adds validation and duplicate protection.
+ * Without JavaScript, all panels and native HTML validation remain available.
  */
 
 import {
@@ -181,21 +96,11 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
               data-inquiry-form={tab.value}
               data-delivery-configured={endpoint ? "true" : "false"}
             >
-              {/* This block — the two hidden fields below plus the
-                 honeypot — is the part of the Formspree provider adapter
-                 that lives outside formDelivery.ts: field NAMES come from
-                 that boundary (`SUBJECT_FIELD_NAME`, `HONEYPOT_FIELD_NAME`),
-                 but the markup shape itself (which hidden fields exist, in
-                 what structure) is Formspree's convention. A future
-                 provider migration reviews this block alongside
-                 formDelivery.ts — see that file's doc comment. */}
+              {/* Formspree adapter fields; review with formDelivery.ts on provider changes. */}
               <input type="hidden" name={SUBJECT_FIELD_NAME} value={tab.emailSubject} />
               <input type="hidden" name={INQUIRY_TYPE_FIELD_NAME} value={tab.value} />
 
-              {/* Formspree's honeypot convention: a real, empty text field
-                 named `_gotcha`. Hidden from sight, the accessibility tree,
-                 and the tab order — never `type="hidden"`, which would not
-                 exercise a bot's ordinary form-filling behavior. */}
+              {/* A visually hidden text field is required for the Formspree honeypot. */}
               <div class="visually-hidden" aria-hidden="true">
                 <label>
                   Leave this field blank

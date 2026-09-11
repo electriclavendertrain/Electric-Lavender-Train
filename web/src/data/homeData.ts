@@ -1,31 +1,4 @@
-/**
- * Two different kinds of homepage content live here, and they're handled
- * differently by index.astro:
- *
- * 1. Coherent fallback blocks for Studio-owned Homepage sections while a
- *    non-production dataset is being populated.
- *
- * 2. `heroFallback` / `bookingCtaFallback` — used ONLY when the entire
- *    homepage singleton document is absent from the configured dataset
- *    (docs/phase3-plan.md §15). If the singleton exists but a section
- *    within it is incomplete, index.astro omits that section instead of
- *    reaching for these — never mixing real Sanity content with placeholder
- *    text in the same render.
- *
- * Testimonials have no fallback of any kind — zero to three real documents
- * render as-is; see `normalizeTestimonials` in `sanity/normalize.ts`.
- *
- * There is no event fallback of any kind, anywhere, ever — see
- * `web/src/pages/index.astro` and docs/phase3-plan.md §15.
- *
- * `TEST_NEWSLETTER_MARKER` is a belt-and-suspenders production guard, not a
- * marker used anywhere in this file's own fallback content today (the
- * newsletter fallback below is real, approved copy, not a placeholder). If a
- * `[TEST`-prefixed value is ever typed into the Studio `homepage.newsletter`
- * fields — in `development` or, by accident, `production` — `normalize.ts`
- * rejects it in production the same way `TEST_BIOGRAPHY_MARKER` and
- * `TEST_PRODUCT_MARKER` guard their own sections.
- */
+/** Code-owned Homepage labels and complete development fallbacks. */
 
 export const TEST_NEWSLETTER_MARKER = "[TEST";
 
@@ -50,25 +23,10 @@ export const upcomingShowsFallback = {
  * content moved here from the About page. Not sourced from `aboutData.ts`. */
 export const EXPERIENCE_HEADING_ID = "home-experience";
 
-/** The Experience section is defined as exactly three highlights, not "up
- * to". Homepage-owned (moved out of `sanity/normalize.ts`, which no longer
- * has any About-page use for this count now that Experience has fully moved
- * here) — imported into `normalize.ts`'s `isExperienceContentComplete` the
- * same way that file already imports `TEST_*_MARKER` constants from other
- * data modules. */
+/** The Experience section is defined as exactly three highlights, not "up to". */
 export const REQUIRED_EXPERIENCE_HIGHLIGHTS = 3;
 
-/**
- * Same approved copy that was previously seeded on the About page (now
- * deprecated there — see `aboutPage.experience` in
- * `studio/schemaTypes/aboutPage.ts`). Used whenever `homepage.experience`
- * itself is incomplete — which today includes every existing development
- * document, since none of them has this field populated yet (it's a new
- * field on an existing singleton), not only when the entire `homepage`
- * singleton document is absent. Same "one coherent fallback block, never
- * merged field-by-field with partial live content" rule as every other
- * Studio-owned section fallback above.
- */
+/** Same approved copy that was previously seeded on the About page (now deprecated there — see `aboutPage.experience` in `studio/schemaTypes/aboutPage.ts`). */
 export const experienceFallback = {
   kicker: "What to Expect",
   heading: "The ELT Experience",
@@ -106,10 +64,7 @@ export const homepageSeoFallback = {
     "Electric Lavender Train brings high-energy live dance music to weddings, parties, breweries, festivals, and events across California’s Central Coast.",
 };
 
-// ---------------------------------------------------------------------
-// Fallback-only content — used only when the homepage singleton is
-// entirely absent (never when it exists but is partially empty).
-// ---------------------------------------------------------------------
+// Used only when the Homepage singleton is entirely absent.
 
 export const heroFallback = {
   eyebrow: "Central Coast Live Music",

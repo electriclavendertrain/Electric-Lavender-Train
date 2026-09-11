@@ -9,22 +9,9 @@ interface Props {
   /** Adds a matching rule before the centered kicker. Off by default so
    * existing uses keep their approved appearance. */
   balancedKicker?: boolean;
-  /**
-   * Where the button goes. Defaults to the shared booking-form destination,
-   * so every existing caller (Homepage, Shows, About) keeps its current
-   * behavior with no changes. The Gallery & Merchandise page (formerly
-   * Media & Merch) was the first caller to override this — it now passes
-   * an internal `/contact-booking` Merch-inquiry link, not the original
-   * verified Instagram URL this comment used to describe.
-   */
+  /** Where the button goes. */
   href?: string;
-  /**
-   * Marks `href` as an external destination: opens in a new tab and appends
-   * the standard visually-hidden new-tab notice to the accessible name,
-   * matching every other external link in the project (Footer, Testimonials,
-   * member links). Off by default — the existing booking-form destination is
-   * an internal route and must not gain `target="_blank"`.
-   */
+  /** Marks `href` as an external destination: opens in a new tab and appends the standard visually-hidden new-tab notice to the accessible name, matching every other external link in the project (Footer, Testimonials, member links). */
   isExternal?: boolean;
 }
 

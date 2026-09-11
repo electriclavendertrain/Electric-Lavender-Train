@@ -1,28 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-/**
- * The Contact & Booking page singleton, with the fixed `_id: "contactPage"`.
- *
- * Same singleton conventions as every other page singleton: one fixed
- * Structure entry, stripped from `schema.templates` and the global "+" menu
- * (via `SINGLETON_TYPES` in `sanity.config.ts`), queried by that exact
- * `_id`. See docs/developer-guide.md §5.
- *
- * Only genuinely editorial content lives here: the page intro, the compact
- * newsletter callout copy, the FAQ, and SEO. Everything else on this route —
- * the four inquiry types, their field definitions, validation and length
- * limits, delivery/provider configuration, the honeypot, the sensitive-
- * information warning, and the protected Privacy & Delivery explanation —
- * stays code-owned in `web/src/data/contactData.ts` and
- * `web/src/lib/formDelivery.ts`, exactly as before this singleton existed.
- *
- * The FAQ answers below are cautious, safe-to-publish DRAFT placeholders —
- * written from this site's own already-implemented behavior only, never a
- * promised response time, fixed price, availability, confirmed booking, or
- * inventory claim. They are good enough to stay live as-is, but are still
- * marked for Hunter's review (see each field's Studio description) rather
- * than treated as final client-approved copy.
- */
+/** Contact page editorial singleton schema; forms remain code-owned. */
 export const contactPage = defineType({
   name: 'contactPage',
   title: 'Contact Page',

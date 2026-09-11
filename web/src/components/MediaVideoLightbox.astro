@@ -1,33 +1,5 @@
 ---
-/**
- * One gallery video's player, in a native `<dialog>` — reuses the exact
- * shell CSS classes `MediaLightbox.astro` already defines globally
- * (`.gallery-lightbox`, `.gallery-lightbox__panel`, `.gallery-lightbox__scroll`,
- * `.gallery-lightbox__viewport`, `.gallery-lightbox__meta`,
- * `.gallery-lightbox__caption`, `.gallery-lightbox__credit`,
- * `.gallery-lightbox__close`) rather than duplicating that layout — the
- * definite-height dialog / flexible viewport / natural-height metadata
- * structure that keeps a photo's caption visible without scrolling applies
- * identically here, so the video's title and credit stay visible together
- * with the player on open. Only the CONTENTS of the viewport differ (an
- * empty video frame instead of an `<img>`), styled below.
- *
- * Unlike `MediaLightbox.astro`, this dialog has no no-script `:target`
- * fallback path — see `mediaGallery.ts`'s "Gallery video dialogs" doc
- * comment for why (there is nothing a script-free fallback could put
- * inside it). Without scripting, the gallery tile that opens this dialog
- * is a real external link straight to YouTube instead
- * (`MediaGallery.astro`), and this dialog is simply never opened. The close
- * control here is therefore a plain `<button>` (calls `dialog.close()`),
- * not a link back to a URL fragment like the photo lightbox's.
- *
- * The frame (`[data-video-frame]`) starts and ends every open/close cycle
- * EMPTY — `mediaGallery.ts` injects a freshly-built iframe into it only
- * after this specific video's tile is activated, and removes that iframe
- * again on close (so playback actually stops, and the same video can be
- * played again later). No iframe with a populated `src` is ever present in
- * the initial HTML, even while this dialog is closed.
- */
+/** Accessible click-to-load video dialog for Gallery entries. */
 
 import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedGalleryVideo } from "../sanity/normalize";

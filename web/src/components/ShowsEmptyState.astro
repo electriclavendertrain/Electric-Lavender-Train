@@ -1,19 +1,5 @@
 ---
-/**
- * Shown when there are no displayable upcoming events at all.
- *
- * It says one thing and refuses to imply a second: the page currently lists
- * nothing, and that is not a statement about availability. A visitor must
- * never read an empty schedule as "any date is free" — the band confirms
- * availability directly, every time.
- *
- * No `role="status"` and no live region. This is static build-time output, so
- * nothing changes after load for a live region to announce; the message is
- * simply part of the page when the page is served.
- *
- * There is no placeholder show, in any environment. A fabricated date would
- * imply a performance that isn't happening.
- */
+/** Renders the honest no-upcoming-shows state. */
 
 interface Props {
   title: string;

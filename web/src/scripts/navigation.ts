@@ -1,11 +1,4 @@
-/**
- * Header scroll state + accessible mobile navigation.
- * The burger button doubles as the close control (no redundant second
- * button): its accessible name and icon state change between open/closed.
- * While open: focus is trapped inside the menu, background content
- * (brand link, main, footer) is made inert, and the menu auto-closes if
- * the viewport crosses into the desktop breakpoint.
- */
+/** Controls the responsive navigation and keyboard focus. */
 
 const header = document.getElementById("site-header");
 const toggle = document.getElementById("nav-toggle");

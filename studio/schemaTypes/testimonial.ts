@@ -1,23 +1,7 @@
 import {BlockquoteIcon} from '@sanity/icons/Blockquote'
 import {defineField, defineType} from 'sanity'
 
-/**
- * A reusable testimonial, shared by the Homepage and the About page.
- *
- * These were previously nested objects on the Homepage singleton. They became
- * ordinary documents the moment a second page needed the same quotes — that
- * is exactly the "promote to a document type" trigger described in
- * docs/developer-guide.md §4.
- *
- * Ordinary Sanity-generated `_id`s; not a singleton.
- *
- * A source may be an individual OR an establishment (a venue, winery, concert
- * series, resort, or other organization). `sourceName` carries whichever it
- * is, and `sourceContext` adds the qualifier when one helps.
- *
- * Nothing here may be published without client approval — quote text, source
- * attribution, logo usage rights, and the source URL each need sign-off.
- */
+/** Reusable testimonial schema shared by Home and About. */
 export const testimonial = defineType({
   name: 'testimonial',
   title: 'Testimonial',

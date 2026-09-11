@@ -38,20 +38,10 @@ import {
   getOgImageUrl,
 } from "../sanity/normalize";
 
-// The production-vs-development policy is decided by which Sanity dataset
-// is actually configured, not by Astro's own build mode — a "production"
-// Astro build can legitimately point at the development dataset (e.g. a
-// staging preview), and that must NOT trip the strict production
-// requirement below (docs/phase3-plan.md §16).
+// Strictness follows the configured dataset, not Astro's build mode.
 const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
 
-// Three independent queries, fetched in parallel. None is wrapped in a
-// try/catch: a genuine failure (network, auth, malformed GROQ, config) throws
-// here and fails the build, in every environment — the only cases handled
-// below are *successful* queries that legitimately found nothing.
-//
-// TESTIMONIALS_QUERY is deliberately independent of the singleton: the same
-// documents are fetched, unchanged, by /about.
+// Fetch independently and fail the build on real Sanity/configuration errors.
 const [homepage, upcomingEvents, rawTestimonials] = await Promise.all([
   sanityClient.fetch(HOMEPAGE_QUERY),
   sanityClient.fetch(UPCOMING_PUBLIC_EVENTS_QUERY),
@@ -61,17 +51,13 @@ const [homepage, upcomingEvents, rawTestimonials] = await Promise.all([
 if (homepage === null && isProductionDataset) {
   throw new Error(
     "The Sanity `homepage` singleton is missing from the production dataset. " +
-      "Publish it in Sanity Studio before building for production — see docs/phase3-plan.md §16.",
+      "Publish it in Sanity Studio before building for production — see docs/developer-guide.md.",
   );
 }
 
 const singletonExists = homepage !== null;
 
-// Hero/band-intro/booking-CTA are singular content blocks, not lists — if
-// the singleton exists but one of them is incomplete, that section is
-// omitted rather than patched with fallback text (never mix live Sanity
-// content with placeholder copy in the same render). The fallback objects
-// below are only ever used when the whole document is absent.
+// Never mix a partial live singleton with field-level fallback content.
 const heroContent = singletonExists
   ? isHeroContentComplete(homepage.hero)
     ? homepage.hero
@@ -90,31 +76,18 @@ const newsletterContent = singletonExists
     : null
   : newsletterFallback;
 
-// The signup button itself is entirely independent of the editorial content
-// above — it appears only once a real hosted signup URL is configured
-// outside Sanity (never a Studio-editable field: the destination provider is
-// a code/infra decision, not editorial copy). See web/src/lib/newsletter.ts.
+// The hosted signup destination is infrastructure configuration, not Sanity content.
 const newsletterSignupUrl = getNewsletterSignupUrl();
 
-// The hero video always comes from the live query — there is no fallback
-// URL. A missing or non-YouTube reference resolves to null here, and
-// Hero.astro's own (Phase 2.5-approved, untouched) validation renders the
-// static logo for null exactly as it always has.
+// A missing or invalid live video reference renders the static logo.
 const heroVideoUrl = getHeroVideoUrl(homepage?.heroVideo);
 const heroVideoTitle =
   getHeroVideoTitle(homepage?.heroVideo) ?? `${siteConfig.bandNameFormal} — Featured Video`;
 
-// Testimonials come from their own reusable documents and are entirely
-// independent of whether the homepage singleton exists. Zero to three valid
-// documents render, in query order; no invented placeholder is substituted,
-// and no minimum count is required for production. `Testimonials.astro`
-// itself omits the whole section — kicker and heading included — whenever
-// there are zero valid testimonials.
+// Shared testimonials render zero to three real documents with no fallback.
 const testimonials = normalizeTestimonials(rawTestimonials);
 
-// These editorial blocks were added after the original singleton was already
-// in use. Each falls back as one complete unit while a non-production dataset
-// is populated; individual Studio and fallback fields are never mixed.
+// Each editorial block falls back as one unit outside production.
 const hasCompleteUpcomingShowsContent = Boolean(
   homepage?.upcomingShows?.kicker &&
   homepage.upcomingShows.heading &&
@@ -127,10 +100,7 @@ const upcomingShowsContent = hasCompleteUpcomingShowsContent
   ? homepage!.upcomingShows!
   : upcomingShowsFallback;
 
-// "The ELT Experience" — moved here from the About page. `isExperienceContentComplete`
-// trims every string (heading, introduction, and each highlight's
-// title/description) before checking it, so a whitespace-only value can
-// never pass as complete — see that function's doc comment in normalize.ts.
+// Whitespace-only Experience fields do not count as complete.
 const hasCompleteExperienceContent = isExperienceContentComplete(homepage?.experience);
 const experienceContent = hasCompleteExperienceContent
   ? homepage!.experience!
@@ -144,14 +114,7 @@ const testimonialsIntro =
   ? homepage!.testimonialsIntro!
   : testimonialsIntroFallback;
 
-// Official Band Photos — a restrained, Homepage-only, production-only
-// showcase of professionally photographed official images. Unlike every
-// other Homepage block, absence is always valid (the section is simply
-// omitted — there is no fallback content, and fan/live Gallery images are
-// never substituted), but a PRESENT-but-invalid selection is its own,
-// independent production-fail condition — checked separately from the
-// aggregate "singleton incomplete" throw below, since this block being
-// entirely unset must never trip that throw.
+// Official photos are optional, have no fallback, and fail production only when invalid.
 const officialBandPhotosResult = normalizeOfficialBandPhotos(
   homepage?.officialBandPhotos?.photos,
   isProductionDataset,
@@ -184,11 +147,7 @@ if (
   );
 }
 
-// A production dataset must own all required Homepage editorial content in
-// Studio. The code fallbacks are migration/development scaffolding, not a way
-// to silently publish an incomplete production singleton. Official Band
-// Photos is deliberately NOT included here — it's optional even in
-// production; only a present-but-invalid selection fails the build (above).
+// Production owns all required editorial content; official photos remain optional.
 if (
   isProductionDataset &&
   (!heroContent ||

@@ -1,9 +1,6 @@
 import { defineQuery } from "groq";
 
-/**
- * Fetches the homepage singleton by its fixed `_id`. Fetched once, at build
- * time, in `index.astro`'s frontmatter (docs/phase3-plan.md §17, §19).
- */
+/** Central GROQ projections for every build-time page query. */
 export const HOMEPAGE_QUERY = defineQuery(`
   *[_type == "homepage" && _id == "homepage"][0]{
     hero,
@@ -63,15 +60,7 @@ export const HOMEPAGE_QUERY = defineQuery(`
  * explicitly cleared from the singleton, and the retired schema field removed.
  * ---------------------------------------------------------------------- */
 
-/**
- * The first three testimonials by display order, with `_id` as the
- * deterministic tiebreaker for documents sharing an order value. The cap lives
- * in the query so neither page can accidentally render a fourth, and it is
- * re-applied during normalization because a raw API write can store anything.
- *
- * `sourceLogo` is dereferenced explicitly and treated as a contained graphic,
- * not a photographic crop — no crop/hotspot is requested for it.
- */
+/** The first three testimonials by display order, with `_id` as the deterministic tiebreaker for documents sharing an order value. */
 export const TESTIMONIALS_QUERY = defineQuery(`
   *[_type == "testimonial"]
   | order(displayOrder asc, _id asc)[0...3] {
@@ -106,19 +95,12 @@ export const TESTIMONIALS_QUERY = defineQuery(`
  *
  * Only PUBLIC member fields are projected. `bandMember` has no private contact
  * field to select in the first place, and none may be added
- * (docs/developer-guide.md §9) — but note that a public dataset means GROQ
+ * (docs/developer-guide.md) — but note that a public dataset means GROQ
  * omission is not access control. The guarantee is that nothing private is
  * stored, not that this projection hides it.
  * ---------------------------------------------------------------------- */
 
-/**
- * The About page singleton by fixed `_id`.
- *
- * `heroImage->` and `members[]{"member": @->}` follow the same dereference
- * shapes the homepage already uses: a single direct reference takes `->`, and
- * an array whose elements ARE references takes `@->` with a projection alias.
- * `_key` is preserved on every array so list keys stay stable.
- */
+/** The About page singleton by fixed `_id`. */
 export const ABOUT_PAGE_QUERY = defineQuery(`
   *[_type == "aboutPage" && _id == "aboutPage"][0]{
     intro{
@@ -167,12 +149,7 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
   }
 `);
 
-/**
- * The next three chronologically upcoming public scheduled events, fetched
- * independently of the homepage singleton (never duplicated into it). Never
- * selects busy-only or hidden events; never selects events by recency of
- * creation (docs/phase3-plan.md §3).
- */
+/** The next three chronologically upcoming public scheduled events, fetched independently of the homepage singleton (never duplicated into it). */
 export const UPCOMING_PUBLIC_EVENTS_QUERY = defineQuery(`
   *[_type == "event"
     && visibility == "public"
@@ -196,7 +173,7 @@ export const UPCOMING_PUBLIC_EVENTS_QUERY = defineQuery(`
  *
  * Note this is a courtesy to the query author, not a security boundary: the
  * dataset permits anonymous reads, so a direct API call can still read every
- * published field (docs/developer-guide.md §7).
+ * published field (docs/developer-guide.md).
  *
  * `now()` is evaluated when the query runs — i.e. at `astro build`. Events do
  * not move between upcoming and recent until the site rebuilds.
@@ -221,17 +198,7 @@ export const SHOWS_PAGE_QUERY = defineQuery(`
   }
 `);
 
-/**
- * Every upcoming PUBLIC event, as one chronological stream — including
- * cancelled and postponed ones, which keep their chronological position and
- * render an explicit text badge rather than moving to a separate section.
- * Deliberately uncapped and with no future cutoff, so a far-future published
- * show appears automatically.
- *
- * `coalesce(endDateTime, startDateTime) >= now()` keeps an event that has
- * started but not yet ended in the upcoming stream, matching the homepage.
- * `_id` is the deterministic tiebreaker for events sharing a start instant.
- */
+/** Every upcoming PUBLIC event, as one chronological stream — including cancelled and postponed ones, which keep their chronological position and render an explicit text badge rather than moving to a separate section. */
 export const SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY = defineQuery(`
   *[
     _type == "event"
@@ -253,17 +220,7 @@ export const SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY = defineQuery(`
   }
 `);
 
-/**
- * Upcoming private bookings, reduced to nothing but an id and two times.
- * Only `scheduled` busy-only events qualify — a cancelled or postponed
- * private booking is no longer a commitment worth publishing, and a past one
- * is not useful, so both are excluded structurally here rather than
- * downstream.
- *
- * The projection selects no title, venue, location, description, slug, or
- * URL, so there is nothing for the frontend to leak. The visible "Private
- * Event" label is supplied by `web/src/data/showsData.ts`, never by Sanity.
- */
+/** Upcoming private bookings, reduced to nothing but an id and two times. */
 export const SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY = defineQuery(`
   *[
     _type == "event"
@@ -280,12 +237,7 @@ export const SHOWS_UPCOMING_PRIVATE_EVENTS_QUERY = defineQuery(`
   }
 `);
 
-/**
- * The twelve most recent public shows that actually happened, newest first.
- * `status == "scheduled"` is required: a cancelled or postponed show never
- * took place, so listing it as a recent performance would be untrue. Past
- * private and hidden events are excluded structurally.
- */
+/** The twelve most recent public shows that actually happened, newest first. */
 export const SHOWS_RECENT_PUBLIC_EVENTS_QUERY = defineQuery(`
   *[
     _type == "event"
@@ -422,7 +374,7 @@ export const MUSIC_PAGE_QUERY = defineQuery(`
  * Gallery & Merchandise page (/gallery-merch)
  *
  * Renamed from the Media & Merch page (`mediaPage` → `galleryPage`, route
- * `/media-merch` → `/gallery-merch`) — see docs/gallery-merch.md. Unlike
+ * `/media-merch` → `/gallery-merch`) — see docs/developer-guide.md. Unlike
  * `mediaPage`, this singleton has NO featured-video field: featured,
  * click-to-load video locations are now only the Homepage hero and the
  * Music page (`MUSIC_PAGE_QUERY` above).

@@ -1,11 +1,4 @@
-/**
- * Gallery & Merchandise page: gallery category/video filters and the photo and
- * video lightbox dialogs. Two independent, page-specific behaviors kept in
- * one file because both are small — see docs/gallery-merch.md. Neither
- * fetches anything on its own; the video dialogs create an iframe only
- * after a visitor explicitly activates one specific video (see "Gallery
- * video dialogs" below).
- */
+/** Progressive Gallery filters plus photo and video dialog behavior. */
 
 import { createYouTubeIframe } from "./youtubeEmbed";
 

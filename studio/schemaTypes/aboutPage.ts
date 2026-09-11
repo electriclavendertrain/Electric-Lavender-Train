@@ -1,22 +1,7 @@
 import {UsersIcon} from '@sanity/icons/Users'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-/**
- * The About page singleton, with the fixed `_id: "aboutPage"`.
- *
- * Same singleton conventions as `homepage` and `showsPage`: one fixed
- * Structure entry, removed from the global create menu and from
- * `schema.templates`, and queried by that exact `_id`. See
- * docs/developer-guide.md §5.
- *
- * The initial values below are neutral section headings, approved tone
- * guidance, and wording the client already approved. No formation date,
- * origin story, member biography, testimonial, or press claim is seeded here
- * — inventing one would be worse than leaving the field blank.
- *
- * `members` is an ordered list of references, not embedded member content:
- * a member is reusable, and the order stored here is the render order.
- */
+/** About page singleton schema. */
 export const aboutPage = defineType({
   name: 'aboutPage',
   title: 'About Page',

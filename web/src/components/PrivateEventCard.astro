@@ -1,19 +1,5 @@
 ---
-/**
- * A private booking, rendered as a date and nothing else.
- *
- * This component is structurally incapable of leaking booking details: its
- * only prop is a `NormalizedPrivateEvent`, whose type has no field for a
- * title, venue, location, description, slug, status, or URL. The visible
- * "Private Event" wording comes from `showsData.ts` — the frontend — not from
- * Sanity, which never sends a title for these at all.
- *
- * It is deliberately non-interactive. No link, no button, and no hover lift:
- * a card that rises on hover reads as "click me for more", and there is no
- * more. The dashed, quieter treatment says the same thing visually. No lock
- * icon — the point is that the date is taken, not that something is being
- * withheld.
- */
+/** Renders only sanitized date/time availability for private bookings. */
 
 import type { NormalizedPrivateEvent } from "../sanity/normalize";
 import { formatEventDateTime, getEventDateParts, toDateTimeAttribute } from "../lib/dateFormat";

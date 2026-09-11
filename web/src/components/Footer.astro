@@ -1,16 +1,5 @@
 ---
-/**
- * Each social/brand link renders a small local, monochrome SVG glyph via a
- * CSS mask (`mask-image` + `background-color: currentColor`) next to its
- * existing text label — never icon-only. The icon `<span>` is purely
- * decorative (`aria-hidden="true"`); the adjacent visible text is what
- * supplies each link's accessible name, completely unchanged from before.
- * Every glyph is a local file under `public/icons/social/` (Simple Icons,
- * CC0 — see `/third-party-notices/`); nothing is fetched from a remote
- * icon/CDN host at request time. `currentColor` is what lets one glyph
- * automatically track the link's own normal/hover/focus-visible color,
- * with no separate icon-specific color rule needed anywhere.
- */
+/** Shared footer with local social icons and verified public destinations. */
 import siteConfig, { contactInquiryHref } from "../data/siteConfig";
 
 const socialLinks = [
@@ -26,7 +15,7 @@ const year = new Date().getFullYear();
 
 // The approved relationship sentence ends with the label's own name — split
 // there so that exact name can be the link text, rather than duplicating or
-// paraphrasing the approved wording (docs/client-questions.md).
+// paraphrasing the approved wording (docs/developer-guide.md).
 const labelNotePrefix = siteConfig.heavyCrushRecords.relationshipText.replace(
   `${siteConfig.heavyCrushRecords.name}.`,
   "",

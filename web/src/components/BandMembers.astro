@@ -1,17 +1,5 @@
 ---
-/**
- * "Meet the band": the ordered member grid, plus one profile dialog per
- * member.
- *
- * The dialogs are rendered AFTER the grid rather than inside each card. With
- * scripting available it makes no difference — a modal dialog moves to the top
- * layer wherever it sits in the DOM. Without scripting it matters a lot: the
- * `:target` fallback panel then opens as a full-width block beneath the grid
- * instead of trying to expand inside one grid cell.
- *
- * Member order is the order stored in `aboutPage.members` and preserved
- * through normalization. Nothing here sorts, filters, or reorders.
- */
+/** Renders member cards and accessible profile dialogs. */
 
 import BandMemberCard from "./BandMemberCard.astro";
 import MemberProfileDialog from "./MemberProfileDialog.astro";
@@ -28,12 +16,7 @@ interface Props {
 
 const { headingId, kicker, heading, body, members } = Astro.props;
 
-/**
- * A dialog id derived from the member's document id. Sanity ids are
- * URL-safe already, but anything outside the allowed set is replaced rather
- * than trusted — an id is going into an `href` fragment and a `getElementById`
- * lookup, and both must agree exactly.
- */
+/** A dialog id derived from the member's document id. */
 const dialogIdFor = (memberId: string) =>
   `${aboutPageCopy.memberDialogIdPrefix}${memberId.replace(/[^A-Za-z0-9_-]/g, "-")}`;
 
@@ -103,7 +86,7 @@ const closeHref = `#${headingId}`;
        row; their longer names/roles can make that row taller than the
        Geert/Paul row. This is content-driven layout, not a co-front-person or
        member-hierarchy treatment. Preserve it unless the client explicitly
-       asks for equal heights across both rows. See docs/about.md §14. */
+       asks for equal heights across both rows. See docs/developer-guide.md. */
     grid-template-columns: repeat(4, 1fr);
     gap: 26px;
     margin-top: 34px;

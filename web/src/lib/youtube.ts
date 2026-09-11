@@ -1,22 +1,4 @@
-/**
- * Extracts an 11-character YouTube video ID from a full URL, or returns
- * `null` for anything malformed, unsupported, or unrecognized — callers
- * treat "no video" and "bad URL" identically, so neither renders an active
- * play control.
- *
- * This exact function is intentionally duplicated at
- * `studio/schemaTypes/youtube.ts`, used by `mediaItem.ts`'s `videoUrl`
- * validation so a YouTube media item can only be published when its URL
- * actually yields a playable video ID — not merely a recognized hostname
- * (a channel, playlist, or search URL shares a hostname with a real video
- * URL but has no video ID to extract). `web/` and `studio/` are two
- * separate npm packages with no shared workspace, so keeping one imported
- * module isn't the "least complicated" option here — an explicit, mirrored
- * copy is. **If you change the accepted URL shapes, the ID pattern, or the
- * host lists below, make the identical change in
- * `studio/schemaTypes/youtube.ts` in the same commit.** Both files carry
- * this same warning.
- */
+/** Validates approved YouTube URL shapes and extracts video IDs. */
 
 const YOUTUBE_ID_PATTERN = /^[\w-]{11}$/;
 

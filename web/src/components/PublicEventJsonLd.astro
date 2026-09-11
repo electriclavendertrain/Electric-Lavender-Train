@@ -1,19 +1,5 @@
 ---
-/**
- * schema.org `MusicEvent` structured data for UPCOMING PUBLIC shows only.
- *
- * Its input type is `NormalizedPublicShow[]` — private and hidden events are
- * not merely filtered out here, they cannot be passed in, because they never
- * normalize into this shape. Recent shows are excluded too: structured data
- * describes what is coming up.
- *
- * Every value emitted is a value the card beside it already displays. Nothing
- * is added that a visitor cannot see on the page.
- *
- * This does not promise rich-result eligibility. Search engines decide that,
- * and event rich results generally want offers and images that this phase
- * deliberately does not model.
- */
+/** Emits MusicEvent structured data for upcoming public shows. */
 
 import type { NormalizedPublicShow } from "../sanity/normalize";
 import siteConfig from "../data/siteConfig";
@@ -58,14 +44,7 @@ function buildMusicEvent(event: NormalizedPublicShow) {
   };
 }
 
-/**
- * `<`, `>` and `&` can only occur inside JSON string values, never in JSON's
- * structural syntax, so escaping them across the whole document is safe and
- * still produces valid JSON. This is what stops a title containing
- * `</script>` from closing the element and turning content into markup.
- * U+2028/U+2029 are escaped because they are literal line terminators to a
- * JavaScript parser.
- */
+/** `<`, `>` and `&` can only occur inside JSON string values, never in JSON's structural syntax, so escaping them across the whole document is safe and still produces valid JSON. */
 function serializeJsonLd(data: unknown): string {
   return JSON.stringify(data)
     .replace(/</g, "\\u003c")

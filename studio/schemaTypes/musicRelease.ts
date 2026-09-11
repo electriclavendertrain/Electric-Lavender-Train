@@ -1,24 +1,6 @@
 import {defineField, defineType} from 'sanity'
 
-/**
- * A reusable ELT music release. Ordinary generated `_id`s, selected into
- * `musicPage.releases` in editor-chosen order — the same "reusable document
- * + ordered reference array in the page singleton" convention already used
- * by `aboutPage.members`, `galleryPage.gallery.items`, and
- * `galleryPage.merch.items`.
- *
- * `state` decides which of the two page sections a release appears in
- * (Upcoming vs. Released) — it is a fact about the release itself, not
- * something derived from the release date, so a release can be marked
- * "released" the moment it's actually out even if that happens slightly
- * ahead of or behind the stored date.
- *
- * Streaming/pre-save/video links are all optional, deliberately: an
- * upcoming release announced before Spotify/Apple Music links exist must
- * still be publishable. `spotifyUrl`/`appleMusicUrl` are validated against
- * their real hosts (not merely "https") so an editor cannot accidentally
- * publish a lookalike-domain link under a trusted-looking label.
- */
+/** Reusable music release schema. */
 export const musicRelease = defineType({
   name: 'musicRelease',
   title: 'Music Release',

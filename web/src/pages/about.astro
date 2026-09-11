@@ -1,18 +1,5 @@
 ---
-/**
- * /about — who the band is (the "Who We Are" introduction), meet the band
- * members, and how to book them. "What a performance is like" is now
- * answered by "The ELT Experience" on the Homepage, not here — that section
- * moved off this page along with Our Story and the Heavy Crush Records
- * label affiliation.
- *
- * This is the only file on this route that touches Sanity. It fetches, hands
- * the raw results straight to normalization, and passes plain objects down; no
- * component below it knows Sanity exists.
- *
- * Everything here runs once, at `astro build`. Nothing is fetched in the
- * browser, so there are no loading states and none are needed.
- */
+/** Builds About from one page singleton plus shared testimonials. */
 
 import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -38,27 +25,16 @@ import {
   type NormalizedAboutPageContent,
 } from "../sanity/normalize";
 
-// Which policy applies is decided by the configured DATASET, not by Astro's
-// build mode — a production-mode build may legitimately point at
-// `development` (a staging preview), and that must not trip the strict
-// requirements below.
+// Strictness follows the configured dataset, not Astro's build mode.
 const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
 
-// Two independent queries, fetched in parallel. Neither is wrapped in a
-// try/catch, deliberately and consistently with the other two routes: a
-// genuine failure — network, auth, malformed GROQ, bad config — throws here
-// and fails the build in every environment.
-//
-// TESTIMONIALS_QUERY is the same query the homepage runs, fetched
-// independently. Neither page's testimonials depend on the other's singleton.
+// Fetch the page and shared testimonials independently; real query errors fail the build.
 const [rawAboutPage, rawTestimonials] = await Promise.all([
   sanityClient.fetch(ABOUT_PAGE_QUERY),
   sanityClient.fetch(TESTIMONIALS_QUERY),
 ]);
 
-// In production, placeholder biographies are rejected outright — which takes
-// the whole singleton down and fails the build below, rather than publishing
-// Lorem Ipsum as if it were a band member's story.
+// Reject placeholder biographies from production.
 const normalizedAboutPage = normalizeAboutPageContent(rawAboutPage, {
   rejectTestBiographies: isProductionDataset,
 });
@@ -69,22 +45,11 @@ if (normalizedAboutPage === null && isProductionDataset) {
       "Every member must resolve with a name, role, profile photo and a real biography " +
       "(no `[TEST — CLIENT BIO REQUIRED]` text), the \"Who We Are\" introduction (heading, " +
       "1-2 paragraphs, hero image with alt text) and the booking section must be complete. " +
-      "Publish the About Page in Sanity Studio before building for production — see docs/about.md §11.",
+      "Publish the About Page in Sanity Studio before building for production — see docs/developer-guide.md.",
   );
 }
 
-/**
- * The development fallback is ONE complete block and is allowed only outside
- * production. Individual live fields are never patched with fallback values:
- * if the singleton exists but is incomplete, normalization returns null and
- * this whole object is used instead, so real content and placeholder copy are
- * never mixed in the same render.
- *
- * The hero image is composed here rather than stored in `aboutData.ts` because
- * a locally-bundled asset has to go through `astro:assets` to get its final
- * URL and dimensions — the same shape `index.astro` uses for its gallery
- * fallback.
- */
+/** The development fallback is ONE complete block and is allowed only outside production. */
 let pageContent: NormalizedAboutPageContent;
 
 if (normalizedAboutPage) {
@@ -119,8 +84,7 @@ if (normalizedAboutPage) {
             alt: fallbackAsset.alt,
             objectPosition: fallbackAsset.objectPosition,
           },
-          // No member public links are invented for fallback content. The link
-          // area omits itself cleanly until approved URLs exist in Studio.
+          // Never invent public links for fallback members.
           links: [],
         };
       }),
@@ -128,18 +92,13 @@ if (normalizedAboutPage) {
     seo: {
       metaTitle: aboutPageFallback.seo.metaTitle,
       metaDescription: aboutPageFallback.seo.metaDescription,
-      // Deliberately null: the About page's share image is its own field and
-      // never inherits the homepage's.
+      // Page-specific SEO never inherits the Homepage image.
       ogImageUrl: null,
     },
   };
 }
 
-// Shared with the homepage. Zero to three valid documents render, in query
-// order; no invented placeholder is substituted, and no minimum count is
-// required for production. `Testimonials.astro` itself omits the whole
-// section — kicker and heading included — whenever there are zero valid
-// testimonials.
+// Zero to three shared testimonials render; an empty list omits the section.
 const testimonials = normalizeTestimonials(rawTestimonials);
 
 const title = formatPageTitle(pageContent.seo.metaTitle ?? "About");

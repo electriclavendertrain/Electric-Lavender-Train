@@ -5,15 +5,7 @@ import {schemaTypes} from './schemaTypes'
 import {eventTemplates} from './schemaTypes/templates'
 import {structure} from './structure'
 
-/**
- * Page singletons: exactly one document each, at a fixed `_id`, opened only
- * through their fixed Structure entry. They are stripped from both the
- * initial-value templates and the global "+" Create menu so a duplicate page
- * document cannot be created from the Studio UI.
- *
- * `bandMember`, `testimonial`, and `merchItem` are deliberately NOT here —
- * they are ordinary reusable documents with Sanity-generated ids.
- */
+/** Sanity Studio configuration and singleton creation guards. */
 const SINGLETON_TYPES = [
   'homepage',
   'aboutPage',
@@ -34,9 +26,7 @@ export default defineConfig({
 
   schema: {
     types: schemaTypes,
-    // Replace the auto-generated "event" template with the two named entry
-    // points, and drop page-singleton templates entirely so duplicate page
-    // documents cannot be created from the generic Create menu.
+    // Use named event templates and remove singleton creation options.
     templates: (prev) =>
       [
         ...prev.filter(
@@ -47,8 +37,7 @@ export default defineConfig({
   },
 
   document: {
-    // Belt-and-suspenders: also strip any leftover singleton entries from the
-    // global "+" Create menu, independent of the templates filtering above.
+    // Also remove singleton entries from the global Create menu.
     newDocumentOptions: (prev, {creationContext}) => {
       if (creationContext.type === 'global') {
         return prev.filter((item) => !SINGLETON_TYPES.includes(item.templateId))

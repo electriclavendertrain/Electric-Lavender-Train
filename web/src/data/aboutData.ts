@@ -1,23 +1,4 @@
-/**
- * Code-owned About-page material. Three distinct kinds of thing live here and
- * they are treated very differently — do not blur them together.
- *
- * 1. `memberProfileFallbackAssets` — local originals used only by the complete
- *    non-production fallback. Live member documents reference Media Library
- *    images in Sanity.
- * 2. `aboutPageCopy` — permanent protected interface copy: element ids,
- *    control wording, link-type names, new-tab notices. Not editorial content,
- *    never in Sanity.
- * 3. `aboutPageFallback` — a single complete development fallback, used ONLY
- *    when the whole `aboutPage` singleton is absent from a non-production
- *    dataset. Never merged field-by-field with live content, and never used in
- *    production: a production build fails instead (see `about.astro`).
- *
- * The placeholder biographies below are Lorem Ipsum and are marked
- * `[TEST — CLIENT BIO REQUIRED]`. That marker is load-bearing: normalization
- * rejects any biography containing it when the configured dataset is
- * `production`, so this text cannot reach a production build even by accident.
- */
+/** Code-owned About labels, fallback assets, and development-only copy. */
 
 import type { ImageMetadata } from "astro";
 import siteConfig from "./siteConfig";
@@ -27,12 +8,7 @@ import hunterProfile from "../assets/images/members/hunter.png";
 import geertProfile from "../assets/images/members/geert.png";
 import paulProfile from "../assets/images/members/paul.png";
 
-/**
- * The marker that makes placeholder biography text unmistakable, and
- * mechanically detectable. Kept as one exported constant so the schema
- * documentation, the fallback content, and the production guard can never
- * drift apart.
- */
+/** The marker that makes placeholder biography text unmistakable, and mechanically detectable. */
 export const TEST_BIOGRAPHY_MARKER = "[TEST — CLIENT BIO REQUIRED]";
 
 /* -------------------------------------------------------------------------
@@ -147,9 +123,7 @@ const LOREM_BIOGRAPHY = [
 ];
 
 export const aboutPageFallback = {
-  /** "Who We Are" — moved here from the Homepage; this is now the page's
-   * introduction and supplies its one `<h1>`. Same approved copy the
-   * Homepage's `bandIntro` used to carry. */
+  /** About introduction and the page's only h1. */
   intro: {
     kicker: "Who We Are",
     heading: "More Than a Band, We're Family.",
@@ -163,12 +137,7 @@ export const aboutPageFallback = {
     heading: "Meet the Band",
     body: null,
   },
-  /**
-   * Confirmed names and roles, in the confirmed order. The biographies are
-   * placeholders and are marked as such; the photographs are the real supplied
-   * assets. `_id` values here are local fallback keys, not Sanity ids — no
-   * `bandMember` document is implied or expected to carry them.
-   */
+  /** Confirmed names and roles, in the confirmed order. */
   members: [
     {
       _id: "fallback-member-rachel",

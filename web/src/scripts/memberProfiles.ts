@@ -1,23 +1,4 @@
-/**
- * Member profile dialogs — the whole browser-side story for /about.
- *
- * What this script does NOT do is most of the point. It does not build a
- * backdrop, trap focus, make the background inert, or handle Escape: native
- * `showModal()` already does all of that correctly, and reimplementing any of
- * it would be strictly worse. This adds three things the platform leaves to
- * the page:
- *
- * 1. Opening the dialog when a card's control is activated, without navigating.
- * 2. Returning focus to the exact control that opened it.
- * 3. Locking background scroll while modal.
- *
- * If `showModal` is unavailable, nothing below runs and `.js-dialogs` is never
- * added — which leaves the `:target` CSS fallback in `MemberProfileDialog`
- * active, so the profiles stay reachable. That check is duplicated by a tiny
- * inline script in `about.astro`, which sets the class before first paint so a
- * deep link cannot flash the fallback panel; this module sets it again, so the
- * behavior is correct even if the inline script is stripped.
- */
+/** Controls member dialogs, focus return, and fragment fallbacks. */
 
 const supportsModalDialog =
   typeof HTMLDialogElement !== "undefined" &&
@@ -92,11 +73,7 @@ if (supportsModalDialog) {
       });
     }
 
-    // Backdrop dismissal is NOT handled here. The usual `event.target ===
-    // dialog` trick only works when the dialog box fills the viewport; this one
-    // is sized to its panel, so a click outside it lands on inert background
-    // content and produces no event on the dialog at all. The markup asks the
-    // platform for it declaratively instead, with `closedby="any"`.
+    // Backdrop dismissal is delegated to the dialog's `closedby="any"` behavior.
 
     // Fires for the close control, light dismissal, AND Escape (which
     // raises `cancel` and then `close`), so focus return and the scroll lock

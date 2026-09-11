@@ -26,12 +26,7 @@ function hasValue(value: unknown): boolean {
   return Boolean(value)
 }
 
-/**
- * A public-only field stays visible whenever it's public (as before), but
- * now also stays visible for a non-public event for as long as it still
- * holds a value — so the editor can see and clear it without switching
- * visibility back to Public first. Once cleared, it hides again.
- */
+/** A public-only field stays visible whenever it's public (as before), but now also stays visible for a non-public event for as long as it still holds a value — so the editor can see and clear it without switching visibility back to Public first. */
 function hiddenUnlessNeededToClear({
   document,
   value,
@@ -108,22 +103,7 @@ export const event = defineType({
         layout: 'radio',
       },
       initialValue: 'public',
-      /**
-       * The stale-public-details guard lives HERE, on the primitive
-       * `visibility` string, rather than as a document-level rule.
-       *
-       * Why: in the installed Sanity version, custom validation attached to
-       * an object-typed node (an `image` field, or the document root) is
-       * emitted at `warning` level, and Studio only blocks publishing on
-       * `error`. A document-level rule therefore showed the message but let
-       * the editor publish anyway. Custom validation on a primitive field
-       * *is* emitted as an error, so anchoring the same check to this string
-       * field genuinely blocks publishing. Adding `.error()` to the
-       * document-level rule was tested and does not change its level.
-       *
-       * The message is unchanged, and it still surfaces next to Visibility —
-       * which is the field the editor has to change to resolve it.
-       */
+      /** The stale-public-details guard lives HERE, on the primitive `visibility` string, rather than as a document-level rule. */
       validation: (Rule) =>
         Rule.required().custom((value, context) => {
           if (value === 'public') return true

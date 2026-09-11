@@ -1,18 +1,5 @@
 ---
-/**
- * The shared testimonial section, rendered identically on the Homepage and the
- * About page. Only the kicker/heading differ — each page owns its own, from
- * `homepage.testimonialsIntro` and `aboutPage.testimonialsIntro`.
- *
- * A source may be a person OR an establishment (venue, winery, concert series,
- * resort). The card is built for both: an optional approved logo, the quote,
- * the source name, an optional qualifier, and an optional link to the source's
- * own official page.
- *
- * With no logo the card is text-only and finished-looking. Nothing invents a
- * monogram or initial in place of a real mark — a fabricated logo would
- * misrepresent a real business.
- */
+/** Renders shared real testimonials and omits itself when the list is empty. */
 
 import type { NormalizedTestimonial } from "../sanity/normalize";
 

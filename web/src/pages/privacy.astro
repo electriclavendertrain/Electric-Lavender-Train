@@ -1,21 +1,4 @@
 ---
-/**
- * Privacy Policy — a notice describing this site's actual data practices,
- * not legal advice given to the visitor. Internal notes on legal review,
- * governing-law language, and entity status live in
- * docs/content-rights-checklist.md, not on this public page.
- *
- * Identifies the operator as "The Electric Lavender Train" only — no LLC,
- * corporate, or registered-entity status is claimed anywhere on this page,
- * because nothing in this repository verifies one.
- *
- * Several sections below describe features that are configured but not yet
- * turned on (the Brevo-hosted newsletter, the Google Form for event-media
- * submissions) using the same conditional, "once configured" language the
- * site itself uses (`Newsletter.astro`, `EventMediaSubmission.astro`) —
- * never as settled, currently operating practices.
- */
-
 import LegalPage from "../layouts/LegalPage.astro";
 import siteConfig, { formatPageTitle } from "../data/siteConfig";
 
@@ -29,344 +12,190 @@ const email = siteConfig.contact.email;
   description={description}
   kicker="Legal"
   heading="Privacy Policy"
-  effectiveDate="August 20, 2026"
+  effectiveDate="September 10, 2026"
 >
   <p>
-    This website is operated by The Electric Lavender Train (“we,” “us,” or “our”). This Privacy
-    Policy explains what information we collect through this website, why we collect it, who we
-    share it with, and the choices you have.
+    This website is operated by The Electric Lavender Train (“we,” “us,” or “our”). This policy
+    explains what information is handled when you use this website, its inquiry forms, newsletter
+    signup, embedded media, or event-media submission link.
   </p>
 
-  <h2>Information you provide to us</h2>
+  <h2>Information you provide</h2>
   <p>
-    This site has four inquiry forms on the <a href={siteConfig.routes.contactBooking}>Contact
-    & Booking</a> page: <strong>Booking Inquiry</strong>, <strong>Merch Inquiry</strong>,
-    <strong>Other</strong>, and <strong>Content Removal Request</strong>. What you submit depends
-    on which form you use:
+    The <a href={siteConfig.routes.contactBooking}>Contact & Booking</a> page offers Booking,
+    Merchandise, General, and Content Removal Request forms. Depending on the form, we may ask for
+    your name, email address, optional phone number, organization or venue, event type and date,
+    city or venue location, audience size, budget, song requests, merchandise details, a subject,
+    a message, or information identifying content you want us to review. The removal form accepts
+    an optional web address but no file upload.
   </p>
+  <p>
+    Do not submit payment card numbers, government identification numbers, medical information, or
+    other sensitive information through these forms. Submitting a booking inquiry does not confirm
+    availability or create a booking. Submitting a removal request starts a review and does not
+    guarantee removal.
+  </p>
+  <p>
+    If you email us at <a href={`mailto:${email}`}>{email}</a>, Google handles the message
+    through Gmail and we receive whatever information you choose to include.
+  </p>
+
+  <h2>How inquiry forms work</h2>
+  <p>
+    A working inquiry form sends your submission directly from your browser to Formspree. Formspree
+    processes the form, may retain a copy, applies its spam and CAPTCHA controls, and sends an email
+    notification to us. Formspree may also receive technical information normally associated with
+    a web request, such as your IP address, browser or device information, submission time, and
+    referring page. An inquiry never subscribes you to the newsletter.
+  </p>
+
+  <h2>How we use information</h2>
   <ul>
-    <li>
-      <strong>Booking Inquiry:</strong> name, email, event type, preferred date, event location, and
-      event details (required — location asks only for “city and/or venue location,” not a street
-      address); phone, organization or venue, estimated audience size, budget, and special song
-      requests (all optional — an estimated audience size, if entered, must be a whole number
-      greater than zero; entering a budget never implies a guaranteed price, availability, or
-      accepted booking; and a song request is never a guarantee it will be played).
-    </li>
-    <li>
-      <strong>Merch Inquiry:</strong> name, email, and the merchandise item you're asking about
-      (required); quantity/size/other details (optional); your message (required).
-    </li>
-    <li><strong>Other:</strong> name, email, and subject (required); your message (required).</li>
-    <li>
-      <strong>Content Removal Request:</strong> name, email, a description of the content, your
-      reason for the request or relationship to the content, and the action you're requesting
-      (required); a direct URL to the content (optional — if entered, it must be a valid http:// or
-      https:// link; if you don't have one, describe where you saw it in the required description
-      instead). This form has no file upload — describe or link to the content in text. Submitting
-      it starts our review of your request; it does not guarantee that the content will be removed.
-    </li>
+    <li>To respond to booking, merchandise, general, and content-removal inquiries;</li>
+    <li>To communicate about a potential or confirmed engagement;</li>
+    <li>To operate the newsletter when you separately request it;</li>
+    <li>To review event media you voluntarily submit;</li>
+    <li>To prevent spam, abuse, and security incidents; and</li>
+    <li>To keep records reasonably needed for business, accounting, dispute, or legal purposes.</li>
   </ul>
   <p>
-    Every field on these four forms is plain text — none of them accepts a file upload. (Separately,
-    if you choose to submit event photos or video through the Google Form described under “Event
-    media submissions” below, that upload happens entirely on Google's own site, not this one.) We
-    ask that you not include payment card numbers, government identification numbers, or medical
-    information in any of these forms — a reminder to that effect appears directly above the forms
-    themselves.
+    We do not sell personal information, use inquiry information for behavioral advertising, or
+    add inquiry senders to a marketing list without separate consent.
   </p>
-  <p>
-    If you email us directly at <a href={`mailto:${email}`}>{email}</a> instead of using a form,
-    that message and whatever you choose to include in it is handled the same way any email is
-    handled by Gmail/Google, described further below.
-  </p>
-
-  <h2>Information collected automatically</h2>
-  <p>
-    When you submit one of the forms above, our form-delivery provider, <strong>Formspree</strong>,
-    may automatically receive standard technical information along with your submission — such as
-    your IP address, browser and device information, the time of submission, and the page that
-    referred you to the form. This is typical of how web forms function and is not something we
-    configure separately; it comes from Formspree's own processing of the request. We do not use
-    this technical information to build an advertising profile of you.
-  </p>
-  <p>
-    This website's hosting provider (expected to be Netlify, though the final choice of host may
-    change before launch) may also log standard web-server access information — such as IP
-    address, requested pages, and timestamps — as part of ordinary hosting operations, independent
-    of anything you submit through a form.
-  </p>
-
-  <h2>How we use your information</h2>
-  <p>We use the information you submit to:</p>
-  <ul>
-    <li>Respond to booking, merchandise, and general inquiries;</li>
-    <li>Review and respond to content removal requests;</li>
-    <li>Communicate with you about an inquiry or, where applicable, a confirmed booking;</li>
-    <li>Identify and prevent spam and abusive submissions; and</li>
-    <li>Maintain records reasonably necessary for our business, accounting, or legal purposes.</li>
-  </ul>
-  <p>
-    We do <strong>not</strong> sell your information, and we do not use inquiry information for
-    behavioral advertising.
-  </p>
-
-  <h2>Service providers we use</h2>
-  <p>The following third-party services are involved in operating this website and handling inquiries:</p>
-  <ul>
-    <li><strong>Formspree</strong> — receives, processes, and may store the contents of form submissions, and delivers them to us by email. Formspree has its own privacy practices, which you can review at their website.</li>
-    <li><strong>Gmail / Google</strong> — the email service where inquiry notifications and any direct emails to <a href={`mailto:${email}`}>{email}</a> are received and stored.</li>
-    <li><strong>Brevo</strong> — our approved newsletter provider. The hosted signup page and its double opt-in confirmation are configured but not yet live; once they are, Brevo hosts that page, collects your signup, and sends the newsletter. See “Newsletter signup” below.</li>
-    <li><strong>Google Forms / Google Drive</strong> — our approved provider for the event-media submission feature described below, pending creation of the actual Google Form. Once that feature is turned on, Google Forms is the external page that collects those submissions, and files/responses are stored in Google's systems (typically Drive), not ours.</li>
-    <li><strong>Our website host</strong> — serves the website itself and may log standard access information as described above.</li>
-    <li><strong>Sanity</strong> — the content platform used to manage and publish this website's public editorial content (such as band photos, event listings, music releases, and merchandise descriptions). Sanity does not receive or store anything you submit through the contact forms.</li>
-    <li><strong>YouTube</strong> — used to embed video content on this site, including the Home and Music pages' featured videos and the Gallery &amp; Merchandise page's gallery videos. See “Embedded YouTube videos” below.</li>
-  </ul>
 
   <h2>Newsletter signup</h2>
   <p>
-    This site has a separate, optional newsletter signup, distinct from the four inquiry forms
-    above — submitting an inquiry never automatically subscribes you to anything. We are planning
-    to use <strong>Brevo</strong>'s own hosted signup page for this: clicking the newsletter link on
-    this site takes you to a page hosted directly by Brevo (not this website), where you enter your
-    own information. Until that hosted page is actually configured, the newsletter link on this
-    site shows a clear “not yet available” notice instead of a working signup.
+    When the newsletter link is available, it opens a form hosted by Brevo rather than a form on
+    this website. The form collects your email address for one weekly ELT schedule newsletter.
+    It does not offer a separate show-alert list or preference. Signup uses double opt-in: Brevo
+    sends a confirmation message, and you are not subscribed until you confirm.
   </p>
-  <p>Once live, we intend for that signup to work as follows, though the exact fields depend on how the Brevo form is ultimately configured:</p>
+  <p>
+    The hosted form may use Google reCAPTCHA to distinguish people from automated submissions.
+    When it does, Google may receive technical information about your visit and interaction under
+    Google's own terms and privacy policy. Brevo may process delivery, bounce, open, and link-click
+    information according to the settings applied to our account and Brevo's own practices.
+  </p>
+  <p>
+    Every newsletter includes an unsubscribe link. Unsubscribing stops marketing delivery and
+    places the address on the applicable suppression list so it is not accidentally mailed or
+    re-imported without a valid new consent. You may also contact us to request deletion.
+  </p>
+
+  <h2>Event-media submissions</h2>
+  <p>
+    When the “Share Your Event Media” link is available, it opens a Google Form. The upload and
+    consent process occurs on Google's systems, not this website. Google may require sign-in and
+    may associate the response with your Google account. The form may collect your contact
+    information, event details, uploaded photos or video, and your response to the consent and
+    permission terms displayed on that form.
+  </p>
+  <p>
+    Submission does not guarantee publication. Do not submit media you lack permission to share.
+    Do not submit media whose primary subject is a child. Media containing other identifiable
+    people may require additional permission and may be declined.
+  </p>
+
+  <h2>Service providers and external services</h2>
   <ul>
-    <li>Signup uses <strong>double opt-in</strong> — you'll receive a confirmation email and must confirm before you're actually subscribed.</li>
-    <li>Email address is required; a name field, if the form includes one, is optional.</li>
-    <li>This is a single weekly newsletter — there is no separate show-alert subscription. Every newsletter email will include an unsubscribe link.</li>
+    <li><strong>Formspree</strong> processes configured inquiry forms and delivers notifications.</li>
+    <li><strong>Google</strong> provides Gmail, Google Forms/Drive where enabled, reCAPTCHA where displayed, and YouTube.</li>
+    <li><strong>Brevo</strong> hosts the newsletter form and manages subscriptions and email delivery when enabled.</li>
+    <li><strong>Sanity</strong> stores public editorial content; it does not receive inquiry or newsletter submissions.</li>
+    <li><strong>Our website host</strong> serves the site and may keep routine access and security logs.</li>
   </ul>
   <p>
-    Brevo is a third-party email marketing platform with its own privacy practices, and its hosted
-    signup/preferences pages and outgoing emails may involve their own tracking (such as email-open
-    or link-click measurement, which is common to most email marketing tools) that this document
-    cannot fully describe until we've configured and reviewed the live Brevo account ourselves. We
-    do not claim that tracking is disabled on the Brevo side — if you have questions about what
-    Brevo itself collects, its own privacy policy is the authoritative source, and we will update
-    this section once our production Brevo configuration has been verified.
+    Links to social, ticketing, streaming, pre-save, payment/tipping, and other third-party sites
+    take you to services with their own terms and privacy practices. We do not control those
+    services.
   </p>
 
-  <h2>Event media submissions</h2>
+  <h2>YouTube videos</h2>
   <p>
-    The Gallery &amp; Merchandise page has an approved, planned “Share Your Event Media” section,
-    which — once an editor turns it on <em>and</em> a real Google Form has been configured — links
-    out to a <strong>Google Form</strong>. This site never hosts that upload itself: the form, and
-    any files you submit through it, live entirely on Google's systems. This feature is fail-closed
-    while it isn't fully ready: if the section isn't turned on at all, it doesn't appear anywhere on
-    the page; if it's turned on but no Google Form has been configured yet, the section appears with
-    a plain notice instead of a working link. Either way, nothing described below is actually
-    happening until a real, working link is live, and we do not claim the consent/license mechanism
-    described below is operational until it is.
-  </p>
-  <p>Once the Google Form is live, submitting through it is expected to involve:</p>
-  <ul>
-    <li>Signing in with a Google account, since Google Forms requires this to accept file uploads;</li>
-    <li>Selecting which ELT event your photos or video are from;</li>
-    <li>Uploading the photo/video files themselves;</li>
-    <li>Google associating your submission with information tied to that Google account (such as your name and email address), the same way any Google Form does; and</li>
-    <li>Agreeing to the specific consent/license language that will be presented on the Google Form itself — this policy summarizes our intended approach, but the form's own wording is authoritative for what you're agreeing to.</li>
-  </ul>
-  <p>
-    That submission is processed and stored by Google (typically in Google Drive), governed by
-    Google's own privacy policy and terms — not this one. Our intended handling, once this feature
-    is live, distinguishes what happens to your upload depending on whether we use it:
-  </p>
-  <ul>
-    <li><strong>If we don't select your submission for use:</strong> the original upload is targeted for deletion within approximately one month.</li>
-    <li><strong>If we do select your submission for use:</strong> the media is transferred out of the Google Form/Drive into an ELT-controlled media library, and the record of your consent/permission is retained for as long as reasonably necessary to support that authorized use and to document that permission was given.</li>
-  </ul>
-  <p>
-    <strong>The exact retention schedule and final wording of this section remain pending Hunter's
-    (the band's) approval and licensed-attorney review</strong> — this describes our intended
-    approach, not a finalized policy. Submitting media does not guarantee it will be published
-    anywhere, and a submission that includes other identifiable people — or any minor — may need
-    additional permission before we use it; see “Third-party links and embedded services” and our
-    Terms of Use for how we handle that. If you'd like something you submitted removed, use the
-    Content Removal Request form above.
+    Embedded videos use YouTube's privacy-enhanced domain and do not create a player until you
+    choose to activate one. After activation, YouTube/Google processes the interaction under its
+    own policies and may display advertising. Privacy-enhanced mode reduces requests before
+    activation but does not eliminate third-party processing after you play a video.
   </p>
 
-  <h2>Analytics and advertising</h2>
+  <h2>Website logs, cookies, and analytics</h2>
   <p>
-    At launch, this website does not use Google Analytics, Meta Pixel, or any other first-party
-    analytics, advertising, or remarketing tracking technology of our own. If that changes in the
-    future, this Privacy Policy — and, where required, our approach to cookie consent — will be
-    updated first. This is separate from what Brevo's or Google's own hosted pages may do on their
-    own domains, described above.
+    Our host may process standard access and security information such as IP address, requested
+    page, timestamp, and browser details. We do not configure first-party analytics, advertising
+    pixels, remarketing tools, or behavioral-advertising cookies on this website. External hosted
+    pages and an activated YouTube player may use their own cookies or similar technologies.
+    If we add non-essential tracking to this website, we will update this policy and review whether
+    consent controls are required before enabling it.
   </p>
 
-  <h2>Cookies and similar technologies</h2>
-  <p>
-    We do not configure analytics cookies, behavioral-advertising cookies, or remarketing trackers of
-    any kind on this website ourselves. We are not able to promise that no cookie or similar local
-    storage will ever be set by any part of this site or the third-party services it links to or
-    embeds — for example, YouTube may set its own cookies once you choose to activate an embedded
-    video (see below), and Brevo's or Google's hosted pages may set their own cookies once you visit
-    them — but nothing along those lines is configured by us, and we do not use cookies to build an
-    advertising profile of visitors.
-  </p>
-
-  <h2>Embedded YouTube videos</h2>
-  <p>
-    YouTube videos on this site — including the Home and Music pages' featured videos and the
-    videos in the Gallery &amp; Merchandise page's photo/video gallery — are embedded using
-    YouTube's privacy-enhanced mode (<code>youtube-nocookie.com</code>), and the video player itself
-    is never loaded until you actively click to play it — simply visiting a page with an embedded
-    video does not load anything from YouTube. Once you choose to play a video, you're interacting
-    directly with YouTube's own player, which YouTube (owned by Google) operates according to its
-    own privacy policy and terms. YouTube may show advertising within the embedded player. YouTube
-    states that advertising shown through privacy-enhanced mode is non-personalized — we report that
-    as YouTube's own stated behavior, not as our own guarantee of how Google's systems actually
-    operate. YouTube still processes information about your interaction with the activated player
-    according to its own practices, which we do not control or fully disclose. To be clear, this is
-    entirely separate from the "no analytics, behavioral advertising, or remarketing trackers"
-    statement above, which describes what <em>we</em> configure on this website — it does not, and
-    could not, override how YouTube's own embedded product behaves once activated.
-  </p>
-
-  <h2>Data retention</h2>
-  <p>
-    We do not keep inquiry information forever, but we also do not commit here to one fixed
-    calendar deadline for every submission — how long a given record needs to be kept genuinely
-    depends on what it is:
-  </p>
+  <h2>Retention</h2>
   <ul>
     <li>
-      <strong>Ordinary Booking, Merch, and Other inquiries</strong> (Formspree and Gmail) that
-      never turn into anything further: retained only as reasonably necessary to respond to them
-      and to maintain appropriate business records — not indefinitely. Closed inquiries like these
-      are periodically reviewed, and deleted once we no longer have a reasonable business need to
-      keep them.
+      <strong>Inquiries:</strong> retained only as reasonably necessary to respond, manage a
+      potential or confirmed engagement, maintain appropriate records, resolve disputes, handle
+      removal requests, and meet legal obligations. Closed inquiries are periodically reviewed and
+      deleted when there is no reasonable need to keep them.
     </li>
     <li>
-      <strong>Inquiries connected to an active negotiation, a confirmed booking, a contract, a
-      payment, a dispute, or a legal obligation</strong> are retained for as long as reasonably
-      necessary to manage that engagement, maintain the corresponding business/financial/accounting
-      records, resolve the dispute, or satisfy the legal obligation — which may be considerably
-      longer than an ordinary, closed inquiry.
+      <strong>Newsletter:</strong> active subscription information is retained while you remain
+      subscribed. After unsubscribe, a limited suppression record may be retained to honor the
+      opt-out and prevent accidental resubscription.
     </li>
     <li>
-      <strong>Content Removal Requests</strong> (Formspree and Gmail): retained long enough to
-      complete our review, document the outcome, and demonstrate that the request was addressed;
-      after that, handled under the same reasonable-necessity, periodic-review approach as other
-      closed inquiries above.
+      <strong>Event media:</strong> unselected original uploads are targeted for deletion within
+      approximately one month. Selected media and the associated permission record may be retained
+      as reasonably necessary to support authorized use.
     </li>
     <li>
-      <strong>Gmail records generally:</strong> notifications and any direct correspondence sent to
-      <a href={`mailto:${email}`}>{email}</a> are retained in that account under the same
-      criteria described above, subject to Google's own account-level backup/retention practices,
-      which are outside our direct control.
-    </li>
-    <li>
-      <strong>Newsletter records</strong> (Brevo, once live): retained by Brevo for as long as you
-      remain subscribed, plus a suppression-list record after you unsubscribe (so we don't
-      accidentally re-add you) — the exact suppression-record retention period is set by Brevo's own
-      platform defaults and has not yet been finalized on our end.
-    </li>
-    <li>
-      <strong>Event-media uploads</strong> (Google Form/Drive, once live): an unselected original
-      upload is targeted for deletion within approximately one month; media we select for use, and
-      the record of your consent to that use, are retained for as long as reasonably necessary to
-      support that use. See “Event media submissions” above.
+      <strong>Provider records:</strong> security logs and backups controlled by a provider may
+      follow that provider's retention schedule and may not disappear immediately.
     </li>
   </ul>
   <p>
-    Review and deletion under this policy is a manual, periodic human process (not an automated
-    one) — we do not currently run, and do not claim to run, any automatic deletion of Formspree or
-    Gmail records. <strong>The exact final wording of this section, and any specific retention
-    schedule, remain pending Hunter's (the band's) approval and licensed-attorney review.</strong>
+    Retention reviews are performed by people; this website does not run an automatic deletion
+    system. Any export we create is subject to the same retention decision as its source.
   </p>
 
-  <h2>Your rights and choices</h2>
+  <h2>Your choices and requests</h2>
   <p>
-    You may request access to, correction of, or deletion of information you've submitted to us by
-    emailing <a href={`mailto:${email}`}>{email}</a>, or — for content you'd like taken down — using
-    the Content Removal Request form. What we can do depends on where the information lives:
+    You may ask to access, correct, or delete information you submitted by emailing
+    <a href={`mailto:${email}`}>{email}</a>. For published content, you may also use the
+    Content Removal Request form. We will review the request and may retain information when
+    reasonably required for a contract, accounting, dispute, security, or legal obligation.
+    Newsletter recipients can unsubscribe through the link in any newsletter.
   </p>
-  <ul>
-    <li>
-      <strong>Submissions stored in our Formspree account</strong> and <strong>notifications and
-      conversations in our Gmail account</strong> are ours to locate and delete, and we will do so
-      for a valid request (subject to the retention exceptions above — e.g. records tied to a
-      confirmed booking).
-    </li>
-    <li>
-      <strong>Newsletter preferences:</strong> once Brevo is live, you'll be able to unsubscribe
-      directly through a link in the email or Brevo's own hosted preferences page, without
-      contacting us — though you're also welcome to email us.
-    </li>
-    <li>
-      <strong>Content removal requests and event-media uploads:</strong> submitting a Content
-      Removal Request starts our review of the specific content you identify; it does not
-      automatically guarantee removal, and we'll follow up by email. If you submitted event media
-      through the Google Form and want it removed, use the Content Removal Request form and
-      describe what you submitted.
-    </li>
-    <li>
-      <strong>Any spreadsheet or other export</strong> we've made from the above is likewise ours to
-      delete, and is held to the same retention rules as the original.
-    </li>
-    <li>
-      <strong>Provider-controlled security logs, records we're legally required to keep, and
-      backups</strong> our providers retain as part of their own disaster-recovery practices are
-      outside our direct control — we can ask our providers to remove them, but cannot guarantee
-      the exact timing of that deletion.
-    </li>
-  </ul>
 
   <h2>Security</h2>
   <p>
-    We take reasonable steps to protect information submitted through this website, including
-    relying on our providers' own security practices (such as Formspree's, Brevo's, and Google's).
-    No method of transmission or storage over the internet is completely secure, and we cannot
-    guarantee absolute security.
+    We use reasonable administrative and provider-supported safeguards, but no internet
+    transmission or storage system is completely secure. Please use the contact methods above if
+    you believe information has been submitted or exposed improperly.
   </p>
 
   <h2>Children's privacy</h2>
   <p>
     This website and its forms are not directed to children under 13, and we do not knowingly
-    collect personal information from children under 13. This includes event-media submissions:
-    please do not submit photos or video whose primary subject is a child, and if a submission
-    includes a child incidentally, we handle that cautiously and may decline to publish it. If you
-    believe a child has submitted information to us, or appears in submitted media, please contact
-    us at <a href={`mailto:${email}`}>{email}</a> so we can address it.
+    collect personal information from children under 13. Contact us if you believe a child has
+    submitted information or appears in submitted media so we can review it.
   </p>
 
-  <h2>California privacy disclosures</h2>
+  <h2>California and international visitors</h2>
   <p>
-    For California residents: the categories of personal information we collect are limited to what's
-    described above — identifiers (name, email, phone if provided), the content of your inquiry or
-    removal request, newsletter subscription/preference data (once Brevo is live), and, for anyone
-    who uses the event-media submission feature, the photo/video files and associated Google-account
-    information described above. We do not sell this information, and we share it only with the
-    service providers listed above, for the purposes described above — not for cross-context
-    behavioral advertising. This website does not currently respond differently to browser "Do Not
-    Track" signals or other cross-site tracking opt-out signals, because it does not engage in
-    cross-site tracking or behavioral advertising in the first place. <strong>Whether the California
-    Consumer Privacy Act (CCPA) or other state privacy laws apply to this site, and the exact wording
-    this section should ultimately use, has not been reviewed by an attorney</strong> — this section
-    describes our practices, not a legal conclusion about which laws govern them. We will note the
-    date of any material change to this policy at the top of this page.
-  </p>
-
-  <h2>International visitors</h2>
-  <p>
-    This website is operated from, and primarily intended for visitors in, the United States. If
-    you access this site from outside the United States, your information may be transferred to
-    and processed in the United States or other countries where our service providers operate,
-    which may have different data protection laws than your home country.
+    The categories of personal information handled are limited to the identifiers, inquiry
+    content, subscription information, submitted media, and technical information described above.
+    We do not sell this information or share it for cross-context behavioral advertising. The site
+    is operated from the United States; information may be processed in the United States or other
+    locations where our providers operate.
   </p>
 
   <h2>Changes to this policy</h2>
   <p>
-    We may update this Privacy Policy from time to time. Material changes will be reflected by
-    updating the effective date at the top of this page. We encourage you to review this page
-    periodically.
+    We may update this policy as our website or services change. A material revision will be shown
+    by changing the effective date above.
   </p>
 
-  <h2>Contact us</h2>
+  <h2>Contact</h2>
   <p>
-    Questions about this Privacy Policy, or requests regarding your information, can be sent to <a href={`mailto:${email}`}>{email}</a>.
+    Questions or privacy requests may be sent to <a href={`mailto:${email}`}>{email}</a>.
   </p>
 </LegalPage>

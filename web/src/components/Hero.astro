@@ -21,14 +21,7 @@ const videoId = videoUrl ? getYouTubeVideoId(videoUrl) : null;
 const hasVideo = videoId !== null;
 const displayEyebrow = hasVideo ? "Play Featured Video" : eyebrow;
 
-/**
- * The approved headline gets a presentational line break before "Favorite
- * Dance Band" — a design decision, not stored content. Never saved as `<br>`
- * markup in Sanity: this splits the plain sentence at render time and only
- * when the exact approved phrase is present, so any other headline text
- * (Studio-edited copy that doesn't contain this phrase) renders as one
- * unbroken line instead of breaking at an arbitrary point.
- */
+/** The approved headline gets a presentational line break before "Favorite Dance Band" — a design decision, not stored content. */
 const BREAK_BEFORE = "Favorite Dance Band";
 const breakIndex = headline.indexOf(BREAK_BEFORE);
 const headlineBeforeBreak = breakIndex >= 0 ? headline.slice(0, breakIndex).trimEnd() : null;

@@ -1,40 +1,5 @@
 ---
-/**
- * The Music page's "Featured" section — its required editorial block and
- * its one `<h1>`. Always rendered, unlike a typical optional featured-video
- * component: `heading` is required and this section never conditionally
- * disappears from the page. The video itself stays fully optional — when
- * `videoId` is `null` (no video selected, or a selected one didn't resolve
- * to a valid YouTube id), the section still renders with just kicker/
- * heading and no player. The Gallery & Merchandise page (formerly Media &
- * Merch) used to have its own featured video here too — that section was
- * removed entirely, not migrated; featured, click-to-load video locations
- * today are only the Homepage hero (its own separate implementation) and
- * this Music page section.
- *
- * Click-to-play, exactly like the Homepage hero, and sharing its exact
- * presentation and motion via the `.video-trigger*` primitive in
- * `global.css` (the same code-owned ELT logo, play-icon overlay,
- * hover/focus treatment, rounded corners, drop-shadow, and pre-activation
- * float — see that primitive's doc comment for why the float lives on the
- * trigger button itself, and why no extra rule is needed to stop it on
- * activation). `prefers-reduced-motion` is honored the same way: the
- * sitewide blanket override in `global.css` collapses the shared
- * `.video-float` animation's duration to near-zero, not a rule declared
- * here.
- *
- * The two intentional differences from the Homepage, expressed as this
- * component's own scoped CSS rather than anything shared: this frame keeps
- * its own larger ~900px maximum width rather than the Homepage's 560px, and
- * (a deliberate product decision, not an oversight) its trigger sits with
- * extra clearance below the section heading.
- *
- * Reuses `heroVideo.ts` unchanged via the same `data-video-*` attribute
- * contract (see that file's doc comment) — no second click-to-play script.
- * The script is only imported when a video is actually present: this
- * section renders even with no video selected, and there is nothing for the
- * script to attach to in that case.
- */
+/** Optional click-to-load featured video used by the Music page. */
 
 import VideoTrigger from "./VideoTrigger.astro";
 

@@ -1,16 +1,5 @@
 ---
-/**
- * One Pacific-calendar month of the upcoming schedule: a heading, and an
- * ordered list of the events in it.
- *
- * `<ol>` rather than `<ul>` because the order is meaningful — this is a
- * chronological sequence, and assistive technology announcing "1 of 4" is
- * telling the truth about the schedule.
- *
- * The `kind` switch below is the only place the two card types are chosen
- * between. Because `kind` is assigned during normalization rather than copied
- * from Sanity, a private event cannot be routed to the public card.
- */
+/** Renders one Pacific-month group of public and private events. */
 
 import type { ShowsMonthGroup } from "../lib/showsSchedule";
 import PublicShowCard from "./PublicShowCard.astro";

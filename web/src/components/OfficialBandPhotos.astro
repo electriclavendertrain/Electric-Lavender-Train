@@ -1,40 +1,5 @@
 ---
-/**
- * "Official Band Photos" — a restrained, Homepage-only showcase of
- * professionally photographed, approved official band images
- * (`homepage.officialBandPhotos`). Editorially distinct from the fan/live
- * imagery on the Gallery & Merchandise page: this section never pulls from
- * `galleryPage`, never falls back to fan photos or development fixtures, and
- * simply omits itself when there's nothing valid to show — see
- * `normalizeOfficialBandPhotos` in `sanity/normalize.ts` for the validation
- * rules (1-4 photos, real image assets, non-blank alt text, no `[TEST`
- * marker in production).
- *
- * Deliberately a restrained static grid, not a carousel: 1 to 4 strong
- * photographs, all visible at once, requiring no JavaScript to display.
- * `<figure>`/`<figcaption>` are used only for photos that carry a credit —
- * an uncredited photo is a plain `<img>` in a plain grid cell, matching the
- * "no nested structure without a reason" convention used elsewhere on this
- * site (e.g. `GalleryPreview.astro` used to do the same before it was
- * removed; `MediaGallery.astro` still does).
- *
- * Below the fold, but deliberately NOT lazy-loaded (unlike most below-fold
- * images on this site): it's a restrained 1-4 photo showcase, so the eager
- * download cost is small, and starting the request at parse time — rather
- * than waiting for `loading="lazy"`'s viewport-intersection trigger — gives
- * Sanity's image CDN the most possible head start on generating each
- * derivative. That matters here specifically: on a first-ever request for a
- * given crop/width combination (e.g. right after new photos are published),
- * the CDN generates it on demand, and that generation can occasionally be
- * slow enough that a lazy-triggered request — fired only once the section is
- * nearly in view — doesn't resolve before the visitor scrolls to it, so the
- * photo appears to silently fail to load until a later reload (when the
- * derivative is already cached). Eager loading does not eliminate that cold-
- * cache latency, but it maximizes the time available to hide it.
- *
- * The editable "Meet the Band" label lives with this section in Studio;
- * its About-page destination remains a code-owned route.
- */
+/** Renders the curated Homepage photo grid. */
 
 import siteConfig from "../data/siteConfig";
 import type { NormalizedOfficialBandPhoto } from "../sanity/normalize";

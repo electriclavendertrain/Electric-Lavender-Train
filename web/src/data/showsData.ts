@@ -1,11 +1,4 @@
-/**
- * Fallback editorial content for the Shows-page singleton.
- *
- * This entire object is used only when the fixed-id `showsPage` document is
- * absent from a non-production dataset. Once the singleton exists, the page
- * uses its complete normalized content and never mixes live Sanity fields
- * with individual fallback values. Production builds require the singleton.
- */
+/** Code-owned Shows labels, privacy wording, and development fallbacks. */
 export const showsPageFallback = {
   intro: {
     kicker: "Where to Find Us",
@@ -41,13 +34,7 @@ export const showsPageFallback = {
   },
 } as const;
 
-/**
- * Protected interface and safety copy.
- *
- * These values are deliberately not editor-controlled. In particular, the
- * generic private-event label comes from here because private GROQ results
- * contain no title, and the time-zone/availability notices must stay true.
- */
+/** Protected interface and safety copy. */
 /** One segment of the protected availability disclaimer below. `emphasis`
  * marks the exact phrases that must render with semantic `<strong>` —
  * `ShowsIntro.astro` renders this structurally (mapped `<strong>`/plain-text

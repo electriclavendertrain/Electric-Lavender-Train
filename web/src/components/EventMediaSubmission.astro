@@ -1,24 +1,5 @@
 ---
-/**
- * "Share Your Event Media" — rendered between the Media Gallery and
- * Merchandise sections on the Gallery & Merchandise page. This is an
- * approved, planned production feature (not an undecided client question)
- * pending only the actual Google Form being created — see
- * docs/gallery-merch.md and docs/client-questions.md. This site only ever
- * LINKS to that separately hosted Google Form; no upload happens on this
- * site, in Astro, or in Sanity.
- *
- * Whether this section renders at all is decided upstream by
- * `normalizeEventMediaSubmission` (`sanity/normalize.ts`): the whole
- * section is omitted unless an editor has explicitly enabled it and filled
- * in its copy. Once enabled, `formUrl` independently governs whether the
- * button is a real link (`formUrl` set to a validated real Google Forms URL
- * — `docs.google.com/forms/...` or `forms.gle/...`, nothing else, see
- * `safeGoogleFormUrl` in `normalize.ts`) or a clear configuration notice
- * (`formUrl` is `null`) — the same fail-closed contract `Newsletter.astro`
- * uses for its own hosted-signup link, so a not-yet-created Google Form can
- * never look like a working upload control.
- */
+/** Links to a validated hosted Google Form; this site never accepts uploads. */
 import { galleryMerchCopy } from "../data/galleryMerchData";
 
 interface Props {

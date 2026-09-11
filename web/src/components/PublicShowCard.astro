@@ -1,16 +1,5 @@
 ---
-/**
- * One public show. Takes a plain `NormalizedPublicShow` and knows nothing
- * about Sanity, GROQ, or query shapes.
- *
- * Every field it renders has already been whitelisted, trimmed, and validated
- * by `normalizePublicShows` — including the external URL's protocol — so this
- * component does no defensive checking of its own beyond "is it present".
- *
- * Cancelled and postponed shows render HERE, in chronological position, with
- * an explicit text badge. They are never moved into a separate section, and
- * their status is never signalled by color alone.
- */
+/** Renders a normalized public event card. */
 
 import type { NormalizedPublicShow } from "../sanity/normalize";
 import { formatEventDateTime, getEventDateParts, toDateTimeAttribute } from "../lib/dateFormat";

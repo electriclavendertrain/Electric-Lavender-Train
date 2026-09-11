@@ -1,20 +1,5 @@
 ---
-/**
- * /contact-booking — booking, merch, other, and content-removal inquiries,
- * each a real submittable form delivered via Formspree (one project, four
- * separately configurable endpoints — see `web/src/lib/formDelivery.ts`),
- * with a direct `mailto:` link kept as an always-available fallback.
- *
- * This route now fetches ONE Sanity singleton — `contactPage` — but only for
- * genuinely editorial content: the intro, a compact newsletter callout, and
- * the FAQ. Every inquiry type, field, validation rule, and delivery/privacy
- * detail remains a fixed, code-owned product decision (see
- * `contactData.ts`'s module doc comment), never editorial content.
- *
- * Static and Astro-first, like every other route: nothing is fetched in the
- * browser, and the one piece of real interactivity (the inquiry switcher +
- * form submission) is a single page-specific script, `contactForms.ts`.
- */
+/** Builds Contact editorial content while keeping all form behavior code-owned. */
 
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ContactIntro from "../components/ContactIntro.astro";
@@ -28,7 +13,7 @@ import { CONTACT_PAGE_QUERY } from "../sanity/queries";
 import { normalizeContactPageContent, type NormalizedContactPageContent } from "../sanity/normalize";
 
 // Same configured-DATASET convention as every other route (not Astro's
-// build mode) — see docs/developer-guide.md §10.
+// build mode) — see docs/developer-guide.md.
 const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
 // A real email-shape check, not merely "is this non-null" — a blank or
 // malformed value must not satisfy launch readiness either.
@@ -43,8 +28,7 @@ if (isProductionDataset && !emailConfigured) {
       "`siteConfig.contact.email` is missing or not a valid email address. Confirm the " +
       "public booking/contact email with the client and set it in " +
       "`web/src/data/siteConfig.ts` — this guard passes automatically once " +
-      "`isContactEmailConfigured()` is true. See docs/client-questions.md and " +
-      "docs/contact-booking.md.",
+      "`isContactEmailConfigured()` is true. See docs/developer-guide.md.",
   );
 }
 

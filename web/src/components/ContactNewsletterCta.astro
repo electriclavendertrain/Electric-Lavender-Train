@@ -1,12 +1,5 @@
 ---
-/**
- * A compact newsletter callout for the Contact page, rendered after the FAQ
- * so the FAQ stays directly beneath ContactForms.astro's Privacy & Delivery
- * material. This is a teaser only — no email field, no second copy of the
- * fail-closed signup logic. It always links to the homepage's own
- * `#newsletter` section (`Newsletter.astro`), which is the site's one
- * subscription entry point.
- */
+/** Routes the Contact-page newsletter CTA to the Homepage's single signup section. */
 import siteConfig from "../data/siteConfig";
 
 interface Props {

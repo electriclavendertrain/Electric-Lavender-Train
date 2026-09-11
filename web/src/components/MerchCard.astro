@@ -1,19 +1,5 @@
 ---
-/**
- * One merchandise item: optional image or a polished text-only state,
- * required name and description, optional display-only price/availability
- * text, and an inquiry-only action that links into the Contact page's
- * merchandise inquiry form (`?inquiry=merch&item=…#contact-forms`) — an
- * ordinary internal link, not Instagram. See docs/contact-booking.md and
- * docs/gallery-merch.md §8.
- *
- * Deliberately absent, and never to be added here: add-to-cart, buy-now,
- * checkout, quantity, size/variant selection, SKU, inventory, a numeric
- * commerce price, a currency code, shipping, tax, discounts, accounts, or
- * order/payment processing. This card cannot imply a working store — see
- * `galleryMerchCopy.merch.noCommerceNotice` in `MerchGrid.astro`, which states
- * that boundary once for the whole section rather than per card.
- */
+/** Renders an inquiry-only merchandise card. */
 
 import { contactInquiryHref } from "../data/siteConfig";
 import { galleryMerchCopy } from "../data/galleryMerchData";

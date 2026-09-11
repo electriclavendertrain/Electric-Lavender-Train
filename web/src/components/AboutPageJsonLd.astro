@@ -1,28 +1,5 @@
 ---
-/**
- * schema.org `MusicGroup` structured data for the About page.
- *
- * Every value emitted is a fact that is already visible on the rendered page,
- * or already published in the footer on every page. Nothing is inferred and
- * nothing is filled in "because the vocabulary has a field for it":
- *
- * - No `foundingDate` / `foundingLocation` — never confirmed.
- * - No `genre` — the approved copy describes the sound in prose; turning that
- *   into a genre taxonomy would be an unsupported claim.
- * - No `email`, `telephone`, or `address` — the site publishes none of these
- *   publicly. A `PostalAddress` was briefly emitted here (2026-09-03); the
- *   client decided against public display and it was removed (2026-09-07,
- *   see `ELT-CONTENT-006`) along with `siteConfig.contact.mailingAddress`
- *   and its Footer/Contact-page renderers.
- * - No per-member `sameAs` or `url` — member links are only emitted if the
- *   client supplied and approved them, and none has been supplied.
- * - No member-page `url` — `/about/<slug>` does not exist.
- * - No `award`, `review`, or press claims.
- *
- * `sameAs` carries only the band accounts already verified in
- * `siteConfig.social` and rendered in the footer of every page. Values left
- * `null` there (YouTube, for one) stay out.
- */
+/** Emits safely serialized MusicGroup structured data. */
 
 import type { NormalizedBandMember } from "../sanity/normalize";
 import siteConfig from "../data/siteConfig";
@@ -62,16 +39,7 @@ const musicGroup = {
     : {}),
 };
 
-/**
- * Identical escaping to `PublicEventJsonLd.astro`, and for the same reason:
- * `<`, `>` and `&` can only occur inside JSON string values, never in JSON's
- * structural syntax, so escaping them across the whole document is safe and
- * still produces valid JSON — and a name containing `</script>` cannot close
- * the element. U+2028/U+2029 are escaped because a JavaScript parser treats
- * them as literal line terminators.
- *
- * If you touch this, keep the escaping.
- */
+/** Identical escaping to `PublicEventJsonLd.astro`, and for the same reason: `<`, `>` and `&` can only occur inside JSON string values, never in JSON's structural syntax, so escaping them across the whole document is safe and still produces valid JSON — and a… */
 function serializeJsonLd(data: unknown): string {
   return JSON.stringify(data)
     .replace(/</g, "\\u003c")

@@ -1,33 +1,4 @@
-/**
- * Code-owned Gallery & Merchandise page material. Renamed from
- * `mediaData.ts` (visitor-facing "Media & Merch" → "Gallery & Merchandise",
- * route `/media-merch` → `/gallery-merch`) — see docs/gallery-merch.md.
- * Three distinct kinds of thing live here, exactly the split established by
- * `aboutData.ts` and `showsData.ts` — do not blur them together.
- *
- * 1. `galleryMerchCopy` — permanent protected interface copy: filter labels,
- *    category display names, the new-tab notice, and the no-commerce
- *    boundary wording. Not editorial content, never in Sanity. Category
- *    display names are fixed for the same reason link-type names are fixed
- *    on `bandMember`: a filter labelled "Performances" must always mean the
- *    same thing.
- * 2. `galleryMerchFallback` — ONE complete development fallback, used only
- *    when the whole `galleryPage` singleton is absent from a non-production
- *    dataset. Never merged field-by-field with live content, and never used
- *    in production (see `gallery-merch.astro`). Unlike the page's earlier
- *    `mediaPage` form, this fallback has NO featured-video content at all —
- *    the page no longer has a featured-video section (featured, click-to-
- *    load video locations are now only the Homepage hero and the Music
- *    page). `TEST_FEATURED_VIDEO_URL`/`TEST_VIDEO_ID` below are retained
- *    even so — they're still load-bearing for `normalize.ts`'s strict-mode
- *    rejection of that same well-known filler video if it's ever selected
- *    into `galleryPage.gallery.videos`.
- * 3. `TEST_PRODUCT_MARKER` — the marker that makes placeholder merchandise
- *    unmistakable and mechanically detectable, exactly like
- *    `TEST_BIOGRAPHY_MARKER`. Load-bearing: `normalize.ts` rejects any
- *    merchandise name/description containing it whenever the configured
- *    dataset is `production`.
- */
+/** Code-owned Gallery labels and development-only fallback content. */
 
 import type { ImageMetadata } from "astro";
 import galleryPerformance from "../assets/images/gallery/elt-04.jpg";
@@ -39,28 +10,10 @@ import galleryDanceFloor from "../assets/images/gallery/elt-12.jpg";
 import { getYouTubeVideoId } from "../lib/youtube";
 import type { MediaGalleryCategory } from "../sanity/normalize";
 
-/**
- * The marker that makes placeholder merchandise text unmistakable, and
- * mechanically detectable. Kept as one exported constant so the schema
- * documentation, the fallback content, and the production guard in
- * `normalize.ts` can never drift apart.
- */
+/** The marker that makes placeholder merchandise text unmistakable, and mechanically detectable. */
 export const TEST_PRODUCT_MARKER = "[TEST — CLIENT PRODUCT REQUIRED]";
 
-/**
- * The shared prefix every development/placeholder `mediaItem` title in this
- * project uses — including the live Studio `development`-dataset fixture
- * `test-media-video-youtube` ("[TEST] Placeholder YouTube Video"), which is a
- * real, selectable Sanity document, not just a hardcoded fallback string. An
- * editor could select that exact document into `galleryPage.gallery.videos`
- * (it passes every schema filter: `mediaType == "video"`,
- * `videoProvider == "youtube"`), so `normalize.ts` checks selected gallery
- * videos' titles against this prefix and rejects a match in production —
- * mirrors `TEST_PRODUCT_MARKER`'s role for merchandise. Deliberately kept
- * here rather than moved into a generic "mediaItem" module: it's about the
- * generic `mediaItem` document type, but this Gallery & Merchandise gallery
- * is still its only consumer.
- */
+/** The shared prefix every development/placeholder `mediaItem` title in this project uses — including the live Studio `development`-dataset fixture `test-media-video-youtube` ("[TEST] Placeholder YouTube Video"), which is a real, selectable Sanity document… */
 export const TEST_MEDIA_ITEM_MARKER = "[TEST";
 
 /* -------------------------------------------------------------------------
@@ -115,14 +68,7 @@ export const galleryMerchCopy = {
 
   merch: {
     headingId: "gallery-merch-items",
-    /**
-     * Protected: defines the site's no-commerce boundary. Editors control
-     * `galleryPage.merch.heading` and `.body`; they do not control this
-     * sentence, because rewording it could imply a working store.
-     *
-     * Points at the internal Contact page's merch inquiry form, not
-     * Instagram — see docs/contact-booking.md and docs/gallery-merch.md §8.
-     */
+    /** Protected: defines the site's no-commerce boundary. */
     noCommerceNotice:
       "Items are available by inquiry only — there is no online store, cart, or checkout. Use the merchandise inquiry form to email the band.",
     /** "Email the Band About {item name}" — an internal link, never a new tab. */
@@ -161,26 +107,10 @@ export const galleryMerchCopy = {
  * `production` is authorized.
  * ---------------------------------------------------------------------- */
 
-/**
- * A well-known filler YouTube URL, retained only as the source for
- * `TEST_VIDEO_ID` below — this page's own fallback no longer renders any
- * featured video, but the id is still used as a belt-and-suspenders
- * production guard against this exact well-known filler clip ever being
- * selected into `galleryPage.gallery.videos` (on top of the title-prefix
- * check, `TEST_MEDIA_ITEM_MARKER`).
- */
+/** A well-known filler YouTube URL, retained only as the source for `TEST_VIDEO_ID` below — this page's own fallback no longer renders any featured video, but the id is still used as a belt-and-suspenders production guard against this exact well-known filler… */
 export const TEST_FEATURED_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
-/**
- * The video id embedded in `TEST_FEATURED_VIDEO_URL` above ("Never Gonna
- * Give You Up"), extracted once via the approved parser rather than
- * hardcoded a second time. Used by `normalize.ts` as a belt-and-suspenders
- * production guard for `galleryPage.gallery.videos`, alongside the
- * title-prefix check (`TEST_MEDIA_ITEM_MARKER`) — an editor selecting the
- * live `test-media-video-youtube` fixture would already be caught by its
- * `[TEST]`-prefixed title, but this catches the same well-known filler video
- * even if it were ever re-titled.
- */
+/** The video id embedded in `TEST_FEATURED_VIDEO_URL` above ("Never Gonna Give You Up"), extracted once via the approved parser rather than hardcoded a second time. */
 export const TEST_VIDEO_ID = getYouTubeVideoId(TEST_FEATURED_VIDEO_URL) as string;
 
 export interface FallbackGalleryPhoto {
@@ -247,12 +177,7 @@ export interface FallbackMerchItem {
   availabilityNote: string | null;
 }
 
-/**
- * Two items, deliberately generic — not the reference's invented shirts,
- * bags, stickers, or vinyl. One exercises the text-only card state; the
- * other exercises the with-image, with-price, with-availability state. Every
- * field that would otherwise look like real product data carries the marker.
- */
+/** Two items, deliberately generic — not the reference's invented shirts, bags, stickers, or vinyl. */
 export const merchFallback: FallbackMerchItem[] = [
   {
     _id: "fallback-merch-1",

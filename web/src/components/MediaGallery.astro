@@ -1,38 +1,5 @@
 ---
-/**
- * The curated media gallery: category/video filters (progressive
- * enhancement) plus a grid of photo and video thumbnails, each opening a
- * native-dialog lightbox.
- *
- * `items` (photos) and `videos` are each already normalized in their own
- * Sanity-stored order — two independent single sources of truth (see
- * `normalize.ts`'s "Gallery & Merchandise page" module doc comment). This component
- * never sorts, filters at build time, or drops anything; every normalized
- * item is always in the DOM. Ordering rule, enforced purely by DOM order
- * below: **all photos first (their own order), then all videos (their own
- * order)** — this is what makes the "All" filter show photos-then-videos
- * without any client-side sorting, and it's also why the "Videos" filter
- * (which only toggles `hidden`, never reorders) naturally shows videos in
- * exactly `gallery.videos` order.
- *
- * Filter buttons for "Performances" / "Venue & Crowd" render only when at
- * least one normalized photo actually uses that category; "Videos" renders
- * only when at least one normalized video exists — `hasPerformance` /
- * `hasVenueCrowd` / `hasVideos` are computed once in `normalize.ts` so this
- * component does not need four duplicate arrays to decide. A video's
- * `data-gallery-category="video"` value is code-owned (never an editor
- * choice) and is disjoint from the two photo category values, so a video
- * can never match a photo-category filter and a photo can never match
- * "Videos" — the same `hidden`-toggling filter script handles all of it.
- *
- * Without JavaScript: the filter controls stay hidden (see
- * `.media-gallery__filters` below), every photo and video stays visible,
- * every photo thumbnail's `href="#gallery-photo-…"` still opens that
- * photo's `:target` fallback panel in `MediaLightbox.astro`, and every
- * video tile is a real external link straight to YouTube (`video.watchUrl`,
- * `target="_blank"`) — see `MediaVideoLightbox.astro` and
- * `mediaGallery.ts` for why a video has no local no-script fallback.
- */
+/** Renders normalized photos and videos with progressive filters and dialogs. */
 
 import { Image } from "astro:assets";
 import eltLogo from "../assets/images/elt-logo.jpg";

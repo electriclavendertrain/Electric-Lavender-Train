@@ -1,18 +1,5 @@
 ---
-/**
- * Month jump navigation — a row of ordinary anchor links, not a calendar and
- * not a filter.
- *
- * Every link is a plain in-page `#anchor`: jumping works with the page's
- * existing smooth scrolling, works with JS disabled, and each link is
- * independently focusable, right-clickable, and shareable. A progressive
- * script only toggles overflow cues. Nothing hides or reveals events; the
- * full chronological list is always present in the DOM.
- *
- * Only months that contain at least one displayable upcoming event reach this
- * component — `groupByPacificMonth` never produces an empty group — so an
- * empty month can't be rendered.
- */
+/** Progressively enhances month jump links with overflow controls. */
 
 import type { ShowsMonthGroup } from "../lib/showsSchedule";
 

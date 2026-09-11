@@ -1,29 +1,7 @@
 import {PlayIcon} from '@sanity/icons/Play'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-/**
- * The Gallery & Merchandise page singleton, with the fixed `_id: "galleryPage"`.
- *
- * Renamed from `mediaPage` (visitor-facing "Media & Merch" → "Gallery &
- * Merchandise", route `/media-merch` → `/gallery-merch`). The legacy
- * `mediaPage` schema type has since been retired (its Studio registration
- * removed) now that this singleton's content has been confirmed complete.
- * Its obsolete development-dataset document was deleted on 2026-09-08 so it
- * cannot retain references to reusable records. The one content difference
- * from the old `mediaPage` shape (beyond the rename): **no featured-video
- * field**. Featured,
- * click-to-load video locations are now only the Homepage hero and the
- * Music page — see `docs/gallery-merch.md` and `docs/music.md`.
- *
- * Same singleton conventions as every other page singleton: one fixed
- * Structure entry, stripped from `schema.templates` and the global "+" menu
- * (via `SINGLETON_TYPES` in `sanity.config.ts`), queried by that exact
- * `_id`. See docs/developer-guide.md §5.
- *
- * No formation-date-style invented content lives in the initial values below:
- * neutral section headings only. No products, prices, or credits are seeded
- * — inventing any of those would be worse than leaving it blank.
- */
+/** Gallery & Merchandise page singleton schema. */
 export const galleryPage = defineType({
   name: 'galleryPage',
   title: 'Gallery & Merchandise Page',

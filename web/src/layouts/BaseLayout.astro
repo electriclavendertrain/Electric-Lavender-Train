@@ -4,38 +4,7 @@ import Footer from "../components/Footer.astro";
 import siteConfig from "../data/siteConfig";
 import "../styles/global.css";
 
-/**
- * Self-hosted fonts — Jost (body) and Ultra (display), matching
- * `tokens.css`'s `--body`/`--display` variables exactly. Vendored via the
- * Fontsource packages `@fontsource/jost`/`@fontsource/ultra` rather than
- * loaded from `fonts.googleapis.com`/`fonts.gstatic.com` at request time, so
- * no request to Google occurs on page load — see docs/developer-guide.md
- * §22 and `web/public/third-party-notices/` (tracked, distributed in the
- * built site) for the license/rationale record.
- *
- * Only the weights/styles actually used sitewide are imported (matching the
- * previous Google Fonts URL's exact spec: Jost 300/400/500/600/700 normal
- * plus 400 italic; Ultra 400 normal only, its single weight).
- *
- * `latin` only, deliberately not `latin-ext` too: Fontsource's per-subset
- * files (`latin-300.css`, `latin-ext-300.css`, …) carry no `unicode-range`
- * — that's only present in the combined per-weight files (`300.css`, which
- * bundles latin/latin-ext/cyrillic each with its own `unicode-range`).
- * Importing both `latin-*.css` and `latin-ext-*.css` for the same
- * weight/style therefore produced two `@font-face` rules with identical
- * family/weight/style descriptors and no `unicode-range` to arbitrate
- * between them — a real duplicate-declaration bug, not just extra payload.
- * The fix is not "combine them correctly" but "don't need latin-ext at
- * all": its `unicode-range` (`U+0100-02BA,…`) covers Vietnamese and
- * Eastern-European Latin Extended letters this site has no content in.
- * `latin`'s own range (`U+0000-00FF,…`) already covers the Latin-1
- * Supplement block — á é í ó ú ñ ü ç à â ê î ô û ë ï ö and the rest of the
- * accented characters a Central Coast California venue/person name might
- * reasonably need — plus general punctuation (em dash, curly quotes) via
- * its `U+2000-206F` range. No other-script or Latin Extended content is
- * expected; if that ever changes, re-evaluate rather than re-adding
- * `latin-ext` reflexively.
- */
+/** Shared document shell, metadata, navigation, footer, and reveal behavior. */
 import "@fontsource/jost/latin-300.css";
 import "@fontsource/jost/latin-400.css";
 import "@fontsource/jost/latin-500.css";
@@ -59,15 +28,7 @@ const {
   noIndex = false,
 } = Astro.props;
 
-/**
- * One canonical URL per route, derived here rather than passed in by each
- * page — a page cannot forget it, and it cannot disagree with the route it is
- * actually built at.
- *
- * The trailing slash is stripped (except at the root) so `/shows` and
- * `/shows/` cannot produce two different canonical values depending on how
- * Astro reports the pathname for a given build format.
- */
+/** One canonical URL per route, derived here rather than passed in by each page — a page cannot forget it, and it cannot disagree with the route it is actually built at. */
 const canonicalPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
 const canonicalUrl = new URL(canonicalPath, siteConfig.siteUrl).href;
 ---
@@ -101,12 +62,7 @@ const canonicalUrl = new URL(canonicalPath, siteConfig.siteUrl).href;
     {ogImage && <meta name="twitter:image" content={ogImage} />}
 
     <script is:inline>
-      // Marks that scripting is available. `.reveal` only holds content at
-      // opacity 0 while this class is present (see global.css → "Entrance
-      // animation"), so if this script never runs — or scripting is off —
-      // every page still renders its content normally instead of blank.
-      // Inline and in <head> so it lands before first paint and nothing
-      // flashes in and back out.
+      // Enable reveal styles before first paint; no-JS content remains visible.
       document.documentElement.classList.add("js-reveal");
     </script>
   </head>

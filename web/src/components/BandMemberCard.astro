@@ -1,18 +1,5 @@
 ---
-/**
- * The compact member card: photograph, name, role, and one real control that
- * opens that member's profile.
- *
- * Two things this deliberately does NOT do, both copied from the functional
- * reference's mistakes rather than its good ideas:
- *
- * - The `<article>` is not given `tabindex="0"`. A static card is not a
- *   control; making it focusable puts a stop in the tab order that does
- *   nothing when activated.
- * - The action does not pretend a member page exists. Its `href` points at
- *   this member's profile dialog on this page — which is a real destination
- *   with or without scripting — not at a `/about/<slug>` route that would 404.
- */
+/** Renders a compact member card whose control opens the profile dialog. */
 
 import type { NormalizedBandMember } from "../sanity/normalize";
 import { aboutPageCopy } from "../data/aboutData";
@@ -24,12 +11,7 @@ interface Props {
 
 const { member, dialogId } = Astro.props;
 
-/**
- * "Meet Rachel" reads better than "Meet Rachel Santa Cruz", but a screen
- * reader's list of controls needs each one to be distinguishable — so the rest
- * of the name is present and hidden only visually. A single-word name simply
- * has nothing to append.
- */
+/** "Meet Rachel" reads better than "Meet Rachel Santa Cruz", but a screen reader's list of controls needs each one to be distinguishable — so the rest of the name is present and hidden only visually. */
 const [firstName, ...restOfName] = member.name.split(/\s+/).filter(Boolean);
 const actionVisible = firstName
   ? `${aboutPageCopy.memberCardActionPrefix} ${firstName}`

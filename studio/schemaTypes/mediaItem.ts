@@ -37,15 +37,7 @@ export const mediaItem = defineType({
         ],
         layout: 'radio',
       },
-      /**
-       * The "an image item must actually have an image" check lives HERE, on
-       * the primitive `mediaType` string, not on the `image` field itself.
-       *
-       * Why: custom validation attached to an object-typed field (`image` is
-       * one) is emitted at `warning` level by the installed Sanity version,
-       * and Studio only blocks publishing on `error`. Anchored to this
-       * primitive field instead, the same check blocks publishing.
-       */
+      /** The "an image item must actually have an image" check lives HERE, on the primitive `mediaType` string, not on the `image` field itself. */
       validation: (Rule) =>
         Rule.required().custom((value, context) => {
           if (value !== 'image') return true
@@ -91,13 +83,7 @@ export const mediaItem = defineType({
         layout: 'radio',
       },
       hidden: ({document}) => !isVideo(document),
-      /**
-       * Two checks live here: the provider is required for video items, and —
-       * for the "Other external video" provider — a poster image must exist.
-       * The poster check is anchored to this primitive string rather than to
-       * the object-typed `videoPoster` field, because custom validation on an
-       * object field is only ever emitted as a non-blocking warning.
-       */
+      /** Two checks live here: the provider is required for video items, and — for the "Other external video" provider — a poster image must exist. */
       validation: (Rule) =>
         Rule.custom((value, context) => {
           const document = context.document as Record<string, unknown> | undefined
@@ -132,16 +118,7 @@ export const mediaItem = defineType({
 
           const provider = document?.videoProvider
           if (provider === 'youtube') {
-            // Not just "is this a YouTube host" — the URL must actually
-            // resolve to a playable 11-character video ID, the same check
-            // (and the same accepted URL shapes) the public site uses to
-            // decide whether to render a play control at all. A channel,
-            // playlist, search, or profile URL shares a YouTube hostname
-            // with a real video URL but has no video to extract, and would
-            // otherwise publish successfully while quietly never playing
-            // anything on the live site. See `./youtube.ts`'s doc comment
-            // for why this check is duplicated rather than imported from
-            // `web/`.
+            // Require a playable video ID, not merely a YouTube hostname.
             return (
               getYouTubeVideoId(value) !== null ||
               'Must be a playable YouTube video link — a channel, playlist, search, or profile link is not accepted. Paste a normal watch/share link (youtube.com/watch?v=…, youtu.be/…) or a privacy-enhanced embed link (youtube-nocookie.com/embed/…).'
@@ -197,12 +174,7 @@ export const mediaItem = defineType({
         'Optional. Only meaningful when Media credit above is filled in — add a Media credit first.',
       type: 'url',
       hidden: ({document}) => !isImage(document) && !isVideo(document),
-      /**
-       * Anchored on this primitive `url` field, not the `creditLine` string it
-       * depends on, purely because "URL requires a sibling to be set" reads
-       * more naturally here — both are primitive fields, so either placement
-       * would emit at `error` level (docs/developer-guide.md §5).
-       */
+      /** Anchored on this primitive `url` field, not the `creditLine` string it depends on, purely because "URL requires a sibling to be set" reads more naturally here — both are primitive fields, so either placement would emit at `error` level… */
       validation: (Rule) =>
         Rule.uri({scheme: ['http', 'https']}).custom((value, context) => {
           if (!value) return true

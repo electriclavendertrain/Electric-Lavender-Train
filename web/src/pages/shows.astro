@@ -1,18 +1,5 @@
 ---
-/**
- * /shows — the public performance schedule.
- *
- * This is the only file on this route that touches Sanity. It fetches, hands
- * the raw results straight to normalization, and passes plain objects down;
- * no component below it knows Sanity exists.
- *
- * Everything here runs once, at `astro build`. The output is a static
- * snapshot: `now()` was evaluated during the build, so an event does not move
- * from Upcoming to Recent by time passing — it moves when the site rebuilds.
- * That is why a scheduled daily rebuild, landing safely after midnight
- * Pacific, is required in addition to any publish-triggered one
- * (docs/developer-guide.md §12, §13).
- */
+/** Builds the Shows page from its singleton and public/private event queries. */
 
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BookingCTA from "../components/BookingCTA.astro";
@@ -38,12 +25,7 @@ import {
 } from "../sanity/normalize";
 import { mergeUpcomingEvents, groupByPacificMonth } from "../lib/showsSchedule";
 
-// Four independent queries, fetched in parallel. None is wrapped in a
-// try/catch, deliberately and consistently with index.astro: a genuine
-// failure — network, auth, malformed GROQ, bad config — throws here and fails
-// the build in every environment. A silent fallback would publish a schedule
-// that looks fine while being wrong about when the band is playing.
-//
+// Fetch independently; a real query error must fail rather than publish a stale schedule.
 const [rawShowsPage, rawUpcomingPublic, rawUpcomingPrivate, rawRecentPublic] = await Promise.all([
   sanityClient.fetch(SHOWS_PAGE_QUERY),
   sanityClient.fetch(SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY),

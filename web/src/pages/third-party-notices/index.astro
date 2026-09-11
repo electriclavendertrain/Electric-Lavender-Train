@@ -1,21 +1,5 @@
 ---
-/**
- * Third-party notices — font name/package/version/license/attribution/
- * source for the two self-hosted fonts (Jost, Ultra), plus why the files
- * are distributed. A real Astro route (not a raw `public/` HTML file) so
- * `/third-party-notices/` reliably resolves the same way every other page
- * on this site does — an earlier version of this page lived directly under
- * `public/third-party-notices/index.html`, which Astro's own dev/preview
- * server does not auto-resolve for a directory-style request (confirmed:
- * `/third-party-notices/` 404'd while `/third-party-notices/index.html`
- * worked), a portability risk on some static hosts too.
- *
- * The actual license TEXT files stay as raw, unprocessed `public/` assets
- * (`web/public/third-party-notices/{jost,ultra}/LICENSE.txt`) — that part
- * genuinely should bypass Astro's page-rendering pipeline, and doesn't hit
- * the same directory-index problem since each is requested as an exact
- * filename, never a bare directory path.
- */
+/** Human-readable license index for third-party assets shipped by the site. */
 
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { formatPageTitle } from "../../data/siteConfig";

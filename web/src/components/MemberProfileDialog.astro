@@ -1,29 +1,5 @@
 ---
-/**
- * One member's full profile, in a native `<dialog>`.
- *
- * ## Why a native dialog, and how it degrades
- *
- * With scripting available, `memberProfiles.ts` calls `showModal()`. The
- * platform then supplies, for free and correctly: the top layer, the backdrop,
- * inert background content, Escape-to-dismiss, and focus moved inside. None of
- * that is reimplemented here.
- *
- * With scripting unavailable — or on a browser without `showModal` — the card's
- * control is still an ordinary `<a href="#member-profile-…">`, so activating it
- * navigates to this element's fragment, and the `:target` rule at the bottom of
- * this file reveals the same profile as an inline panel. The close control is
- * an ordinary link back to the section heading, so it dismisses the panel by
- * navigating away from the fragment. The biographies are therefore reachable
- * either way; they are never locked behind an enhancement that did not load.
- *
- * `memberProfiles.ts` adds `.js-dialogs` to `<html>` only after confirming
- * `showModal` exists, and the `:target` fallback is scoped to
- * `html:not(.js-dialogs)` — so exactly one of the two behaviors is ever live.
- *
- * There is one DOM structure at every breakpoint. The card and this dialog are
- * a summary and its detail, not a mobile copy and a desktop copy.
- */
+/** Accessible member profile dialog with no-JavaScript fragment fallback. */
 
 import type { NormalizedBandMember } from "../sanity/normalize";
 import { aboutPageCopy } from "../data/aboutData";

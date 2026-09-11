@@ -1,20 +1,5 @@
 ---
-/**
- * The Shows page's compact opening block, and the page's only `<h1>`.
- *
- * The two notes below are not decoration. The timezone note states the
- * display timezone once, up front, so no card has to repeat "PT" on every
- * line. The availability note is the page's core honesty requirement: the
- * schedule lists confirmed engagements, so a gap in it says nothing about
- * whether that date can be booked.
- *
- * The disclaimer is rendered from `availabilityNoteParts` — an ordered list
- * of plain-text/`<strong>` segments (`web/src/data/showsData.ts`) — rather
- * than a single string, so the two required emphasized phrases ("not an
- * availability calendar", "not guaranteed") render as semantic `<strong>`
- * without ever building HTML from a string (`set:html`) or moving this
- * protected, code-owned wording into Sanity.
- */
+/** Renders the Shows page introduction and h1. */
 
 import type { AvailabilityNoteSegment } from "../data/showsData";
 

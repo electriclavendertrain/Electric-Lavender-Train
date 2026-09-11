@@ -1,28 +1,7 @@
 import {UserIcon} from '@sanity/icons/User'
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-/**
- * A reusable band-member profile.
- *
- * Ordinary Sanity-generated `_id`s — this is NOT a singleton. The About page
- * selects and orders members through `aboutPage.members`, so adding a member
- * here does not publish them anywhere until they are referenced.
- *
- * Deliberately absent, and to stay absent:
- *
- * - No route slug and no per-member SEO. Member detail pages are deferred and
- *   nothing links to one, so a slug would be dead data (the same reasoning
- *   that keeps `event.slug` out of every Shows query).
- * - No private email, phone, address, or internal notes. The dataset permits
- *   anonymous reads — see docs/developer-guide.md §9. Anything stored here is
- *   public, whatever any query selects.
- * - No layout or style controls. Presentation lives in Astro/CSS.
- * - No placeholder social URLs. A member with no approved link simply has an
- *   empty `publicLinks`, and the frontend omits the link area cleanly.
- *
- * The profile photograph is a Media Library reference so editors can replace,
- * crop, and reassign it without a code change.
- */
+/** Reusable band member schema. */
 
 const LINK_TYPES = [
   {title: 'Instagram', value: 'instagram'},
@@ -88,19 +67,7 @@ export const bandMember = defineType({
               title: 'Link type',
               type: 'string',
               options: {list: LINK_TYPES, layout: 'dropdown'},
-              /**
-               * The "Other needs a label" check is anchored HERE, on this
-               * primitive string, rather than on the `label` field or the
-               * enclosing object.
-               *
-               * Custom validation attached to an object-typed node is emitted
-               * at `warning` level by the installed Sanity version, and Studio
-               * only blocks publishing on `error`. Anchored to a primitive it
-               * blocks properly. See docs/developer-guide.md §5.
-               *
-               * `context.parent` is this link object, so the sibling label is
-               * read from there rather than from the whole document.
-               */
+              /** The "Other needs a label" check is anchored HERE, on this primitive string, rather than on the `label` field or the enclosing object. */
               validation: (Rule) =>
                 Rule.required().custom((value, context) => {
                   if (value !== 'other') return true

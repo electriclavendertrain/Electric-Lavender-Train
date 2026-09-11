@@ -1,13 +1,5 @@
 ---
-/**
- * The Contact page's FAQ, rendered immediately after ContactForms.astro's
- * own Privacy & Delivery material — `id="faq"` is this section's stable
- * anchor, linked from the Footer. Each entry is a native `<details>`
- * disclosure: keyboard-operable, has a real accessible name and expanded
- * state built into the platform, and needs no script to work. Omits itself
- * entirely when there are no valid FAQ entries, rather than rendering an
- * empty heading.
- */
+/** Renders the Contact page's normalized FAQ. */
 import type { NormalizedFaqEntry } from "../sanity/normalize";
 
 interface Props {

@@ -1,27 +1,5 @@
 ---
-/**
- * /gallery-merch — photos and inquiry-only merchandise.
- *
- * Renamed from `/media-merch` (visitor-facing "Media & Merch" → "Gallery &
- * Merchandise") — see docs/gallery-merch.md. A static-compatible redirect
- * from the old `/media-merch` path is configured in `astro.config.mjs`, not
- * a page file here (having both would conflict).
- *
- * This page's featured-video section was removed entirely, not migrated —
- * featured, click-to-load video locations are now only the Homepage hero
- * and the Music page.
- *
- * The redundant opening "Gallery and Merchandise" intro section was also
- * removed entirely (`galleryPage.intro` no longer exists) — the Media
- * Gallery is now the page's first visible section, and its own heading
- * supplies the page's one `<h1>` (see `MediaGallery.astro`'s `headingTag`/
- * `firstSection` props), rendered even when zero photos/videos are selected.
- *
- * This is the only file on this route that touches Sanity. It fetches,
- * hands the raw result straight to normalization, and passes plain objects
- * down; no component below it knows Sanity exists. Everything here runs
- * once, at `astro build` — nothing is fetched in the browser.
- */
+/** Builds Gallery & Merchandise from one strict, normalized singleton. */
 
 import { getImage } from "astro:assets";
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -41,18 +19,12 @@ import {
   type NormalizedMerchItem,
 } from "../sanity/normalize";
 
-// Which policy applies is decided by the configured DATASET, not by Astro's
-// build mode — a production-mode build may legitimately point at
-// `development` (a staging preview), and that must not trip the strict
-// requirements below. Matches every other route's convention exactly.
+// Strictness follows the configured dataset, not Astro's build mode.
 const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "production";
 
 const rawGalleryPage = await sanityClient.fetch(GALLERY_PAGE_QUERY);
 
-// The curated gallery/merch selections get strict, item-level validation in
-// production (see normalize.ts's module doc comment on this section) — any
-// invalid selected entry fails the whole build there, and is silently
-// dropped everywhere else.
+// Production rejects invalid selected media or merchandise.
 const normalizedGalleryPage = normalizeGalleryPageContent(rawGalleryPage, {
   strict: isProductionDataset,
 });
@@ -65,21 +37,14 @@ if (normalizedGalleryPage === null && isProductionDataset) {
       "category, and (if supplied) a valid credit URL; and every selected merchandise item " +
       "must have a name and description with no `[TEST — CLIENT PRODUCT REQUIRED]` marker and " +
       "a resolvable image if one is supplied. Publish the Gallery & Merchandise Page in Sanity " +
-      "Studio before building for production — see docs/gallery-merch.md.",
+      "Studio before building for production — see docs/developer-guide.md.",
   );
 }
 
-/**
- * The development fallback is ONE complete block, used only when the whole
- * singleton is absent — never patched field by field onto partial live
- * content. It has no featured video at all — this page no longer has a
- * featured-video section (see the module doc comment above).
- */
+/** The development fallback is ONE complete block, used only when the whole singleton is absent — never patched field by field onto partial live content. */
 let pageContent: NormalizedGalleryPageContent;
 
-// Mirrors normalize.ts's GALLERY_THUMB_WIDTH / GALLERY_LIGHTBOX_WIDTH: two
-// bounded sizes, never a third undisplayed one, and never the unbounded
-// original — matching the live Sanity path exactly (docs/gallery-merch.md §13).
+// Match the live thumbnail and lightbox size bounds.
 const FALLBACK_THUMB_WIDTH = 700;
 const FALLBACK_LIGHTBOX_WIDTH = 1600;
 
@@ -138,18 +103,13 @@ if (normalizedGalleryPage) {
       heading: galleryMerchFallback.gallery.heading,
       body: galleryMerchFallback.gallery.body,
       items: galleryItems,
-      // The development fallback stays photo-only, deliberately — gallery
-      // videos are exercised with local fixtures/mocks during verification,
-      // never seeded into this permanent fallback (no Sanity write either
-      // way). An empty selection is a fully valid, unchanged state.
+      // Development fallback stays photo-only.
       videos: [],
       hasPerformance: galleryItems.some((item) => item.category === "performance"),
       hasVenueCrowd: galleryItems.some((item) => item.category === "venue-crowd"),
       hasVideos: false,
     },
-    // Off by default in the development fallback, exactly like the gallery
-    // videos above — this is an approved, planned feature pending a real
-    // Google Form, not something to demonstrate with fabricated content.
+    // Do not fabricate a Google Form destination in fallback content.
     eventMediaSubmission: null,
     merch: {
       kicker: galleryMerchFallback.merch.kicker,
@@ -172,7 +132,7 @@ const title = formatPageTitle(pageContent.seo.metaTitle ?? "Gallery & Merchandis
 const description = pageContent.seo.metaDescription ?? siteConfig.tagline;
 
 // Merchandise inquiries are an internal Contact-page email flow, not
-// Instagram — see docs/contact-booking.md and docs/gallery-merch.md §8. This
+// Instagram — see docs/developer-guide.md. This
 // is an ordinary internal link: no new tab, no external-link notice.
 const inquiryHref = contactInquiryHref("merch");
 ---

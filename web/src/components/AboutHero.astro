@@ -1,18 +1,5 @@
 ---
-/**
- * The About page's opening block, and the page's only `<h1>`.
- *
- * Deliberately NOT a second full-height video hero: the homepage already owns
- * that treatment, and repeating it here would push the page's actual content
- * a full viewport down for no gain. This is a compact two-column introduction
- * that clears the fixed header, exactly as `ShowsIntro.astro` does.
- *
- * Uses `intro-enter` rather than `.reveal` because this block is above the
- * fold: it should animate on load, not wait for a scroll observer that fires
- * immediately anyway. It is the SAME animation either way — one keyframe,
- * duration, easing, distance and stagger for the whole site (global.css →
- * "Entrance animation") — and it is CSS-only, so it never depends on a script.
- */
+/** Renders the About introduction and its only h1. */
 
 interface Props {
   kicker?: string | null;

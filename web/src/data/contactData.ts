@@ -1,32 +1,8 @@
-/**
- * Code-owned Contact & Booking page material. The `contactPage` Sanity
- * singleton (`studio/schemaTypes/contactPage.ts`) covers only genuinely
- * editorial content on this route — the page intro, a compact newsletter
- * callout, and the FAQ (see `normalizeContactPageContent`,
- * `contact-booking.astro`). Everything here stays code-owned regardless: the
- * four inquiry types, every field, validation, length limits, delivery/
- * provider configuration, the honeypot, the sensitive-information warning,
- * and the protected Privacy & Delivery explanation are fixed product
- * decisions, not editorial content a client would reword day to day (unlike
- * a heading or a lede), and `contactPageFallback` below is this route's
- * complete non-production fallback for the singleton's own fields.
- *
- * Field lists and inquiry types come directly from the approved task brief,
- * not from `skele/elt-site/`'s reference forms — its React architecture,
- * mock-submit behavior, and placeholder contact details are not reused. Its
- * field *names* (name/email/phone/organization/eventType/etc.) were used
- * only as prior art for what a booking inquiry reasonably asks.
- */
+/** Code-owned inquiry fields, limits, labels, and fallback editorial content. */
 
 import type { ContactInquiryType } from "./siteConfig";
 
-/** The marker that makes the "contact delivery isn't configured yet"
- * development state unmistakable, mirroring `TEST_BIOGRAPHY_MARKER` and
- * `TEST_PRODUCT_MARKER`. Not mechanically enforced against a Sanity
- * document (there is none here) — enforced instead by the production build
- * guard in `contact-booking.astro`, which fails outright unless
- * `isContactEmailConfigured()` (`siteConfig.ts`) is true. That check is a
- * real email-shape validation, not merely "is this non-null." */
+/** The marker that makes the "contact delivery isn't configured yet" development state unmistakable, mirroring `TEST_BIOGRAPHY_MARKER` and `TEST_PRODUCT_MARKER`. */
 export const TEST_EMAIL_MARKER = "[TEST — PUBLIC EMAIL REQUIRED]";
 
 export const DEFAULT_INQUIRY: ContactInquiryType = "booking";
@@ -35,22 +11,9 @@ export const INQUIRY_TABS: {
   value: ContactInquiryType;
   tabLabel: string;
   panelHeading: string;
-  /**
-   * The Formspree `subject` value — a clear, fixed email subject line so
-   * each inquiry type's notification is immediately distinguishable in an
-   * inbox. Deliberately static rather than computed from the visitor's own
-   * field values (e.g. event type): a static hidden input works identically
-   * with or without JavaScript, which a JS-computed subject would not.
-   */
+  /** The Formspree `subject` value — a clear, fixed email subject line so each inquiry type's notification is immediately distinguishable in an inbox. */
   emailSubject: string;
-  /** Rendered just below the panel heading, above the disconnected-state
-   * notice — a short, purely descriptive orientation sentence for that one
-   * inquiry type. Every tab defines one. None may promise availability,
-   * pricing, inventory, acceptance, removal, or a response time — Content
-   * Removal Request in particular states plainly that submitting starts a
-   * review rather than guaranteeing removal. Still optional in the type so a
-   * future inquiry type can omit it, but in practice every current tab sets
-   * it, keeping the four panels visually consistent. */
+  /** Rendered just below the panel heading, above the disconnected-state notice — a short, purely descriptive orientation sentence for that one inquiry type. */
   panelNote?: string;
 }[] = [
   {
@@ -85,21 +48,7 @@ export const INQUIRY_TABS: {
   },
 ];
 
-/**
- * Native (no-JS) approximation of "contains at least one Unicode letter" —
- * used by every Name field and by Merchandise Item, so a value like "123" or
- * blank fails while "Jean-Luc", "O'Brien", "María", "Louis XIV", and "Al3x"
- * (a real nickname with an embedded digit) all pass. The HTML `pattern`
- * attribute's value is compiled into a JavaScript regular expression using
- * Unicode Sets (`v`) mode per the current HTML spec (**corrected 2026-09-10**
- * — an earlier version of this comment said the older Unicode (`u`) mode),
- * so `\p{L}` (any Unicode letter) works natively either way — no ASCII-only
- * `[A-Za-z]` restriction that would reject accented or non-Latin names. This
- * correction is to the comment only; the actual matching behavior was
- * already correct and unchanged. `contactForms.ts` re-checks the identical
- * rule in JavaScript as the authoritative, always-available check; this
- * `pattern` is only the no-JS fallback.
- */
+/** Native (no-JS) approximation of "contains at least one Unicode letter" — used by every Name field and by Merchandise Item, so a value like "123" or blank fails while "Jean-Luc", "O'Brien", "María", "Louis XIV", and "Al3x" (a real nickname with an embedded… */
 const REQUIRES_LETTER_PATTERN = ".*\\p{L}.*";
 
 /** Generic event categories, not invented client-specific facts — reused as
@@ -116,30 +65,7 @@ export const EVENT_TYPE_OPTIONS = [
 
 export interface ContactFieldConfig {
   name: string;
-  /**
-   * The literal HTML `name` attribute this field submits to Formspree.
-   * Defaults to `name` above when absent — that default is correct for
-   * `name`, `email`, `phone`, and `message` (Formspree's own reserved field
-   * names, which must stay exactly as-is), and for any other field that
-   * happens not to need a different Formspree-facing name.
-   *
-   * `name` (this object's `name` field, above) stays the internal,
-   * code-facing identifier: it drives this field's DOM `id`
-   * (`${inquiry}-${name}`, in `ContactForms.astro`), the error-element id
-   * lookup, `fieldsByInquiry` access, and every other piece of code in this
-   * project — none of that changes when `submissionName` is set. Only the
-   * value Formspree actually receives as that input's `name=` attribute (and
-   * therefore the column/label Formspree's dashboard and email
-   * notifications show the client) does.
-   *
-   * **Historical note (added 2026-09-10):** submissions made before a given
-   * field's `submissionName` was introduced or changed were delivered under
-   * whatever field name was live at the time (e.g. `contentDescription`,
-   * `requestedAction`, or the old `_subject` hidden field) — renaming here
-   * has no effect on those past submissions. Review any Formspree dashboard
-   * rule, integration/Zapier mapping, or CSV export that references an old
-   * field key after changing this.
-   */
+  /** The literal HTML `name` attribute this field submits to Formspree. */
   submissionName?: string;
   label: string;
   type: "text" | "email" | "tel" | "number" | "date" | "url" | "select" | "textarea";
@@ -155,23 +81,9 @@ export interface ContactFieldConfig {
   validationKind?: "phone" | "budget" | "requiresLetter" | "positiveInteger" | "url";
   /** Marks the one field the `?item=` URL parameter prefills. */
   isMerchItemField?: boolean;
-  /**
-   * Optional, short persistent line rendered beneath the field's control and
-   * linked to it via `aria-describedby` — for a field whose plain label
-   * could otherwise read as a promise (e.g. "we'll play whatever you
-   * request"). Mirrors the same expectation-setting role `panelNote` already
-   * plays per inquiry type (e.g. Content Removal Request's "does not
-   * guarantee removal"), just scoped to one field instead of a whole panel.
-   */
+  /** Optional, short persistent line rendered beneath the field's control and linked to it via `aria-describedby` — for a field whose plain label could otherwise read as a promise (e.g. */
   helperText?: string;
-  /**
-   * Rendered as the HTML `maxlength` attribute (browser-enforced) on text/
-   * textarea fields, and re-checked in `contactForms.ts` as a defensive
-   * second layer. This is a client-side courtesy only, not a security
-   * boundary — a direct HTTP request bypasses both — see
-   * docs/contact-booking.md's field-limits section for the equivalent
-   * receiving-side enforcement this still depends on at deployment.
-   */
+  /** Rendered as the HTML `maxlength` attribute (browser-enforced) on text/ textarea fields, and re-checked in `contactForms.ts` as a defensive second layer. */
   maxLength?: number;
 }
 
@@ -343,13 +255,7 @@ export const otherFields: ContactFieldConfig[] = [
   },
   {
     name: "subject",
-    // Not left to the `name`-based default: every form also carries a
-    // static hidden field literally named `subject` (Formspree's own
-    // reserved notification-subject field — see `SUBJECT_FIELD_NAME` in
-    // `formDelivery.ts`), so this visitor-entered field needs its own,
-    // different Formspree-facing name or the two would collide under the
-    // same `name=` attribute in the submitted form data. The internal key
-    // (`subject`) and this field's DOM id (`other-subject`) are unaffected.
+    // Avoid colliding with Formspree's hidden `subject` field.
     submissionName: "Inquiry Subject",
     label: "Subject",
     type: "text",
@@ -389,10 +295,7 @@ export const removalFields: ContactFieldConfig[] = [
     type: "url",
     required: false,
     placeholder: "https://example.com/…",
-    // Optional: format-checked only when entered (see `validationKind:
-    // "url"`) — this only confirms the text is a syntactically valid
-    // absolute http(s) link, never that the page exists or belongs to ELT.
-    // No direct link? Describe where you saw it in the required field below.
+    // Optional and syntax-checked only; no request or ownership check occurs.
     helperText: "Optional. If you don't have a direct link, describe where you saw it below.",
     maxLength: 300,
     pattern: "https?://.+",
@@ -443,13 +346,7 @@ export const contactCopy = {
 
   formsHeading: "Send an Inquiry",
 
-  /** Protected: the FAQ section's own heading and ids. `faqSectionId` is the
-   * stable "#faq" anchor (linked from the Footer); `faqHeadingId` is the
-   * separate id on the `<h2>` itself, mirroring `headingId`/`formsHeadingId`
-   * above — two different elements, so they need two different ids. The
-   * individual question/answer pairs ARE editorial (`contactPage.faq` in
-   * Sanity); this wrapping heading is not, matching how "Privacy & delivery"
-   * below is also a fixed heading over editable-adjacent content. */
+  /** Protected: the FAQ section's own heading and ids. */
   faqSectionId: "faq",
   faqHeadingId: "faq-heading",
   faqHeading: "Frequently Asked Questions",
@@ -465,13 +362,7 @@ export const contactCopy = {
 
   devEmailNotice: `${TEST_EMAIL_MARKER} Contact delivery is not yet configured for this site. These forms are shown for layout and review only and cannot send a real inquiry until a public contact email is approved.`,
 
-  /**
-   * Shown inside a specific panel when THAT inquiry type's own Formspree
-   * endpoint isn't configured — a state independent of whether the public
-   * contact email above is set. Never implies the form is broken; points at
-   * the always-available direct-email fallback instead of a false "coming
-   * soon."
-   */
+  /** Shown inside a specific panel when THAT inquiry type's own Formspree endpoint isn't configured — a state independent of whether the public contact email above is set. */
   formNotConfiguredNotice:
     "This form isn't connected yet — please use the direct email address below instead.",
 
@@ -506,16 +397,7 @@ export const contactCopy = {
   newTabSuffix: " (opens in a new tab)",
 } as const;
 
-/**
- * ONE complete development fallback for the `contactPage` singleton, used
- * only when it is entirely absent from a non-production dataset — same
- * convention as every other page singleton's fallback (`homeData.ts`,
- * `aboutData.ts`, `showsData.ts`, `mediaData.ts`). Mirrors
- * `studio/schemaTypes/contactPage.ts`'s own `initialValue` content exactly,
- * so a freshly published Studio document and this fallback read identically
- * on first launch. The FAQ answers are cautious drafts — see that schema
- * file's module doc comment for what "for client review" means here.
- */
+/** ONE complete development fallback for the `contactPage` singleton, used only when it is entirely absent from a non-production dataset — same convention as every other page singleton's fallback (`homeData.ts`, `aboutData.ts`, `showsData.ts`, `mediaData.ts`). */
 export const contactPageFallback = {
   intro: {
     kicker: "Get In Touch",

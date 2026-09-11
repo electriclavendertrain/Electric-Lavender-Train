@@ -1,15 +1,5 @@
 ---
-/**
- * One release card, used in the Music page's single Releases section
- * (released music only — there is no Upcoming Releases UI or countdown
- * anywhere on the site). Artwork, description, and every streaming/watch
- * link are independently optional and each omit cleanly — see
- * `normalizeOneMusicRelease` in `sanity/normalize.ts` for what is and isn't
- * required for a release to render at all. `preSaveUrl` is retained on the
- * reusable `musicRelease` schema for potential future use but is
- * deliberately never rendered here — pre-saving a release that's already
- * out doesn't make sense on this released-only page.
- */
+/** Renders one normalized upcoming or released music item. */
 import { musicPageCopy } from "../data/musicData";
 import type { NormalizedMusicRelease } from "../sanity/normalize";
 
@@ -19,12 +9,7 @@ interface Props {
 
 const { release } = Astro.props;
 
-/** Formats a stored `YYYY-MM-DD` release date for display. Constructed via
- * `Date.UTC` and formatted with `timeZone: "UTC"` so the calendar date
- * never shifts by a day depending on the visitor's own local timezone — a
- * release date is a calendar date, not a specific Pacific-time instant like
- * an `event.startDateTime`, so this is deliberately independent of
- * `lib/dateFormat.ts`'s Pacific-time formatting. */
+/** Formats a stored `YYYY-MM-DD` release date for display. */
 function formatReleaseDate(dateOnly: string): string {
   const [year, month, day] = dateOnly.split("-").map(Number);
   const date = new Date(Date.UTC(year, month - 1, day));

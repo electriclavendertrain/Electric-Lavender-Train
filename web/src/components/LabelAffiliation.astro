@@ -1,32 +1,5 @@
 ---
-/**
- * A restrained acknowledgment of the Heavy Crush Records relationship,
- * rendered on the Music page immediately after the Releases section
- * (`music.astro`), plus a smaller variant of the same wording in the
- * Footer. Moved here from the About page — Music is now the live owner of
- * this section's editable content (`musicPage.labelAffiliation`; the old
- * `aboutPage.labelAffiliation` field is deprecated, read-only). Deliberately
- * compact — this site is ELT's, not the label's, so the section keeps a
- * fraction of a normal section's vertical weight and introduces no new
- * heading level (the `<aside>` below carries its own accessible name
- * instead).
- *
- * The logo is a fixed local site asset (`web/src/assets/images/
- * heavy-crush-records-logo-white.png`), never uploaded through Sanity — the
- * kicker, relationship sentence, logo alt text, website URL, mission
- * statement, and the label's three social URLs are editable, from
- * `musicPage.labelAffiliation`.
- *
- * No nested anchors: the logo, relationship text, and mission statement are
- * plain content, not wrapped in a link — only the four buttons below
- * (website, Facebook, Instagram, YouTube) are anchors, and they are
- * siblings, never nested inside one another or inside a larger link.
- *
- * The website button's and every social button's visible label is a fixed,
- * code-owned string — never sourced from Sanity — so a button labeled
- * Facebook can never show different text than what its (independently
- * hostname-validated, see `normalize.ts`) href actually points at.
- */
+/** Renders the Music page's Heavy Crush Records affiliation. */
 import { Image } from "astro:assets";
 import logo from "../assets/images/heavy-crush-records-logo-white.png";
 import { musicPageCopy } from "../data/musicData";

@@ -1,28 +1,5 @@
 ---
-/**
- * One gallery photo's full-size view, in a native `<dialog>` — the same
- * progressive-enhancement pattern proven by `MemberProfileDialog.astro`,
- * reused here with a gallery-specific namespace (`gallery-lightbox`,
- * `data-gallery-lightbox*`, `.js-gallery-lightbox`) rather than the About
- * page's member-dialog one, so the two features stay independently
- * legible even though they never appear on the same route.
- *
- * With scripting available, `mediaGallery.ts` calls `showModal()`, which
- * supplies the top layer, backdrop, background inertness, Escape-to-dismiss,
- * and focus entry — none of that is reimplemented here.
- *
- * Without scripting — or on a browser with no `showModal` — the thumbnail's
- * control is an ordinary `<a href="#gallery-photo-…">`, so activating it
- * navigates to this element's fragment, and the `:target` rule at the bottom
- * of this file reveals the same photo as an inline panel. The close control
- * is an ordinary link back to the gallery heading, so it dismisses the panel
- * by navigating away from the fragment. Every photo is reachable either way.
- *
- * No previous/next navigation in this phase, and no click-outside dismissal
- * — the project has already tried and rejected `closedby="any"` (stopped
- * Escape from working in Chrome 151; see `docs/about.md` §4). Escape plus
- * this explicit close control are the dismissal paths.
- */
+/** Accessible photo dialog with no-JavaScript fragment fallback. */
 
 import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedGalleryPhoto } from "../sanity/normalize";
@@ -95,16 +72,7 @@ const captionId = `${dialogId}-caption`;
     overflow: hidden;
   }
 
-  /*
-   * The whole no-scroll layout depends on the dialog having a DEFINITE
-   * height (not a max-height cap on otherwise auto-sized content). With only
-   * a `max-height`, the box grows to fit its content — including a portrait
-   * image with no height ceiling of its own — and only THEN gets clipped,
-   * which is exactly how the caption used to end up below the fold. With a
-   * real `height`, the flex chain below can give the image viewport a
-   * concrete "remaining space" to shrink into, and the image is asked to
-   * fit that space rather than dictate it.
-   */
+  /* A definite height keeps portrait images from pushing captions off-screen. */
   .gallery-lightbox {
     padding: 0;
     border: none;
@@ -115,7 +83,7 @@ const captionId = `${dialogId}-caption`;
     height: min(90dvh, 950px);
     overflow: visible;
     /* Restores the centering `global.css`'s universal `* { margin: 0 }`
-       reset removes — see docs/developer-guide.md §7A / §20. Without this,
+       reset removes — see docs/developer-guide.md. Without this,
        every lightbox opens pinned to the top-left corner. */
     margin: auto;
   }

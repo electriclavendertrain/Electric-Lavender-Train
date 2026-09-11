@@ -1,11 +1,4 @@
-/**
- * Assembles the Shows page's upcoming stream: merge the two normalized
- * sources into one chronological list, then group that list by Pacific
- * calendar month for the month headings and the jump navigation.
- *
- * Both steps run at build time, after normalization — never on raw Sanity
- * results (`docs/shows.md` §10).
- */
+/** Merges normalized events and groups them by Pacific month. */
 
 import type { NormalizedShowsEvent } from "../sanity/normalize";
 import { getPacificMonthKey, getPacificMonthLabel } from "./dateFormat";
@@ -20,17 +13,7 @@ export interface ShowsMonthGroup {
   events: NormalizedShowsEvent[];
 }
 
-/**
- * Public and private upcoming events arrive from two separate queries, each
- * already sorted, and have to be interleaved into one stream so a private
- * booking sits in its true chronological position rather than after every
- * public show.
- *
- * Sorting on the parsed start instant (not the raw string) keeps events with
- * differently-formatted-but-equivalent ISO values ordered correctly. `_id` is
- * the tiebreaker, mirroring the queries' own `_id asc`, so two events sharing
- * a start instant land in the same order on every rebuild.
- */
+/** Public and private upcoming events arrive from two separate queries, each already sorted, and have to be interleaved into one stream so a private booking sits in its true chronological position rather than after every public show. */
 export function mergeUpcomingEvents(
   publicShows: readonly NormalizedShowsEvent[],
   privateEvents: readonly NormalizedShowsEvent[],
@@ -42,16 +25,7 @@ export function mergeUpcomingEvents(
   });
 }
 
-/**
- * Groups an already-sorted stream by Pacific month, preserving order. A `Map`
- * keeps insertion order, so the groups come out chronological without a
- * second sort.
- *
- * Only months that actually contain a displayable event become groups, which
- * is what makes "never render an empty month" true by construction rather
- * than by filtering afterwards. Nothing here imposes a future cutoff: a show
- * two years out simply produces its own group.
- */
+/** Groups an already-sorted stream by Pacific month, preserving order. */
 export function groupByPacificMonth(
   events: readonly NormalizedShowsEvent[],
 ): ShowsMonthGroup[] {

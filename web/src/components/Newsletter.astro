@@ -1,20 +1,5 @@
 ---
-/**
- * The homepage's newsletter section — the site's one and only subscription
- * entry point (the Hero's quieter link, the Footer link, and the Contact
- * page's compact CTA all point here rather than duplicating it, per
- * docs/CLAUDE.md's "no unnecessary abstraction" and the explicit "no
- * duplicated subscription forms" requirement).
- *
- * This site never collects an email address itself: there is no email
- * `<input>` anywhere in this markup. The button below only ever navigates to
- * a separately hosted, double-opt-in signup page (planned as Brevo) once the
- * site owner has configured `PUBLIC_NEWSLETTER_SIGNUP_URL` — see
- * `web/src/lib/newsletter.ts`. Until then, this fails closed: no fake link,
- * no submission attempt, and a clear development/configuration notice
- * instead of a control that would otherwise look functional. Nothing here
- * claims email open/click tracking — that is not approved for launch.
- */
+/** Links to the one hosted signup form and fails closed when it is unavailable. */
 interface Props {
   kicker?: string | null;
   heading: string;

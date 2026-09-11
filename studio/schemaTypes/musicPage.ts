@@ -1,30 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
-/**
- * The Music page singleton, with the fixed `_id: "musicPage"`.
- *
- * Same singleton conventions as every other page singleton: one fixed
- * Structure entry, stripped from `schema.templates` and the global "+" menu
- * (via `SINGLETON_TYPES` in `sanity.config.ts`), queried by that exact
- * `_id`. See docs/developer-guide.md §5.
- *
- * Visible page order: Featured (always rendered, supplies the page's one
- * `<h1>`) → Releases (released music only) → Heavy Crush Records label
- * affiliation.
- *
- * `releases` is ONE ordered array of `musicRelease` references, filtered by
- * Studio's own reference filter to released releases only — the public
- * Music page has no Upcoming Releases section, no countdown, and no
- * upcoming-release UI of any kind. `musicRelease.state` itself is retained
- * as a content-model fact (a release may still be authored as "upcoming"
- * before it's released), but nothing on this page renders that state
- * distinctly, and the frontend defensively excludes any non-released entry
- * that ends up in this list regardless of how it got there.
- *
- * No release titles, dates, artwork, or streaming links are seeded here —
- * inventing any of those would be worse than leaving this page's release
- * list empty until real ELT releases exist.
- */
+/** Music page singleton schema. */
 export const musicPage = defineType({
   name: 'musicPage',
   title: 'Music Page',

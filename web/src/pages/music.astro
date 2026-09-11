@@ -1,21 +1,5 @@
 ---
-/**
- * /music — ELT's own released music only, with streaming/watch links and an
- * optional page-level featured video. No other Heavy Crush artist's music
- * appears here, no lyrics, no detailed public credits, no audio hosting, and
- * no raw media-file upload system — see docs for the full constraint list
- * this route was built against.
- *
- * Visible order: Featured (always rendered, supplies the page's one `<h1>`)
- * → Releases (released music only — no Upcoming Releases section, empty
- * state, or countdown) → Heavy Crush Records label affiliation (moved here
- * from the About page).
- *
- * This is the only file on this route that touches Sanity. It fetches,
- * hands the raw result straight to normalization, and passes plain objects
- * down; no component below it knows Sanity exists. Everything here runs
- * once, at `astro build` — nothing is fetched in the browser.
- */
+/** Builds Music from one page singleton and its selected releases. */
 
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Featured from "../components/FeaturedVideo.astro";
@@ -31,12 +15,7 @@ const isProductionDataset = import.meta.env.PUBLIC_SANITY_DATASET === "productio
 
 const rawMusicPage = await sanityClient.fetch(MUSIC_PAGE_QUERY);
 
-// The curated release selection gets strict, item-level validation in
-// production (see normalize.ts's module doc comment) — any invalid selected
-// *released* release fails the whole build there, and is silently dropped
-// everywhere else. An upcoming release is defensively excluded before it
-// ever reaches that validation (see `normalizeMusicReleases`), so it can
-// never fail a production build regardless of its content.
+// Production rejects invalid selected released items; upcoming items are excluded first.
 const normalizedMusicPage = normalizeMusicPageContent(rawMusicPage, {
   strict: isProductionDataset,
 });
@@ -50,13 +29,7 @@ if (normalizedMusicPage === null && isProductionDataset) {
   );
 }
 
-/**
- * The development fallback is ONE complete block, used only when the whole
- * singleton is absent — and deliberately carries zero releases rather than
- * inventing any (see `musicData.ts`'s module doc comment). This is
- * structurally unreachable once `PUBLIC_SANITY_DATASET` is `production`
- * (the `throw` above already fired by the time execution could reach here).
- */
+/** The development fallback is ONE complete block, used only when the whole singleton is absent — and deliberately carries zero releases rather than inventing any (see `musicData.ts`'s module doc comment). */
 const pageContent: NormalizedMusicPageContent = normalizedMusicPage ?? {
   featured: musicPageFallback.featured,
   releases: [],
@@ -66,13 +39,7 @@ const pageContent: NormalizedMusicPageContent = normalizedMusicPage ?? {
 
 const featuredVideoTitle = pageContent.featured.video?.title ?? `${siteConfig.bandNameFormal} — Featured Video`;
 
-// Independently optional (see normalize.ts's doc comment on this field):
-// falls back to the same approved facts already recorded in
-// `siteConfig.heavyCrushRecords` rather than to a `[TEST]`-marked
-// placeholder — these are real, approved, safe-to-publish facts, not
-// content standing in for something the client hasn't provided yet. One
-// coherent block, same as the live value: this fallback is never merged
-// field-by-field with a partially-complete live `labelAffiliation`.
+// Use the complete verified code-owned label block when Sanity omits it.
 const labelAffiliation = pageContent.labelAffiliation ?? {
   kicker: null,
   text: siteConfig.heavyCrushRecords.relationshipText,
