@@ -5,7 +5,6 @@ import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {HomeIcon} from '@sanity/icons/Home'
 import {ImagesIcon} from '@sanity/icons/Images'
 import {MicrophoneIcon} from '@sanity/icons/Microphone'
-import {PlayIcon} from '@sanity/icons/Play'
 import {TagIcon} from '@sanity/icons/Tag'
 import {UsersIcon} from '@sanity/icons/Users'
 

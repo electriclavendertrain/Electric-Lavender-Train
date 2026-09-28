@@ -1,0 +1,21 @@
+---
+/**
+ * Brevo's "Confirmation page after submitting the form" destination
+ * (double opt-in step 1 of 2) — eventually configured in Brevo once this
+ * route is live. A visitor here has only submitted the signup form; they
+ * are NOT yet subscribed until they confirm via the emailed link.
+ */
+import ConfirmationPage from "../../components/ConfirmationPage.astro";
+import siteConfig from "../../data/siteConfig";
+---
+
+<ConfirmationPage
+  pageTitle="Check Your Inbox"
+  description="A newsletter confirmation email is on its way — confirm to complete signup."
+  kicker="Almost There"
+  heading="Check Your Inbox"
+  body="We sent a confirmation email to the address you entered. Open that message and select the confirmation link to join the weekly ELT schedule newsletter. You’re not subscribed until you confirm."
+  supportingText="If the message doesn’t arrive soon, check your spam or junk folder before submitting the form again."
+  primaryAction={{ label: "Return Home", href: siteConfig.routes.home }}
+  secondaryAction={{ label: "View Upcoming Shows", href: siteConfig.routes.shows }}
+/>

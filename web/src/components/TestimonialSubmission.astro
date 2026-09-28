@@ -1,0 +1,47 @@
+---
+/**
+ * About page only. Links to a validated, Hunter-owned hosted Google Form;
+ * this site never accepts a testimonial submission itself. Modeled directly
+ * on `EventMediaSubmission.astro`, but simpler: `normalizeTestimonialSubmission`
+ * (`web/src/sanity/normalize.ts`) already guarantees complete copy and a
+ * valid Form URL before this component is ever rendered — there is no
+ * partial "not configured" state here, only rendered or omitted entirely
+ * (decided by the caller, `about.astro`).
+ */
+interface Props {
+  kicker?: string | null;
+  heading: string;
+  explanation: string;
+  ctaLabel: string;
+  formUrl: string;
+}
+
+const { kicker, heading, explanation, ctaLabel, formUrl } = Astro.props;
+---
+
+<section class="testimonial-submission" aria-labelledby="testimonial-submission-heading">
+  <div class="section-inner">
+    {kicker && <p class="kicker reveal">{kicker}</p>}
+    <h2 id="testimonial-submission-heading" class="reveal reveal-1">{heading}</h2>
+    <p class="testimonial-submission__explanation reveal reveal-2">{explanation}</p>
+
+    <a
+      href={formUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="btn btn-outline testimonial-submission__cta reveal reveal-3"
+    >
+      {ctaLabel}
+      <span class="visually-hidden"> (opens Google Forms in a new tab)</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  .testimonial-submission__explanation {
+    max-width: 62ch;
+    color: rgba(244, 232, 208, 0.82);
+    font-weight: 300;
+    margin: 18px 0 28px;
+  }
+</style>

@@ -144,6 +144,14 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
       }
     },
     testimonialsIntro{ kicker, heading },
+    testimonialSubmission{
+      enabled,
+      kicker,
+      heading,
+      explanation,
+      ctaLabel,
+      formUrl
+    },
     bookingCta{ kicker, heading, body, ctaLabel },
     seo{ metaTitle, metaDescription, ogImage }
   }

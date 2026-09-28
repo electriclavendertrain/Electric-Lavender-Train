@@ -1,0 +1,24 @@
+---
+/**
+ * Eventually usable as the confirmation URL for two DISTINCT Brevo
+ * features once this route is live: (1) the public Brevo-hosted
+ * unsubscribe form's own confirmation page, and (2) the custom "unsubscribe
+ * confirmation page" Brevo can show after the recipient-specific
+ * unsubscribe link required in every campaign — see
+ * `docs/developer-guide.md`. Never claims Brevo deletes the contact: the
+ * tested behavior is that the contact remains on the list but becomes
+ * blocklisted/suppressed from future campaigns.
+ */
+import ConfirmationPage from "../../components/ConfirmationPage.astro";
+import siteConfig from "../../data/siteConfig";
+---
+
+<ConfirmationPage
+  pageTitle="You’re Unsubscribed"
+  description="You’ve been unsubscribed from the ELT newsletter."
+  kicker="All Set"
+  heading="You’re Unsubscribed"
+  body="You won’t receive future ELT newsletter campaigns at that address. You can still keep up with upcoming shows anytime here on the site."
+  primaryAction={{ label: "View Upcoming Shows", href: siteConfig.routes.shows }}
+  secondaryAction={{ label: "Return Home", href: siteConfig.routes.home }}
+/>

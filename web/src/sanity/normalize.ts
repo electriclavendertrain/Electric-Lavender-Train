@@ -482,6 +482,23 @@ export interface NormalizedExperienceHighlight {
   description: string;
 }
 
+/**
+ * `null` when the section is off (editor hasn't enabled it, hasn't filled in
+ * the required copy, or hasn't set a valid Google Form URL) — omitted from
+ * the About page entirely, independent of the testimonial-card count above.
+ * Unlike `NormalizedEventMediaSubmission`, a malformed/missing `formUrl`
+ * omits the WHOLE callout rather than rendering it with a "not configured"
+ * notice — there is nothing this section can usefully say without a real
+ * destination to send visitors to.
+ */
+export interface NormalizedTestimonialSubmission {
+  kicker: string | null;
+  heading: string;
+  explanation: string;
+  ctaLabel: string;
+  formUrl: string;
+}
+
 export interface NormalizedAboutPageContent {
   intro: {
     kicker: string | null;
@@ -495,6 +512,7 @@ export interface NormalizedAboutPageContent {
   membersIntro: { kicker: string | null; heading: string; body: string | null };
   members: NormalizedBandMember[];
   testimonialsIntro: { kicker: string; heading: string };
+  testimonialSubmission: NormalizedTestimonialSubmission | null;
   bookingCta: {
     kicker: string | null;
     heading: string;
@@ -672,6 +690,35 @@ function safeYoutubeUrl(value: string | null | undefined): string | null {
 /** Cap on `aboutPage.intro.paragraphs` — mirrors the schema's `Rule.max(2)`. */
 const MAX_INTRO_PARAGRAPHS = 2;
 
+/**
+ * Studio's own cross-field `Rule.custom` (see `aboutPage.ts`) requires
+ * complete copy and a valid Form URL whenever `enabled` is on, but that
+ * binds the Studio UI only — this is the independent, render-time
+ * fail-closed check, exactly like every other Studio-enforced rule in this
+ * file. Every condition below must hold or the whole callout is omitted;
+ * there is no partial/notice state (contrast `normalizeEventMediaSubmission`,
+ * whose formUrl may be null while the rest of the section still renders).
+ */
+function normalizeTestimonialSubmission(
+  raw: AboutPage["testimonialSubmission"],
+): NormalizedTestimonialSubmission | null {
+  if (!raw?.enabled) return null;
+
+  const heading = cleanText(raw.heading);
+  const explanation = cleanText(raw.explanation);
+  const ctaLabel = cleanText(raw.ctaLabel);
+  const formUrl = safeGoogleFormUrl(raw.formUrl);
+  if (!heading || !explanation || !ctaLabel || !formUrl) return null;
+
+  return {
+    kicker: cleanText(raw.kicker),
+    heading,
+    explanation,
+    ctaLabel,
+    formUrl,
+  };
+}
+
 export function normalizeAboutPageContent(
   page: ABOUT_PAGE_QUERY_RESULT,
   options: NormalizeAboutOptions,
@@ -741,6 +788,7 @@ export function normalizeAboutPageContent(
       kicker: testimonialsKicker,
       heading: testimonialsHeading,
     },
+    testimonialSubmission: normalizeTestimonialSubmission(page.testimonialSubmission),
     bookingCta: {
       kicker: cleanText(page.bookingCta?.kicker),
       heading: bookingHeading,

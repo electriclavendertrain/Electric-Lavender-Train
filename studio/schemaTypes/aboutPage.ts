@@ -1,5 +1,6 @@
 import {UsersIcon} from '@sanity/icons/Users'
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import {validateGoogleFormUrl} from './googleFormUrl'
 
 /** About page singleton schema. */
 export const aboutPage = defineType({
@@ -23,6 +24,14 @@ export const aboutPage = defineType({
     testimonialsIntro: {
       kicker: 'What People Are Saying',
       heading: 'Straight From the Dance Floor',
+    },
+    testimonialSubmission: {
+      enabled: false,
+      kicker: 'Share Your Story',
+      heading: 'Tell Us About Your ELT Experience',
+      explanation:
+        'Caught a show or brought ELT to your room? We’d love to hear what made it memorable. Share your experience through our short Google Form.',
+      ctaLabel: 'Share Your Experience',
     },
     bookingCta: {
       kicker: 'Let’s Ride Together',
@@ -128,6 +137,75 @@ export const aboutPage = defineType({
           title: 'Heading',
           type: 'string',
           validation: (Rule) => Rule.required(),
+        }),
+      ],
+    }),
+    defineField({
+      name: 'testimonialSubmission',
+      title: 'Share Your Story (testimonial submissions)',
+      description:
+        'Optional callout, rendered just below the testimonials on the About page, linking to a Google Form where visitors can share their own ELT experience. Stays hidden until Enabled is on and Heading, Explanation, Button text, and Form URL (a valid Google Forms link) are all filled in. Small label above heading remains optional even when this section is enabled.',
+      type: 'object',
+      validation: (Rule) =>
+        Rule.custom((value: {
+          enabled?: boolean
+          heading?: string
+          explanation?: string
+          ctaLabel?: string
+          formUrl?: string
+        } | undefined) => {
+          if (!value?.enabled) return true
+          const heading = value.heading?.trim()
+          const explanation = value.explanation?.trim()
+          const ctaLabel = value.ctaLabel?.trim()
+          if (!heading || !explanation || !ctaLabel) {
+            return 'When Enabled is on, Heading, Explanation, and Button text are all required.'
+          }
+          if (!value.formUrl) {
+            return 'When Enabled is on, Form URL is required.'
+          }
+          const formUrlResult = validateGoogleFormUrl(value.formUrl)
+          return formUrlResult === true
+            ? true
+            : `When Enabled is on, Form URL must be valid: ${formUrlResult}`
+        }),
+      fields: [
+        defineField({
+          name: 'enabled',
+          title: 'Enabled',
+          description:
+            'Turn this section on once Heading, Explanation, and Button text are written and the Google Form is ready to link to. Small label above heading may stay blank.',
+          type: 'boolean',
+          initialValue: false,
+        }),
+        defineField({
+          name: 'kicker',
+          title: 'Small label above heading',
+          type: 'string',
+        }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          type: 'string',
+        }),
+        defineField({
+          name: 'explanation',
+          title: 'Explanation',
+          description: 'Short paragraph explaining what this is and how submissions may be used.',
+          type: 'text',
+        }),
+        defineField({
+          name: 'ctaLabel',
+          title: 'Button text',
+          type: 'string',
+        }),
+        defineField({
+          name: 'formUrl',
+          title: 'Google Form URL',
+          description:
+            'Paste the public Google Forms visitor link. Leave this blank until the form is live and tested.',
+          type: 'url',
+          validation: (Rule) => Rule.custom(validateGoogleFormUrl),
         }),
       ],
     }),

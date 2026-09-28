@@ -8,7 +8,7 @@ import Testimonials from "../components/Testimonials.astro";
 import BookingCTA from "../components/BookingCTA.astro";
 import Newsletter from "../components/Newsletter.astro";
 import siteConfig, { formatPageTitle } from "../data/siteConfig";
-import { getNewsletterSignupUrl } from "../lib/newsletter";
+import { getNewsletterSignupUrl, getNewsletterUnsubscribeUrl } from "../lib/newsletter";
 import {
   upcomingShowsFallback,
   testimonialsIntroFallback,
@@ -76,8 +76,10 @@ const newsletterContent = singletonExists
     : null
   : newsletterFallback;
 
-// The hosted signup destination is infrastructure configuration, not Sanity content.
+// The hosted signup/unsubscribe destinations are infrastructure configuration,
+// not Sanity content — each is validated and rendered independently.
 const newsletterSignupUrl = getNewsletterSignupUrl();
+const newsletterUnsubscribeUrl = getNewsletterUnsubscribeUrl();
 
 // A missing or invalid live video reference renders the static logo.
 const heroVideoUrl = getHeroVideoUrl(homepage?.heroVideo);
@@ -242,6 +244,7 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
         body={newsletterContent.body}
         ctaLabel={newsletterContent.ctaLabel}
         signupUrl={newsletterSignupUrl}
+        unsubscribeUrl={newsletterUnsubscribeUrl}
       />
     )
   }

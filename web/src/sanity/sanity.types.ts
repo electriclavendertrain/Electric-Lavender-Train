@@ -269,6 +269,14 @@ export type AboutPage = {
     kicker: string;
     heading: string;
   };
+  testimonialSubmission?: {
+    enabled?: boolean;
+    kicker?: string;
+    heading?: string;
+    explanation?: string;
+    ctaLabel?: string;
+    formUrl?: string;
+  };
   bookingCta: {
     kicker?: string;
     heading: string;
@@ -730,7 +738,7 @@ export type TESTIMONIALS_QUERY_RESULT = Array<{
 
 // Source: ../web/src/sanity/queries.ts
 // Variable: ABOUT_PAGE_QUERY
-// Query: *[_type == "aboutPage" && _id == "aboutPage"][0]{    intro{      kicker,      heading,      paragraphs,      heroImage->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{ dimensions }          }        }      }    },    membersIntro{ kicker, heading, body },    members[]{      _key,      "member": @->{        _id,        name,        role,        profileImage->{          _id,          title,          alt,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        },        biography,        publicLinks[]{ _key, linkType, label, url }      }    },    testimonialsIntro{ kicker, heading },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription, ogImage }  }
+// Query: *[_type == "aboutPage" && _id == "aboutPage"][0]{    intro{      kicker,      heading,      paragraphs,      heroImage->{        _id,        title,        alt,        image{          ...,          asset->{            _id,            metadata{ dimensions }          }        }      }    },    membersIntro{ kicker, heading, body },    members[]{      _key,      "member": @->{        _id,        name,        role,        profileImage->{          _id,          title,          alt,          image{            ...,            asset->{              _id,              metadata{ dimensions }            }          }        },        biography,        publicLinks[]{ _key, linkType, label, url }      }    },    testimonialsIntro{ kicker, heading },    testimonialSubmission{      enabled,      kicker,      heading,      explanation,      ctaLabel,      formUrl    },    bookingCta{ kicker, heading, body, ctaLabel },    seo{ metaTitle, metaDescription, ogImage }  }
 export type ABOUT_PAGE_QUERY_RESULT = {
   intro: {
     kicker: string | null;
@@ -801,6 +809,14 @@ export type ABOUT_PAGE_QUERY_RESULT = {
     kicker: string;
     heading: string;
   };
+  testimonialSubmission: {
+    enabled: boolean | null;
+    kicker: string | null;
+    heading: string | null;
+    explanation: string | null;
+    ctaLabel: string | null;
+    formUrl: string | null;
+  } | null;
   bookingCta: {
     kicker: string | null;
     heading: string;
@@ -1140,7 +1156,7 @@ declare module "@sanity/client" {
   interface SanityQueries {
     '\n  *[_type == "homepage" && _id == "homepage"][0]{\n    hero,\n    heroVideo->{ videoUrl, videoProvider, title },\n    officialBandPhotos{\n      kicker,\n      heading,\n      body,\n      ctaLabel,\n      photos[]{\n        _key,\n        "mediaItem": @->{\n          _id,\n          title,\n          alt,\n          creditLine,\n          creditUrl,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        }\n      }\n    },\n    experience{\n      kicker,\n      heading,\n      introduction,\n      highlights[]{ _key, title, description }\n    },\n    upcomingShows{\n      kicker,\n      heading,\n      viewAllLabel,\n      emptyState{ title, message, actionLabel }\n    },\n    testimonialsIntro{ kicker, heading },\n    bookingCta,\n    newsletter{ kicker, heading, body, ctaLabel },\n    seo\n  }\n': HOMEPAGE_QUERY_RESULT;
     '\n  *[_type == "testimonial"]\n  | order(displayOrder asc, _id asc)[0...3] {\n    _id,\n    quote,\n    sourceName,\n    sourceContext,\n    sourceUrl,\n    displayOrder,\n    sourceLogo->{\n      _id,\n      title,\n      alt,\n      image{\n        ...,\n        asset->{\n          _id,\n          metadata{ dimensions }\n        }\n      }\n    }\n  }\n': TESTIMONIALS_QUERY_RESULT;
-    '\n  *[_type == "aboutPage" && _id == "aboutPage"][0]{\n    intro{\n      kicker,\n      heading,\n      paragraphs,\n      heroImage->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{ dimensions }\n          }\n        }\n      }\n    },\n    membersIntro{ kicker, heading, body },\n    members[]{\n      _key,\n      "member": @->{\n        _id,\n        name,\n        role,\n        profileImage->{\n          _id,\n          title,\n          alt,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        },\n        biography,\n        publicLinks[]{ _key, linkType, label, url }\n      }\n    },\n    testimonialsIntro{ kicker, heading },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': ABOUT_PAGE_QUERY_RESULT;
+    '\n  *[_type == "aboutPage" && _id == "aboutPage"][0]{\n    intro{\n      kicker,\n      heading,\n      paragraphs,\n      heroImage->{\n        _id,\n        title,\n        alt,\n        image{\n          ...,\n          asset->{\n            _id,\n            metadata{ dimensions }\n          }\n        }\n      }\n    },\n    membersIntro{ kicker, heading, body },\n    members[]{\n      _key,\n      "member": @->{\n        _id,\n        name,\n        role,\n        profileImage->{\n          _id,\n          title,\n          alt,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        },\n        biography,\n        publicLinks[]{ _key, linkType, label, url }\n      }\n    },\n    testimonialsIntro{ kicker, heading },\n    testimonialSubmission{\n      enabled,\n      kicker,\n      heading,\n      explanation,\n      ctaLabel,\n      formUrl\n    },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': ABOUT_PAGE_QUERY_RESULT;
     '\n  *[_type == "event"\n    && visibility == "public"\n    && status == "scheduled"\n    && coalesce(endDateTime, startDateTime) >= now()\n  ] | order(startDateTime asc) [0...3] {\n    _id, title, slug, startDateTime, endDateTime,\n    venue, location, externalEventUrl\n  }\n': UPCOMING_PUBLIC_EVENTS_QUERY_RESULT;
     '\n  *[_type == "showsPage" && _id == "showsPage"][0]{\n    intro{ kicker, heading, paragraphs },\n    upcoming{ heading },\n    recent{ kicker, heading },\n    emptyState{ title, message, actionLabel },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': SHOWS_PAGE_QUERY_RESULT;
     '\n  *[\n    _type == "event"\n    && visibility == "public"\n    && defined(startDateTime)\n    && coalesce(endDateTime, startDateTime) >= now()\n  ]\n  | order(startDateTime asc, _id asc) {\n    _id,\n    "kind": "public",\n    status,\n    startDateTime,\n    endDateTime,\n    title,\n    venue,\n    location,\n    description,\n    externalEventUrl\n  }\n': SHOWS_UPCOMING_PUBLIC_EVENTS_QUERY_RESULT;

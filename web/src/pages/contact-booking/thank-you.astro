@@ -1,0 +1,21 @@
+---
+/**
+ * Formspree custom Thank You destination (eventually configured in each of
+ * the four forms' own Settings — Booking/Merch/Other/Content Removal
+ * Request — once this route is live on the production domain). Confirms
+ * only that Formspree accepted the browser's native POST; it never claims
+ * the notification reached a Gmail inbox or promises a response time.
+ */
+import ConfirmationPage from "../../components/ConfirmationPage.astro";
+import siteConfig from "../../data/siteConfig";
+---
+
+<ConfirmationPage
+  pageTitle="Thanks for Reaching Out"
+  description="Your Contact & Booking submission was received."
+  kicker="Message Received"
+  heading="Thanks for Reaching Out"
+  body="Your message was submitted successfully. We’ll review the details and follow up using the contact information you provided when a response is needed."
+  primaryAction={{ label: "Back to Contact & Booking", href: siteConfig.routes.contactBooking }}
+  secondaryAction={{ label: "View Upcoming Shows", href: siteConfig.routes.shows }}
+/>

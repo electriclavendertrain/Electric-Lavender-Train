@@ -1,10 +1,12 @@
 ---
 import LegalPage from "../layouts/LegalPage.astro";
 import siteConfig, { formatPageTitle } from "../data/siteConfig";
+import { getNewsletterUnsubscribeUrl } from "../lib/newsletter";
 
 const title = formatPageTitle("Privacy Policy");
 const description = `How ${siteConfig.bandNameFormal} collects, uses, and protects information submitted through this website.`;
 const email = siteConfig.contact.email;
+const unsubscribeUrl = getNewsletterUnsubscribeUrl();
 ---
 
 <LegalPage
@@ -12,12 +14,13 @@ const email = siteConfig.contact.email;
   description={description}
   kicker="Legal"
   heading="Privacy Policy"
-  effectiveDate="September 10, 2026"
+  effectiveDate="September 11, 2026"
 >
   <p>
     This website is operated by The Electric Lavender Train (“we,” “us,” or “our”). This policy
     explains what information is handled when you use this website, its inquiry forms, newsletter
-    signup, embedded media, or event-media submission link.
+    signup and unsubscribe links, embedded media, event-media submission link, or testimonial
+    submission link.
   </p>
 
   <h2>Information you provide</h2>
@@ -54,7 +57,7 @@ const email = siteConfig.contact.email;
     <li>To respond to booking, merchandise, general, and content-removal inquiries;</li>
     <li>To communicate about a potential or confirmed engagement;</li>
     <li>To operate the newsletter when you separately request it;</li>
-    <li>To review event media you voluntarily submit;</li>
+    <li>To review event media and testimonials you voluntarily submit;</li>
     <li>To prevent spam, abuse, and security incidents; and</li>
     <li>To keep records reasonably needed for business, accounting, dispute, or legal purposes.</li>
   </ul>
@@ -77,9 +80,21 @@ const email = siteConfig.contact.email;
     information according to the settings applied to our account and Brevo's own practices.
   </p>
   <p>
-    Every newsletter includes an unsubscribe link. Unsubscribing stops marketing delivery and
-    places the address on the applicable suppression list so it is not accidentally mailed or
-    re-imported without a valid new consent. You may also contact us to request deletion.
+    You can unsubscribe two ways: the unsubscribe link included in every newsletter, or{" "}
+    {unsubscribeUrl ? (
+      <a href={unsubscribeUrl} target="_blank" rel="noopener noreferrer">
+        our hosted unsubscribe form
+        <span class="visually-hidden"> (opens in a new tab)</span>
+      </a>
+    ) : (
+      "our hosted unsubscribe form, when available"
+    )}
+    . Either path blocklists (suppresses) your address from future email campaigns. Brevo, our
+    newsletter provider, may still retain your contact record and list history — including that
+    you unsubscribed — so it can honor the opt-out and avoid accidentally re-mailing or
+    re-importing the address without a valid new consent. You may also contact us to request
+    deletion, though a suppression record itself may need to persist to keep the address
+    permanently excluded.
   </p>
 
   <h2>Event-media submissions</h2>
@@ -96,10 +111,31 @@ const email = siteConfig.contact.email;
     people may require additional permission and may be declined.
   </p>
 
+  <h2>Testimonial submissions</h2>
+  <p>
+    When a “Share Your Experience” or similar testimonial link is available on the About page, it
+    opens a Google Form owned by Hunter, not a form on this website. The form may collect your
+    name, a private email address, your relationship to or experience with Electric Lavender
+    Train, your testimonial text, how you'd like to be publicly credited (or that you'd prefer to
+    stay anonymous), an optional supporting link, and your response to the consent and permission
+    terms displayed on that form.
+  </p>
+  <p>
+    Submissions are reviewed manually; submitting a testimonial does not guarantee it will be
+    published. Only the quote and attribution wording we approve for publication is copied into
+    this website's public content. Your private email address, consent responses, and any
+    moderation notes stay in the private Google Form and its response spreadsheet — never in
+    public website content. We may lightly edit an approved testimonial for length or clarity
+    without changing its meaning, and only with your consent where the form asks for it. If you'd
+    like a published testimonial removed or corrected, use the Content Removal Request form on the
+    <a href={siteConfig.routes.contactBooking}>Contact & Booking</a> page or email us directly;
+    submitting a request starts our review and does not automatically guarantee removal.
+  </p>
+
   <h2>Service providers and external services</h2>
   <ul>
     <li><strong>Formspree</strong> processes configured inquiry forms and delivers notifications.</li>
-    <li><strong>Google</strong> provides Gmail, Google Forms/Drive where enabled, reCAPTCHA where displayed, and YouTube.</li>
+    <li><strong>Google</strong> provides Gmail, Google Forms/Drive for event-media and testimonial submissions where enabled, reCAPTCHA where displayed, and YouTube.</li>
     <li><strong>Brevo</strong> hosts the newsletter form and manages subscriptions and email delivery when enabled.</li>
     <li><strong>Sanity</strong> stores public editorial content; it does not receive inquiry or newsletter submissions.</li>
     <li><strong>Our website host</strong> serves the site and may keep routine access and security logs.</li>
@@ -147,6 +183,13 @@ const email = siteConfig.contact.email;
       as reasonably necessary to support authorized use.
     </li>
     <li>
+      <strong>Testimonial submissions:</strong> the private Google Form response (including your
+      email address and consent responses) is retained as reasonably necessary for moderation,
+      approval records, and to honor a later removal request. Once we copy approved quote and
+      attribution text into this website's public content, that public copy follows this policy's
+      general retention practice for published content, separate from the private form response.
+    </li>
+    <li>
       <strong>Provider records:</strong> security logs and backups controlled by a provider may
       follow that provider's retention schedule and may not disappear immediately.
     </li>
@@ -162,7 +205,8 @@ const email = siteConfig.contact.email;
     <a href={`mailto:${email}`}>{email}</a>. For published content, you may also use the
     Content Removal Request form. We will review the request and may retain information when
     reasonably required for a contract, accounting, dispute, security, or legal obligation.
-    Newsletter recipients can unsubscribe through the link in any newsletter.
+    Newsletter recipients can unsubscribe through the link in any newsletter or the hosted
+    unsubscribe form described above.
   </p>
 
   <h2>Security</h2>
@@ -176,13 +220,15 @@ const email = siteConfig.contact.email;
   <p>
     This website and its forms are not directed to children under 13, and we do not knowingly
     collect personal information from children under 13. Contact us if you believe a child has
-    submitted information or appears in submitted media so we can review it.
+    submitted information, submitted a testimonial, or appears in submitted media so we can
+    review it.
   </p>
 
   <h2>California and international visitors</h2>
   <p>
     The categories of personal information handled are limited to the identifiers, inquiry
-    content, subscription information, submitted media, and technical information described above.
+    content, subscription information, submitted media, submitted testimonial content, and
+    technical information described above.
     We do not sell this information or share it for cross-context behavioral advertising. The site
     is operated from the United States; information may be processed in the United States or other
     locations where our providers operate.

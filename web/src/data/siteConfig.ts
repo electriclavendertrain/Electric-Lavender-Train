@@ -26,6 +26,17 @@ export interface SiteConfig {
     privacy: string;
     terms: string;
     accessibility: string;
+    /**
+     * Static, `noIndex` confirmation/status pages — not linked from Header,
+     * Footer, or any other primary navigation. Each is the eventual target
+     * of a provider dashboard setting (Formspree Thank You redirect, or a
+     * Brevo confirmation/unsubscribe page) configured only once the route is
+     * deployed on the production domain — see `docs/developer-guide.md`.
+     */
+    contactBookingThankYou: string;
+    newsletterCheckInbox: string;
+    newsletterConfirmed: string;
+    newsletterUnsubscribed: string;
   };
   social: {
     instagram: string | null;
@@ -77,6 +88,10 @@ export const siteConfig: SiteConfig = {
     privacy: "/privacy",
     terms: "/terms",
     accessibility: "/accessibility",
+    contactBookingThankYou: "/contact-booking/thank-you",
+    newsletterCheckInbox: "/newsletter/check-your-inbox",
+    newsletterConfirmed: "/newsletter/confirmed",
+    newsletterUnsubscribed: "/newsletter/unsubscribed",
   },
 
   social: {

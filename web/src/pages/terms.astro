@@ -14,7 +14,7 @@ const email = siteConfig.contact.email;
   description={description}
   kicker="Legal"
   heading="Terms of Use"
-  effectiveDate="September 10, 2026"
+  effectiveDate="September 11, 2026"
 >
   <p>
     These Terms of Use govern your use of this website, operated by The Electric Lavender Train
@@ -25,8 +25,8 @@ const email = siteConfig.contact.email;
   <p>
     This website is provided for informational purposes — to share information about The Electric
     Lavender Train, our music, upcoming and past shows, photos and video, merchandise, and how to
-    reach us. It also links to a newsletter signup, and to forms for booking/merchandise/general
-    inquiries and content removal requests.
+    reach us. It also links to a newsletter signup and unsubscribe form, and to forms for
+    booking/merchandise/general inquiries, content removal requests, and testimonial submissions.
   </p>
 
   <h2>Booking inquiries are not a confirmed booking</h2>
@@ -57,8 +57,9 @@ const email = siteConfig.contact.email;
 
   <h2>Newsletter</h2>
   <p>
-    When available, the optional newsletter link opens our email provider's hosted signup page.
-    Use of that page is also governed by the provider's terms and is described in our
+    When available, the optional newsletter link opens our email provider's hosted signup page,
+    and a separate hosted unsubscribe form lets you opt out. Use of either page is also governed
+    by the provider's terms and is described in our
     <a href={siteConfig.routes.privacy}>Privacy Policy</a>.
   </p>
 
@@ -91,6 +92,35 @@ const email = siteConfig.contact.email;
     </li>
   </ul>
 
+  <h2>Testimonial submissions</h2>
+  <p>
+    When the About page offers a testimonial submission link, it opens a separate Google Form. The
+    form presents the consent and permission terms that apply to your submission; the points below
+    summarize the site's operating boundaries and do not replace the form's terms:
+  </p>
+  <ul>
+    <li>
+      By submitting a testimonial, you confirm it truthfully describes your own first-hand
+      experience with Electric Lavender Train, and that you have the authority to submit it and
+      any accompanying material to us.
+    </li>
+    <li>
+      We may publish your testimonial only with the public attribution you selected in the form
+      (including anonymously or with a first name only, if that is what you chose).
+    </li>
+    <li>
+      We may make minor, non-material edits to a submitted testimonial for length or clarity, but
+      only where the form asks for and you give that consent — we will not change its meaning or
+      attribute a statement to you that you did not make.
+    </li>
+    <li>Submitting a testimonial does not guarantee we will publish it. We may decline to use any submission.</li>
+    <li>
+      If you'd like a published testimonial removed or corrected, use the Content Removal Request
+      form on the <a href={siteConfig.routes.contactBooking}>Contact & Booking</a> page. Submitting
+      that request starts our review — it does not automatically guarantee removal.
+    </li>
+  </ul>
+
   <h2>Permitted use</h2>
   <p>You may use this website for its intended informational and inquiry purposes. You agree not to:</p>
   <ul>
@@ -120,7 +150,7 @@ const email = siteConfig.contact.email;
   <p>
     This website links to and embeds content from third-party services, which may include music
     streaming and pre-save platforms, social media platforms, Brevo (our newsletter provider),
-    Google Forms (for event media submissions), and YouTube. Those services each have their own
+    Google Forms (for event-media and testimonial submissions), and YouTube. Those services each have their own
     terms of use and privacy policies, which are not controlled by us and which you should review
     separately before using them. We are not responsible for the content, availability, security, or
     practices of any third-party service, and linking to one is not an endorsement of everything on

@@ -7,6 +7,7 @@ import AboutHero from "../components/AboutHero.astro";
 import BandMembers from "../components/BandMembers.astro";
 import AboutPageJsonLd from "../components/AboutPageJsonLd.astro";
 import Testimonials from "../components/Testimonials.astro";
+import TestimonialSubmission from "../components/TestimonialSubmission.astro";
 import BookingCTA from "../components/BookingCTA.astro";
 import siteConfig, { formatPageTitle } from "../data/siteConfig";
 import {
@@ -68,6 +69,8 @@ if (normalizedAboutPage) {
         alt: aboutHeroFallbackAlt,
       },
     },
+    // Do not fabricate a Google Form destination in fallback content.
+    testimonialSubmission: null,
     members: await Promise.all(
       aboutPageFallback.members.map(async (member) => {
         const fallbackAsset = memberProfileFallbackAssets[member.profileImageFallbackKey];
@@ -148,6 +151,18 @@ const pageUrl = new URL(siteConfig.routes.about, siteConfig.siteUrl).href;
     items={testimonials}
     newTabSuffix={aboutPageCopy.newTabSuffix}
   />
+
+  {
+    pageContent.testimonialSubmission && (
+      <TestimonialSubmission
+        kicker={pageContent.testimonialSubmission.kicker}
+        heading={pageContent.testimonialSubmission.heading}
+        explanation={pageContent.testimonialSubmission.explanation}
+        ctaLabel={pageContent.testimonialSubmission.ctaLabel}
+        formUrl={pageContent.testimonialSubmission.formUrl}
+      />
+    )
+  }
 
   <BookingCTA
     kicker={pageContent.bookingCta.kicker}

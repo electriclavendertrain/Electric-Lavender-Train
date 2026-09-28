@@ -1,0 +1,21 @@
+---
+/**
+ * Brevo's "Confirmation page after clicking the validation link in the
+ * email" destination (double opt-in step 2 of 2) — eventually configured
+ * in Brevo once this route is live. Only reached after Brevo itself has
+ * already validated the confirmation link, so this page may say the
+ * visitor is subscribed.
+ */
+import ConfirmationPage from "../../components/ConfirmationPage.astro";
+import siteConfig from "../../data/siteConfig";
+---
+
+<ConfirmationPage
+  pageTitle="Welcome Aboard"
+  description="Your newsletter subscription is confirmed."
+  kicker="You’re On Board"
+  heading="Welcome Aboard"
+  body="Your email is confirmed, and you’re now signed up for the weekly ELT schedule newsletter. Keep an eye on your inbox for upcoming shows and where the train is headed next."
+  primaryAction={{ label: "View Upcoming Shows", href: siteConfig.routes.shows }}
+  secondaryAction={{ label: "Return Home", href: siteConfig.routes.home }}
+/>

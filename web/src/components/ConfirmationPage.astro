@@ -1,0 +1,125 @@
+---
+/**
+ * Shared shell for static, `noIndex` confirmation/status pages (Formspree
+ * Thank You, Brevo double-opt-in/confirmed/unsubscribed). Modeled directly
+ * on `404.astro`'s kicker/heading/body/action-row pattern so these routes
+ * match the site's existing visual language without duplicating a whole
+ * page layout per route.
+ *
+ * Deliberately static and inert: no form, input, query-parameter handling,
+ * visitor-value reflection, tracking, or auto-redirect — a provider lands a
+ * visitor here after ITS OWN flow completes; this page only confirms what
+ * happened and offers two ordinary internal links onward.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { formatPageTitle } from "../data/siteConfig";
+
+interface Action {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  /** Page-specific title, passed through `formatPageTitle`. */
+  pageTitle: string;
+  description: string;
+  kicker: string;
+  heading: string;
+  body: string;
+  /** Optional short second line, e.g. a spam-folder hint. */
+  supportingText?: string;
+  primaryAction: Action;
+  secondaryAction: Action;
+}
+
+const { pageTitle, description, kicker, heading, body, supportingText, primaryAction, secondaryAction } =
+  Astro.props;
+
+const title = formatPageTitle(pageTitle);
+---
+
+<BaseLayout title={title} description={description} noIndex={true}>
+  <section class="confirmation" aria-labelledby="confirmation-title">
+    <div class="confirmation-inner">
+      <p class="kicker">{kicker}</p>
+      <h1 id="confirmation-title">{heading}</h1>
+      <p class="confirmation-copy">{body}</p>
+      {supportingText && <p class="confirmation-supporting">{supportingText}</p>}
+      <nav class="confirmation-actions" aria-label="What to do next">
+        <a class="btn btn-primary" href={primaryAction.href}>{primaryAction.label}</a>
+        <a class="btn btn-outline" href={secondaryAction.href}>{secondaryAction.label}</a>
+      </nav>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .confirmation {
+    min-height: clamp(560px, 76vh, 780px);
+    padding: clamp(150px, 18vw, 210px) 24px clamp(88px, 12vw, 140px);
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
+
+  .confirmation-inner {
+    width: min(100%, 700px);
+  }
+
+  .kicker {
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+
+  .kicker::before {
+    content: "";
+    flex: 0 0 40px;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.5;
+  }
+
+  h1 {
+    max-width: 640px;
+    margin-inline: auto;
+    font-size: clamp(2.4rem, 6.5vw, 4.6rem);
+    line-height: 1.05;
+  }
+
+  .confirmation-copy {
+    max-width: 58ch;
+    margin: 26px auto 0;
+    color: var(--cream);
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    line-height: 1.75;
+  }
+
+  .confirmation-supporting {
+    max-width: 54ch;
+    margin: 14px auto 0;
+    color: rgba(244, 232, 208, 0.7);
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+
+  .confirmation-actions {
+    margin-top: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  @media (max-width: 520px) {
+    .confirmation-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .confirmation-actions .btn {
+      justify-content: center;
+      width: 100%;
+    }
+  }
+</style>

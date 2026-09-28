@@ -1,5 +1,10 @@
 ---
-/** Links to the one hosted signup form and fails closed when it is unavailable. */
+/**
+ * Links to the one hosted signup form and, independently, the one hosted
+ * unsubscribe form. Each fails closed on its own: a visitor can always find
+ * whichever is actually configured, so an opt-out link never disappears
+ * merely because signup is temporarily unavailable, and vice versa.
+ */
 interface Props {
   kicker?: string | null;
   heading: string;
@@ -7,9 +12,11 @@ interface Props {
   ctaLabel: string;
   /** `null` when no valid hosted signup URL is configured yet. */
   signupUrl: string | null;
+  /** `null` when no valid hosted unsubscribe URL is configured yet. */
+  unsubscribeUrl: string | null;
 }
 
-const { kicker, heading, body, ctaLabel, signupUrl } = Astro.props;
+const { kicker, heading, body, ctaLabel, signupUrl, unsubscribeUrl } = Astro.props;
 ---
 
 <section id="newsletter" class="newsletter">
@@ -35,6 +42,17 @@ const { kicker, heading, body, ctaLabel, signupUrl } = Astro.props;
             [TEST — NEWSLETTER SIGNUP NOT YET CONFIGURED] The hosted signup form isn't connected
             yet, so there's nothing to submit to here. This notice — not a working button — is
             what should appear until a real signup URL is configured.
+          </p>
+        )
+      }
+
+      {
+        unsubscribeUrl && (
+          <p class="newsletter__unsubscribe">
+            <a href={unsubscribeUrl} target="_blank" rel="noopener noreferrer">
+              Unsubscribe from newsletter
+              <span class="visually-hidden"> (opens in a new tab)</span>
+            </a>
           </p>
         )
       }
@@ -84,6 +102,21 @@ const { kicker, heading, body, ctaLabel, signupUrl } = Astro.props;
     border: 1px dashed rgba(200, 168, 107, 0.4);
     border-radius: 12px;
     padding: 14px 18px;
+  }
+  /* Deliberately smaller and quieter than .newsletter__cta — an opt-out is a
+     real, always-findable action, but never the visual peer of signup. */
+  .newsletter__unsubscribe {
+    margin: 18px 0 0;
+    font-size: 0.8rem;
+  }
+  .newsletter__unsubscribe a {
+    color: rgba(244, 232, 208, 0.6);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .newsletter__unsubscribe a:hover,
+  .newsletter__unsubscribe a:focus-visible {
+    color: var(--gold);
   }
 
   @media (max-width: 600px) {
