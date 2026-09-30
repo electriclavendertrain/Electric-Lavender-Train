@@ -1657,7 +1657,7 @@
               "value": {
                 "type": "string"
               },
-              "optional": false
+              "optional": true
             },
             "body": {
               "type": "objectAttribute",
@@ -1671,7 +1671,7 @@
               "value": {
                 "type": "string"
               },
-              "optional": false
+              "optional": true
             },
             "photos": {
               "type": "objectAttribute",

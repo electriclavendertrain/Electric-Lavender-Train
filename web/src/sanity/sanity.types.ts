@@ -310,9 +310,9 @@ export type Homepage = {
   heroVideo?: MediaItemReference;
   officialBandPhotos?: {
     kicker?: string;
-    heading: string;
+    heading?: string;
     body?: string;
-    ctaLabel: string;
+    ctaLabel?: string;
     photos?: Array<
       {
         _key: string;
@@ -632,9 +632,9 @@ export type HOMEPAGE_QUERY_RESULT = {
   } | null;
   officialBandPhotos: {
     kicker: string | null;
-    heading: string;
+    heading: string | null;
     body: string | null;
-    ctaLabel: string;
+    ctaLabel: string | null;
     photos: Array<{
       _key: string;
       mediaItem: {
@@ -1151,8 +1151,7 @@ export type GALLERY_PAGE_QUERY_RESULT = {
 } | null;
 
 // Query TypeMap
-import "@sanity/client";
-declare module "@sanity/client" {
+declare global {
   interface SanityQueries {
     '\n  *[_type == "homepage" && _id == "homepage"][0]{\n    hero,\n    heroVideo->{ videoUrl, videoProvider, title },\n    officialBandPhotos{\n      kicker,\n      heading,\n      body,\n      ctaLabel,\n      photos[]{\n        _key,\n        "mediaItem": @->{\n          _id,\n          title,\n          alt,\n          creditLine,\n          creditUrl,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        }\n      }\n    },\n    experience{\n      kicker,\n      heading,\n      introduction,\n      highlights[]{ _key, title, description }\n    },\n    upcomingShows{\n      kicker,\n      heading,\n      viewAllLabel,\n      emptyState{ title, message, actionLabel }\n    },\n    testimonialsIntro{ kicker, heading },\n    bookingCta,\n    newsletter{ kicker, heading, body, ctaLabel },\n    seo\n  }\n': HOMEPAGE_QUERY_RESULT;
     '\n  *[_type == "testimonial"]\n  | order(displayOrder asc, _id asc)[0...3] {\n    _id,\n    quote,\n    sourceName,\n    sourceContext,\n    sourceUrl,\n    displayOrder,\n    sourceLogo->{\n      _id,\n      title,\n      alt,\n      image{\n        ...,\n        asset->{\n          _id,\n          metadata{ dimensions }\n        }\n      }\n    }\n  }\n': TESTIMONIALS_QUERY_RESULT;
@@ -1166,4 +1165,8 @@ declare module "@sanity/client" {
     '\n  *[_type == "musicPage" && _id == "musicPage"][0]{\n    featured{\n      kicker,\n      heading,\n      video->{\n        videoUrl,\n        videoProvider,\n        title\n      }\n    },\n    labelAffiliation{\n      kicker,\n      text,\n      logoAlt,\n      url,\n      missionStatement,\n      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }\n    },\n    releases[]{\n      _key,\n      "release": @->{\n        _id,\n        title,\n        "slug": slug.current,\n        releaseType,\n        state,\n        releaseDate,\n        coverArtwork->{\n          _id,\n          alt,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        },\n        description,\n        spotifyUrl,\n        appleMusicUrl,\n        preSaveUrl,\n        watchVideoUrl\n      }\n    },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': MUSIC_PAGE_QUERY_RESULT;
     '\n  *[_type == "galleryPage" && _id == "galleryPage"][0]{\n    gallery{\n      kicker,\n      heading,\n      body,\n      items[]{\n        _key,\n        "media": @->{\n          _id,\n          title,\n          alt,\n          category,\n          creditLine,\n          creditUrl,\n          image{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          }\n        }\n      },\n      videos[]{\n        _key,\n        "media": @->{\n          _id,\n          title,\n          mediaType,\n          videoProvider,\n          videoUrl,\n          videoPoster{\n            ...,\n            asset->{\n              _id,\n              metadata{ dimensions }\n            }\n          },\n          creditLine,\n          creditUrl\n        }\n      }\n    },\n    eventMediaSubmission{\n      enabled,\n      kicker,\n      heading,\n      explanation,\n      ctaLabel,\n      formUrl\n    },\n    merch{\n      kicker,\n      heading,\n      body,\n      items[]{\n        _key,\n        "item": @->{\n          _id,\n          name,\n          description,\n          priceDisplay,\n          availabilityNote,\n          image->{\n            _id,\n            title,\n            alt,\n            image{\n              ...,\n              asset->{\n                _id,\n                metadata{ dimensions }\n              }\n            }\n          }\n        }\n      }\n    },\n    bookingCta{ kicker, heading, body, ctaLabel },\n    seo{ metaTitle, metaDescription, ogImage }\n  }\n': GALLERY_PAGE_QUERY_RESULT;
   }
+}
+// Lets @sanity/client releases that predate the global registry read it too
+declare module "@sanity/client" {
+  interface SanityQueries extends globalThis.SanityQueries {}
 }

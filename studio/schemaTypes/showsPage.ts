@@ -38,8 +38,9 @@ export const showsPage = defineType({
     defineField({
       name: 'intro',
       title: 'Page introduction',
+      description: 'The Shows page heading and one or two short introduction paragraphs.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the Shows page introduction.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -50,7 +51,7 @@ export const showsPage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the main Shows page heading.'),
         }),
         defineField({
           name: 'paragraphs',
@@ -58,30 +59,42 @@ export const showsPage = defineType({
           description:
             'One or two short public-facing paragraphs. Time-zone and availability notices are protected site copy and are added automatically.',
           type: 'array',
-          of: [defineArrayMember({type: 'text', validation: (Rule) => Rule.required()})],
-          validation: (Rule) => Rule.required().min(1).max(2),
+          of: [
+            defineArrayMember({
+              type: 'text',
+              validation: (Rule) => Rule.required().error('Enter text for this paragraph.'),
+            }),
+          ],
+          validation: (Rule) =>
+            Rule.required()
+              .min(1)
+              .max(2)
+              .error('Add one or two short Shows page introduction paragraphs.'),
         }),
       ],
     }),
     defineField({
       name: 'upcoming',
       title: 'Upcoming schedule',
+      description:
+        'The heading shown above upcoming public events. Events themselves are managed under Events.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the Upcoming Schedule heading.'),
       fields: [
         defineField({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the Upcoming Schedule heading.'),
         }),
       ],
     }),
     defineField({
       name: 'recent',
       title: 'Recent shows',
+      description: 'The heading shown above recently completed public events.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the Recent Shows heading.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -92,23 +105,23 @@ export const showsPage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the Recent Shows heading.'),
         }),
       ],
     }),
     defineField({
       name: 'emptyState',
       title: 'No upcoming shows message',
-      description:
-        'Shown only when no public shows or sanitized private bookings are upcoming.',
+      description: 'Shown only when no public shows or sanitized private bookings are upcoming.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.required().error('Complete the message used when no upcoming shows are listed.'),
       fields: [
         defineField({
           name: 'title',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the no-upcoming-shows heading.'),
         }),
         defineField({
           name: 'message',
@@ -116,21 +129,25 @@ export const showsPage = defineType({
           description:
             'Do not imply that unlisted dates are available. The website schedule is not an availability calendar.',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the message visitors see when no shows are listed.'),
         }),
         defineField({
           name: 'actionLabel',
           title: 'Instagram link text',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the Instagram link text for the empty schedule.'),
         }),
       ],
     }),
     defineField({
       name: 'bookingCta',
       title: 'Booking call to action',
+      description: 'The final Shows-page section inviting visitors to open the booking form.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.required().error('Complete the Shows page booking call to action.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -141,25 +158,27 @@ export const showsPage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the booking call-to-action heading.'),
         }),
         defineField({
           name: 'body',
           title: 'Body',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the booking call-to-action description.'),
         }),
         defineField({
           name: 'ctaLabel',
           title: 'Button text',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the booking button text.'),
         }),
       ],
     }),
     defineField({
       name: 'seo',
-      title: 'SEO',
+      title: 'Search and social sharing',
+      description: 'Optional text and image used by search engines and when this page is shared.',
       type: 'object',
       fields: [
         defineField({

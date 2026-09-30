@@ -10,7 +10,7 @@ import {UsersIcon} from '@sanity/icons/Users'
 
 export const structure: StructureResolver = (S) =>
   S.list()
-    .title('Content')
+    .title('Website Content')
     .items([
       // Page singletons — each opens its one fixed document by id. There is
       // no "+ create" for these; see SINGLETON_TYPES in sanity.config.ts.
@@ -83,10 +83,10 @@ export const structure: StructureResolver = (S) =>
             .title('Events')
             .items([
               S.listItem()
-                .title('Next 7 Days')
+                .title('All Events in the Next 7 Days')
                 .child(
                   S.documentList()
-                    .title('Next 7 Days')
+                    .title('All Events in the Next 7 Days')
                     .schemaType('event')
                     .filter(
                       '_type == "event" && dateTime(startDateTime) >= dateTime(now()) && dateTime(startDateTime) <= dateTime(now()) + 604800',
@@ -119,10 +119,10 @@ export const structure: StructureResolver = (S) =>
                     .apiVersion('2024-01-01'),
                 ),
               S.listItem()
-                .title('Past Events')
+                .title('Past Public and Private Events')
                 .child(
                   S.documentList()
-                    .title('Past Events')
+                    .title('Past Public and Private Events')
                     .schemaType('event')
                     .filter('_type == "event" && coalesce(endDateTime, startDateTime) < now()')
                     .defaultOrdering([{field: 'startDateTime', direction: 'desc'}])

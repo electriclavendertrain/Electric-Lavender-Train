@@ -60,9 +60,11 @@ export const homepage = defineType({
   fields: [
     defineField({
       name: 'hero',
-      title: 'Hero',
+      title: 'Top of Homepage',
+      description:
+        'The first section visitors see: its main headline, optional small label, and supporting sentence.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the Top of Homepage section.'),
       fields: [
         defineField({
           name: 'eyebrow',
@@ -73,7 +75,7 @@ export const homepage = defineType({
           name: 'headline',
           title: 'Headline',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the main Homepage headline.'),
         }),
         defineField({
           name: 'subcopy',
@@ -85,7 +87,7 @@ export const homepage = defineType({
     }),
     defineField({
       name: 'heroVideo',
-      title: 'Hero video',
+      title: 'Featured Homepage video',
       description: 'YouTube video items only — the approved hero player is YouTube-only.',
       type: 'reference',
       to: [{type: 'mediaItem'}],
@@ -110,7 +112,14 @@ export const homepage = defineType({
           title: 'Heading',
           description: 'Required once this block has any photos selected.',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const parent = context.parent as {photos?: unknown[]} | undefined
+              if (parent?.photos?.length && !value?.trim()) {
+                return 'Enter the heading shown above the official band photos.'
+              }
+              return true
+            }),
         }),
         defineField({
           name: 'body',
@@ -124,7 +133,14 @@ export const homepage = defineType({
           description:
             'Links to the About page. The destination is fixed in code, not editable here — only this visible label is.',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.custom((value, context) => {
+              const parent = context.parent as {photos?: unknown[]} | undefined
+              if (parent?.photos?.length && !value?.trim()) {
+                return 'Enter the About-page button text shown below the photos.'
+              }
+              return true
+            }),
         }),
         defineField({
           name: 'photos',
@@ -161,7 +177,8 @@ export const homepage = defineType({
       title: 'What an ELT performance feels like',
       description: 'Rendered on the Homepage after Official Band Photos, before Upcoming Shows.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.required().error('Complete the ELT performance experience section.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -172,7 +189,7 @@ export const homepage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the performance experience heading.'),
         }),
         defineField({
           name: 'introduction',
@@ -180,7 +197,10 @@ export const homepage = defineType({
           description:
             'One short paragraph answering what ELT sounds like and what a performance feels like.',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error(
+              'Enter the short introduction to the ELT performance experience.',
+            ),
         }),
         defineField({
           name: 'highlights',
@@ -197,19 +217,22 @@ export const homepage = defineType({
                   name: 'title',
                   title: 'Title',
                   type: 'string',
-                  validation: (Rule) => Rule.required(),
+                  validation: (Rule) =>
+                    Rule.required().error('Enter a title for this performance highlight.'),
                 }),
                 defineField({
                   name: 'description',
                   title: 'Description',
                   type: 'text',
-                  validation: (Rule) => Rule.required(),
+                  validation: (Rule) =>
+                    Rule.required().error('Describe this performance highlight.'),
                 }),
               ],
               preview: {select: {title: 'title', subtitle: 'description'}},
             }),
           ],
-          validation: (Rule) => Rule.required().length(3),
+          validation: (Rule) =>
+            Rule.required().length(3).error('Add exactly three performance highlights.'),
         }),
       ],
     }),
@@ -217,52 +240,57 @@ export const homepage = defineType({
       name: 'upcomingShows',
       title: 'Upcoming shows section',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the Upcoming Shows section.'),
       fields: [
         defineField({
           name: 'kicker',
           title: 'Small label above heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the small label above Upcoming Shows.'),
         }),
         defineField({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the Upcoming Shows heading.'),
         }),
         defineField({
           name: 'viewAllLabel',
           title: 'View all shows button text',
           description: 'Links to the Shows page.',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the button text that links to the Shows page.'),
         }),
         defineField({
           name: 'emptyState',
           title: 'No upcoming shows message',
           description: 'Shown only when there are no eligible upcoming public shows.',
           type: 'object',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Complete the message used when no upcoming shows are listed.'),
           fields: [
             defineField({
               name: 'title',
               title: 'Heading',
               type: 'string',
-              validation: (Rule) => Rule.required(),
+              validation: (Rule) => Rule.required().error('Enter the no-upcoming-shows heading.'),
             }),
             defineField({
               name: 'message',
               title: 'Message',
               type: 'text',
-              validation: (Rule) => Rule.required(),
+              validation: (Rule) =>
+                Rule.required().error('Enter the message visitors see when no shows are listed.'),
             }),
             defineField({
               name: 'actionLabel',
               title: 'Instagram button text',
               description: 'The destination is the verified Instagram URL in site configuration.',
               type: 'string',
-              validation: (Rule) => Rule.required(),
+              validation: (Rule) =>
+                Rule.required().error('Enter the Instagram link text for the empty schedule.'),
             }),
           ],
         }),
@@ -274,27 +302,29 @@ export const homepage = defineType({
       description:
         'This controls only the Homepage section heading. Testimonial quotes, sources, logos, links, and display order are managed in “Testimonials” in the Studio sidebar and are shared with the About page.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the Homepage testimonial heading.'),
       fields: [
         defineField({
           name: 'kicker',
           title: 'Small label above heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the small label above the Homepage testimonials.'),
         }),
         defineField({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the Homepage testimonial heading.'),
         }),
       ],
     }),
     defineField({
       name: 'bookingCta',
       title: 'Booking call to action',
+      description: 'The final Homepage section inviting visitors to open the booking form.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the Homepage booking call to action.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -305,19 +335,20 @@ export const homepage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the booking call-to-action heading.'),
         }),
         defineField({
           name: 'body',
           title: 'Body',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the booking call-to-action description.'),
         }),
         defineField({
           name: 'ctaLabel',
           title: 'Button text',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the booking button text.'),
         }),
       ],
     }),
@@ -327,7 +358,7 @@ export const homepage = defineType({
       description:
         'The one weekly schedule newsletter — not a separate show-alert subscription. The signup button appears only once the hosted signup link is configured; no email is collected on this site directly.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the weekly newsletter section.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -338,7 +369,7 @@ export const homepage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the newsletter heading.'),
         }),
         defineField({
           name: 'body',
@@ -346,19 +377,21 @@ export const homepage = defineType({
           description:
             'Briefly describe the weekly newsletter. Mention that signup uses double opt-in email confirmation. Do not promise a specific delivery day, or a separate new-show-alert subscription.',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Describe the weekly newsletter and its double opt-in signup.'),
         }),
         defineField({
           name: 'ctaLabel',
           title: 'Button text',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the newsletter signup button text.'),
         }),
       ],
     }),
     defineField({
       name: 'seo',
-      title: 'SEO',
+      title: 'Search and social sharing',
+      description: 'Optional text and image used by search engines and when this page is shared.',
       type: 'object',
       fields: [
         defineField({

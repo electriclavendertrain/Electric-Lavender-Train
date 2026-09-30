@@ -33,9 +33,9 @@ export const musicPage = defineType({
       name: 'featured',
       title: 'Featured',
       description:
-        'Always rendered as the page\'s first section and its one heading — this is never conditionally omitted. The video is optional: the section still renders with just the heading when no video is selected.',
+        "Always rendered as the page's first section and its one heading — this is never conditionally omitted. The video is optional: the section still renders with just the heading when no video is selected.",
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the first section of the Music page.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -47,7 +47,7 @@ export const musicPage = defineType({
           title: 'Heading',
           description: 'The page’s main heading — the only one of its kind on the page.',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the main Music page heading.'),
         }),
         defineField({
           name: 'video',
@@ -76,31 +76,42 @@ export const musicPage = defineType({
         defineField({
           name: 'text',
           title: 'Relationship text',
-          description: 'Keep to the approved wording: “The Electric Lavender Train is part of Heavy Crush Records.”',
+          description:
+            'Keep to the approved wording: “The Electric Lavender Train is part of Heavy Crush Records.”',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error(
+              'Enter the approved sentence describing ELT’s relationship with Heavy Crush Records.',
+            ),
         }),
         defineField({
           name: 'logoAlt',
           title: 'Logo alternative text',
           description: 'Accessible description of the Heavy Crush Records logo image.',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Describe the Heavy Crush Records logo for screen-reader users.'),
         }),
         defineField({
           name: 'url',
           title: 'Heavy Crush Records URL',
-          description: 'The label’s official website. Kept as its own field for backward compatibility with the existing “Visit Heavy Crush Records” link.',
+          description:
+            'The label’s official website. Kept as its own field for backward compatibility with the existing “Visit Heavy Crush Records” link.',
           type: 'url',
-          validation: (Rule) => Rule.required().uri({scheme: ['http', 'https']}),
+          validation: (Rule) =>
+            Rule.required()
+              .uri({scheme: ['http', 'https']})
+              .error('Enter the official Heavy Crush Records website URL, including https://.'),
         }),
         defineField({
           name: 'missionStatement',
           title: 'Mission statement',
-          description: 'A short, editable statement of the label’s mission — rendered beneath the relationship text.',
+          description:
+            'A short, editable statement of the label’s mission — rendered beneath the relationship text.',
           type: 'text',
           rows: 2,
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the approved Heavy Crush Records mission statement.'),
         }),
         defineField({
           name: 'socialLinks',
@@ -207,7 +218,8 @@ export const musicPage = defineType({
     }),
     defineField({
       name: 'seo',
-      title: 'SEO',
+      title: 'Search and social sharing',
+      description: 'Optional text and image used by search engines and when this page is shared.',
       type: 'object',
       fields: [
         defineField({

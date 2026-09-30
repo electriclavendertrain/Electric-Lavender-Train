@@ -22,13 +22,15 @@ export const mediaItem = defineType({
     defineField({
       name: 'title',
       title: 'Title',
-      description: 'The display title/caption for this item.',
+      description: 'A short public title or caption that identifies this photo or video.',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.required().error('Enter a public title or caption for this media item.'),
     }),
     defineField({
       name: 'mediaType',
       title: 'Media type',
+      description: 'Choose Image or Video first; the fields below will update to match.',
       type: 'string',
       options: {
         list: [
@@ -39,18 +41,21 @@ export const mediaItem = defineType({
       },
       /** The "an image item must actually have an image" check lives HERE, on the primitive `mediaType` string, not on the `image` field itself. */
       validation: (Rule) =>
-        Rule.required().custom((value, context) => {
-          if (value !== 'image') return true
-          const document = context.document as Record<string, unknown> | undefined
-          if (!document?.image) {
-            return 'Upload an image in the Image field below before publishing an image media item.'
-          }
-          return true
-        }),
+        Rule.required()
+          .error('Choose whether this item is an Image or Video.')
+          .custom((value, context) => {
+            if (value !== 'image') return true
+            const document = context.document as Record<string, unknown> | undefined
+            if (!document?.image) {
+              return 'Upload an image in the Image field below before publishing an image media item.'
+            }
+            return true
+          }),
     }),
     defineField({
       name: 'image',
       title: 'Image',
+      description: 'Upload the approved image, then set its crop and focal point if needed.',
       type: 'image',
       options: {hotspot: true},
       hidden: ({document}) => !isImage(document),
@@ -65,7 +70,7 @@ export const mediaItem = defineType({
       validation: (Rule) =>
         Rule.custom((value, context) => {
           if (isImage(context.document as Record<string, unknown>) && !value) {
-            return 'Required for image media items'
+            return 'Describe the important visual content for visitors who cannot see the image.'
           }
           return true
         }),
@@ -73,6 +78,8 @@ export const mediaItem = defineType({
     defineField({
       name: 'videoProvider',
       title: 'Video provider',
+      description:
+        'Choose the service that hosts this video so the website can validate and display it correctly.',
       type: 'string',
       options: {
         list: [
@@ -88,7 +95,7 @@ export const mediaItem = defineType({
         Rule.custom((value, context) => {
           const document = context.document as Record<string, unknown> | undefined
           if (!isVideo(document)) return true
-          if (!value) return 'Required for video media items'
+          if (!value) return 'Choose YouTube, Vimeo, or Other external video.'
           if (value === 'other' && !document?.videoPoster) {
             return 'Upload a Video poster below — no reliable thumbnail can be assumed for "Other external video."'
           }
@@ -106,7 +113,7 @@ export const mediaItem = defineType({
         Rule.custom((value, context) => {
           const document = context.document as MediaItemDoc | undefined
           if (!isVideo(document as Record<string, unknown>)) return true
-          if (!value) return 'Required for video media items'
+          if (!value) return 'Paste the public video link.'
 
           let parsed: URL
           try {
@@ -125,10 +132,13 @@ export const mediaItem = defineType({
             )
           }
           if (provider === 'vimeo') {
-            return hostname === 'vimeo.com' || 'Must be a Vimeo URL'
+            return hostname === 'vimeo.com' || 'Paste a public vimeo.com video link.'
           }
           if (provider === 'other') {
-            return value.startsWith('https://') || 'Must be a valid https:// URL'
+            return (
+              value.startsWith('https://') ||
+              'Paste a complete secure link beginning with https://.'
+            )
           }
           return true
         }),

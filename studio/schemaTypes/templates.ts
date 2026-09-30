@@ -8,7 +8,7 @@ import type {Template} from 'sanity'
 export const eventTemplates: Template[] = [
   {
     id: 'event-public',
-    title: 'New Public Show',
+    title: 'New Public Show — visible on website',
     schemaType: 'event',
     value: {
       visibility: 'public',
@@ -17,7 +17,7 @@ export const eventTemplates: Template[] = [
   },
   {
     id: 'event-private',
-    title: 'New Private Booking',
+    title: 'New Private Booking — date only',
     schemaType: 'event',
     value: {
       visibility: 'busyOnly',

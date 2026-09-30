@@ -130,9 +130,10 @@ if (officialBandPhotosResult === null && isProductionDataset) {
   );
 }
 const officialBandPhotos = officialBandPhotosResult ?? [];
+const officialBandPhotosHeading = homepage?.officialBandPhotos?.heading?.trim();
 const officialBandPhotosCtaLabel = homepage?.officialBandPhotos?.ctaLabel?.trim();
 const hasCompleteOfficialBandPhotos = Boolean(
-  homepage?.officialBandPhotos?.heading?.trim() &&
+  officialBandPhotosHeading &&
   officialBandPhotosCtaLabel &&
   officialBandPhotos.length > 0,
 );
@@ -192,7 +193,7 @@ const ogImage = getOgImageUrl(homepage?.seo?.ogImage);
     hasCompleteOfficialBandPhotos && (
       <OfficialBandPhotos
         kicker={homepage!.officialBandPhotos!.kicker}
-        heading={homepage!.officialBandPhotos!.heading}
+        heading={officialBandPhotosHeading!}
         body={homepage!.officialBandPhotos!.body}
         ctaLabel={officialBandPhotosCtaLabel!}
         photos={officialBandPhotos}

@@ -10,7 +10,7 @@ export const musicRelease = defineType({
       name: 'title',
       title: 'Title',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Enter the public release title.'),
     }),
     defineField({
       name: 'slug',
@@ -23,6 +23,7 @@ export const musicRelease = defineType({
     defineField({
       name: 'releaseType',
       title: 'Release type',
+      description: 'Choose how this release should be described: Single, EP, Album, or Other.',
       type: 'string',
       options: {
         list: [
@@ -48,14 +49,15 @@ export const musicRelease = defineType({
         layout: 'radio',
       },
       initialValue: 'upcoming',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.required().error('Choose whether this release is Upcoming or Released.'),
     }),
     defineField({
       name: 'releaseDate',
       title: 'Release date',
       description: 'The release date shown alongside this release once it’s Released.',
       type: 'date',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Enter the release date.'),
     }),
     defineField({
       name: 'coverArtwork',
@@ -134,7 +136,12 @@ export const musicRelease = defineType({
     }),
   ],
   preview: {
-    select: {title: 'title', state: 'state', releaseDate: 'releaseDate', media: 'coverArtwork.image'},
+    select: {
+      title: 'title',
+      state: 'state',
+      releaseDate: 'releaseDate',
+      media: 'coverArtwork.image',
+    },
     prepare({title, state, releaseDate, media}) {
       const stateLabel = state === 'released' ? 'Released' : 'Upcoming'
       return {

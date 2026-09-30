@@ -52,8 +52,9 @@ export const contactPage = defineType({
     defineField({
       name: 'intro',
       title: 'Page introduction',
+      description: 'The heading and short instructions shown above the inquiry forms.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the Contact page introduction.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -65,21 +66,22 @@ export const contactPage = defineType({
           title: 'Heading',
           description: 'The page’s main heading — the only one of its kind on the page.',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the main Contact page heading.'),
         }),
         defineField({
           name: 'lede',
           title: 'Lede',
           description: 'One short opening sentence.',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the short opening sentence.'),
         }),
         defineField({
           name: 'explanation',
           title: 'Explanation',
           description: 'Short paragraph explaining how to use the forms below.',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Explain how visitors should choose and use the inquiry forms.'),
         }),
       ],
     }),
@@ -89,25 +91,25 @@ export const contactPage = defineType({
       description:
         'A short, secondary callout pointing visitors to the homepage newsletter section. This page never collects an email address directly — the link always leads to "/#newsletter" or the validated hosted signup URL.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the newsletter callout.'),
       fields: [
         defineField({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the newsletter callout heading.'),
         }),
         defineField({
           name: 'body',
           title: 'Body',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the newsletter callout description.'),
         }),
         defineField({
           name: 'linkLabel',
           title: 'Link text',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the newsletter link text.'),
         }),
       ],
     }),
@@ -126,7 +128,7 @@ export const contactPage = defineType({
               name: 'question',
               title: 'Question',
               type: 'string',
-              validation: (Rule) => Rule.required(),
+              validation: (Rule) => Rule.required().error('Enter the FAQ question.'),
             }),
             defineField({
               name: 'answer',
@@ -134,7 +136,7 @@ export const contactPage = defineType({
               description:
                 'Draft placeholder wording — safe to publish as-is, but confirm with Hunter before treating it as final.',
               type: 'text',
-              validation: (Rule) => Rule.required(),
+              validation: (Rule) => Rule.required().error('Enter the answer to this FAQ question.'),
             }),
           ],
           preview: {select: {title: 'question', subtitle: 'answer'}},
@@ -143,7 +145,8 @@ export const contactPage = defineType({
     }),
     defineField({
       name: 'seo',
-      title: 'SEO',
+      title: 'Search and social sharing',
+      description: 'Optional text and image used by search engines and when this page is shared.',
       type: 'object',
       fields: [
         defineField({

@@ -22,7 +22,7 @@ export const bandMember = defineType({
       name: 'name',
       title: 'Name',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Enter the member’s public name.'),
     }),
     defineField({
       name: 'role',
@@ -30,7 +30,7 @@ export const bandMember = defineType({
       description:
         'The complete role as it should read publicly, e.g. "Lead Vocals, Baritone Ukulele".',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Enter the member’s public role in the band.'),
     }),
     defineField({
       name: 'profileImage',
@@ -40,7 +40,7 @@ export const bandMember = defineType({
       type: 'reference',
       to: [{type: 'mediaItem'}],
       options: {filter: 'mediaType == "image"'},
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Choose the approved profile photograph.'),
     }),
     defineField({
       name: 'biography',
@@ -48,8 +48,17 @@ export const bandMember = defineType({
       description:
         'One to four short paragraphs, shown in this member’s profile dialog. Written by a person and reviewed before publishing — this renders verbatim on a public page.',
       type: 'array',
-      of: [defineArrayMember({type: 'text', validation: (Rule) => Rule.required()})],
-      validation: (Rule) => Rule.required().min(1).max(4),
+      of: [
+        defineArrayMember({
+          type: 'text',
+          validation: (Rule) => Rule.required().error('Enter text for this biography paragraph.'),
+        }),
+      ],
+      validation: (Rule) =>
+        Rule.required()
+          .min(1)
+          .max(4)
+          .error('Add between one and four approved biography paragraphs.'),
     }),
     defineField({
       name: 'publicLinks',
@@ -73,7 +82,7 @@ export const bandMember = defineType({
                   if (value !== 'other') return true
                   const parent = context.parent as {label?: string} | undefined
                   if (!parent?.label || parent.label.trim().length === 0) {
-                    return 'Add a Label describing where this "Other" link goes — it becomes the visible link text.'
+                    return 'Choose a visible Label for this Other link, such as “Official website”.'
                   }
                   return true
                 }),
@@ -90,14 +99,16 @@ export const bandMember = defineType({
               name: 'url',
               title: 'URL',
               type: 'url',
-              validation: (Rule) => Rule.required().uri({scheme: ['http', 'https']}),
+              validation: (Rule) =>
+                Rule.required()
+                  .uri({scheme: ['http', 'https']})
+                  .error('Enter the full public link, including https://.'),
             }),
           ],
           preview: {
             select: {linkType: 'linkType', label: 'label', url: 'url'},
             prepare({linkType, label, url}) {
-              const typeTitle =
-                LINK_TYPES.find((item) => item.value === linkType)?.title ?? 'Link'
+              const typeTitle = LINK_TYPES.find((item) => item.value === linkType)?.title ?? 'Link'
               return {
                 title: label || typeTitle,
                 subtitle: url || 'No URL set',

@@ -12,7 +12,7 @@ export const merchItem = defineType({
       name: 'name',
       title: 'Name',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Enter the public merchandise item name.'),
     }),
     defineField({
       name: 'description',
@@ -20,7 +20,7 @@ export const merchItem = defineType({
       description:
         'A short editorial description. This page is inquiry-only — do not describe the item as available for direct purchase, and do not mention a cart, checkout, or order.',
       type: 'text',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Enter a short public description of this item.'),
     }),
     defineField({
       name: 'image',

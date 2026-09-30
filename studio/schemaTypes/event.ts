@@ -53,9 +53,10 @@ export const event = defineType({
     defineField({
       name: 'startDateTime',
       title: 'Start date & time',
+      description: 'Enter the event start in Pacific time.',
       type: 'datetime',
       options: TIME_ZONE_OPTIONS,
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Choose the event’s start date and time.'),
     }),
     defineField({
       name: 'endDateTime',
@@ -65,8 +66,8 @@ export const event = defineType({
       options: TIME_ZONE_OPTIONS,
       validation: (Rule) =>
         Rule.custom((value, context) => {
-          const start = (context.document as Record<string, unknown> | undefined)
-            ?.startDateTime as string | undefined
+          const start = (context.document as Record<string, unknown> | undefined)?.startDateTime as
+            string | undefined
           if (value && start && value < start) {
             return 'End time cannot be before the start time.'
           }
@@ -76,6 +77,8 @@ export const event = defineType({
     defineField({
       name: 'status',
       title: 'Status',
+      description:
+        'Use Cancelled or Postponed when visitors should see that change on a public show.',
       type: 'string',
       options: {
         list: [
@@ -86,7 +89,7 @@ export const event = defineType({
         layout: 'radio',
       },
       initialValue: 'scheduled',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Choose Scheduled, Cancelled, or Postponed.'),
     }),
     defineField({
       name: 'visibility',
@@ -105,37 +108,41 @@ export const event = defineType({
       initialValue: 'public',
       /** The stale-public-details guard lives HERE, on the primitive `visibility` string, rather than as a document-level rule. */
       validation: (Rule) =>
-        Rule.required().custom((value, context) => {
-          if (value === 'public') return true
+        Rule.required()
+          .error('Choose Public show, Private booking, or Hidden from website.')
+          .custom((value, context) => {
+            if (value === 'public') return true
 
-          const document = context.document as Record<string, unknown> | undefined
-          const populated = PUBLIC_ONLY_FIELDS.filter((f) =>
-            hasValue(f.name === 'slug' ? document?.slug : document?.[f.name]),
-          )
-          if (populated.length === 0) return true
+            const document = context.document as Record<string, unknown> | undefined
+            const populated = PUBLIC_ONLY_FIELDS.filter((f) =>
+              hasValue(f.name === 'slug' ? document?.slug : document?.[f.name]),
+            )
+            if (populated.length === 0) return true
 
-          const targetLabel = value === 'hidden' ? 'hidden event' : 'private booking'
-          return `To publish this as a ${targetLabel}, clear the populated public-show fields below: ${formatFieldList(
-            populated.map((f) => f.label),
-          )}.`
-        }),
+            const targetLabel = value === 'hidden' ? 'hidden event' : 'private booking'
+            return `To publish this as a ${targetLabel}, clear the populated public-show fields below: ${formatFieldList(
+              populated.map((f) => f.label),
+            )}.`
+          }),
     }),
     defineField({
       name: 'title',
       title: 'Title',
+      description: 'Public shows only. Enter the public event or show name.',
       type: 'string',
       hidden: hiddenUnlessNeededToClear,
       validation: (Rule) =>
         Rule.custom((value, context) => {
           if (isPublic(context.document as Record<string, unknown>) && !value) {
-            return 'Required for public shows'
+            return 'Enter the public event or show name.'
           }
           return true
         }),
     }),
     defineField({
       name: 'slug',
-      title: 'Slug',
+      title: 'Web address name',
+      description: 'Public shows only. Select Generate to create this from the title.',
       type: 'slug',
       options: {source: 'title', maxLength: 96},
       hidden: hiddenUnlessNeededToClear,
@@ -143,7 +150,8 @@ export const event = defineType({
         Rule.custom(async (value, context) => {
           const document = context.document as {_id?: string} | undefined
           if (!isPublic(document)) return true
-          if (!value?.current) return 'Required for public shows'
+          if (!value?.current)
+            return 'Select Generate to create the web address name for this public show.'
 
           const {getClient} = context
           const client = getClient({apiVersion: '2024-01-01'})
@@ -152,18 +160,22 @@ export const event = defineType({
             `!defined(*[_type == "event" && !(_id in [$draft, $published]) && slug.current == $slug][0]._id)`,
             {draft: `drafts.${id}`, published: id, slug: value.current},
           )
-          return isUnique || 'This slug is already used by another event'
+          return (
+            isUnique ||
+            'This web address name is already used. Edit it so this event has a unique value.'
+          )
         }),
     }),
     defineField({
       name: 'venue',
       title: 'Venue',
+      description: 'Public shows only. Enter the public venue or host name.',
       type: 'string',
       hidden: hiddenUnlessNeededToClear,
       validation: (Rule) =>
         Rule.custom((value, context) => {
           if (isPublic(context.document as Record<string, unknown>) && !value) {
-            return 'Required for public shows'
+            return 'Enter the public venue or host name.'
           }
           return true
         }),
@@ -171,12 +183,14 @@ export const event = defineType({
     defineField({
       name: 'location',
       title: 'Location',
+      description:
+        'Public shows only. Enter the city, area, or public street address visitors need.',
       type: 'string',
       hidden: hiddenUnlessNeededToClear,
       validation: (Rule) =>
         Rule.custom((value, context) => {
           if (isPublic(context.document as Record<string, unknown>) && !value) {
-            return 'Required for public shows'
+            return 'Enter the public location visitors need for this show.'
           }
           return true
         }),
@@ -184,12 +198,15 @@ export const event = defineType({
     defineField({
       name: 'description',
       title: 'Description',
+      description:
+        'Optional public details about this show. Never place private booking information here.',
       type: 'text',
       hidden: hiddenUnlessNeededToClear,
     }),
     defineField({
       name: 'externalEventUrl',
       title: 'Tickets or external event page',
+      description: 'Optional public link for tickets or official event information.',
       type: 'url',
       hidden: hiddenUnlessNeededToClear,
       validation: (Rule) => Rule.uri({scheme: ['http', 'https']}),

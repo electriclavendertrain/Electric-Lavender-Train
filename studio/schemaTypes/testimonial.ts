@@ -14,7 +14,7 @@ export const testimonial = defineType({
       description:
         'The approved quotation, without surrounding quotation marks — the card adds its own.',
       type: 'text',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Enter the approved testimonial wording.'),
     }),
     defineField({
       name: 'sourceName',
@@ -22,7 +22,8 @@ export const testimonial = defineType({
       description:
         'Who said it: a person, or an establishment such as a venue, winery, concert series, or resort.',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.required().error('Enter the approved public name or establishment attribution.'),
     }),
     defineField({
       name: 'sourceContext',
@@ -54,7 +55,11 @@ export const testimonial = defineType({
       description:
         'Lower numbers appear first. The website shows the first three testimonials in this order, on both the Homepage and the About page.',
       type: 'number',
-      validation: (Rule) => Rule.required().integer().min(0),
+      validation: (Rule) =>
+        Rule.required()
+          .integer()
+          .min(0)
+          .error('Enter a whole-number display order of 0 or greater.'),
     }),
   ],
   preview: {

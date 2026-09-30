@@ -38,8 +38,9 @@ export const galleryPage = defineType({
     defineField({
       name: 'gallery',
       title: 'Media gallery',
+      description: 'The Gallery & Merchandise page heading, introduction, photos, and videos.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the media gallery section.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -51,7 +52,8 @@ export const galleryPage = defineType({
           title: 'Main gallery heading',
           description: 'The page’s main heading. Required even when the gallery is empty.',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the main Gallery & Merchandise page heading.'),
         }),
         defineField({
           name: 'body',
@@ -110,13 +112,14 @@ export const galleryPage = defineType({
       name: 'eventMediaSubmission',
       title: 'Share Your Event Media',
       description:
-        'Links to a Google Form where visitors can share their own event photos and videos. Stays hidden until Enabled is on and a Form URL is set below.',
+        'Optional callout linking to the event-media Google Form. When this section is shown before a valid form link is entered, visitors see an unavailable notice instead of an upload button.',
       type: 'object',
       fields: [
         defineField({
           name: 'enabled',
-          title: 'Enabled',
-          description: 'Turn this section on once the Google Form is ready to link to.',
+          title: 'Show this section on the website',
+          description:
+            'Leave this off until the invitation text is approved. The Google Form link may be added later; without it, the website shows an unavailable notice.',
           type: 'boolean',
           initialValue: false,
         }),
@@ -132,7 +135,7 @@ export const galleryPage = defineType({
         }),
         defineField({
           name: 'explanation',
-          title: 'Explanation',
+          title: 'Invitation text',
           description: 'Short paragraph explaining what this is and how submissions may be used.',
           type: 'text',
         }),
@@ -157,7 +160,7 @@ export const galleryPage = defineType({
       description:
         'Editorial and inquiry-only. Omitted from the page entirely when no items are selected.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the Merchandise section.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -168,7 +171,7 @@ export const galleryPage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the Merchandise heading.'),
         }),
         defineField({
           name: 'body',
@@ -190,8 +193,9 @@ export const galleryPage = defineType({
     defineField({
       name: 'bookingCta',
       title: 'Inquiry call to action',
+      description: 'The final page section inviting visitors to ask about merchandise or bookings.',
       type: 'object',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error('Complete the inquiry call to action.'),
       fields: [
         defineField({
           name: 'kicker',
@@ -202,25 +206,27 @@ export const galleryPage = defineType({
           name: 'heading',
           title: 'Heading',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the inquiry call-to-action heading.'),
         }),
         defineField({
           name: 'body',
           title: 'Body',
           type: 'text',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) =>
+            Rule.required().error('Enter the inquiry call-to-action description.'),
         }),
         defineField({
           name: 'ctaLabel',
           title: 'Button text',
           type: 'string',
-          validation: (Rule) => Rule.required(),
+          validation: (Rule) => Rule.required().error('Enter the inquiry button text.'),
         }),
       ],
     }),
     defineField({
       name: 'seo',
-      title: 'SEO',
+      title: 'Search and social sharing',
+      description: 'Optional text and image used by search engines and when this page is shared.',
       type: 'object',
       fields: [
         defineField({

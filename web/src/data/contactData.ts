@@ -28,7 +28,8 @@ export const INQUIRY_TABS: {
     tabLabel: "Merch Inquiry",
     panelHeading: "Merch Inquiry",
     emailSubject: "New Merch Inquiry — Electric Lavender Train",
-    panelNote: "Tell us which item you’re interested in and what you’d like to know.",
+    panelNote:
+      "Tell us which item you’re interested in and what you’d like to know.",
   },
   {
     value: "removal",
@@ -68,17 +69,27 @@ export interface ContactFieldConfig {
   /** The literal HTML `name` attribute this field submits to Formspree. */
   submissionName?: string;
   label: string;
-  type: "text" | "email" | "tel" | "number" | "date" | "url" | "select" | "textarea";
+  type:
+    | "text"
+    | "email"
+    | "tel"
+    | "number"
+    | "date"
+    | "url"
+    | "select"
+    | "textarea";
   required: boolean;
   autoComplete?: string;
   placeholder?: string;
   options?: string[];
-  inputMode?: "decimal" | "email" | "numeric" | "search" | "tel" | "text" | "url";
+  inputMode?:
+    "decimal" | "email" | "numeric" | "search" | "tel" | "text" | "url";
   min?: number;
   max?: number;
   step?: number;
   pattern?: string;
-  validationKind?: "phone" | "budget" | "requiresLetter" | "positiveInteger" | "url";
+  validationKind?:
+    "phone" | "budget" | "requiresLetter" | "positiveInteger" | "url";
   /** Marks the one field the `?item=` URL parameter prefills. */
   isMerchItemField?: boolean;
   /** Optional, short persistent line rendered beneath the field's control and linked to it via `aria-describedby` — for a field whose plain label could otherwise read as a promise (e.g. */
@@ -114,7 +125,8 @@ export const bookingFields: ContactFieldConfig[] = [
     autoComplete: "tel",
     inputMode: "tel",
     placeholder: "e.g. (805) 555-0123",
-    helperText: "Use 7 to 15 digits. Spaces, parentheses, +, periods, and hyphens are okay.",
+    helperText:
+      "Use 7 to 15 digits. Spaces, parentheses, +, periods, and hyphens are okay.",
     maxLength: 25,
     pattern: "(?=(?:.*[0-9]){7})(?:[0-9]|\\+|\\(|\\)| |\\.|-){7,25}",
     validationKind: "phone",
@@ -175,7 +187,8 @@ export const bookingFields: ContactFieldConfig[] = [
     required: false,
     inputMode: "numeric",
     placeholder: "e.g. 2500",
-    helperText: "Enter a non-negative whole-dollar amount without symbols or commas.",
+    helperText:
+      "Enter a non-negative whole-dollar amount without symbols or commas.",
     min: 0,
     step: 1,
     validationKind: "budget",
@@ -187,10 +200,17 @@ export const bookingFields: ContactFieldConfig[] = [
     type: "textarea",
     required: false,
     placeholder: "e.g. a favorite song, or a must-play for your event",
-    helperText: "We'll do our best, but a request isn't a guarantee it'll be in the set.",
+    helperText:
+      "We'll do our best, but a request isn't a guarantee it'll be in the set.",
     maxLength: 500,
   },
-  { name: "message", label: "Event Details", type: "textarea", required: true, maxLength: 3000 },
+  {
+    name: "message",
+    label: "Event Details",
+    type: "textarea",
+    required: true,
+    maxLength: 3000,
+  },
 ];
 
 export const merchFields: ContactFieldConfig[] = [
@@ -231,7 +251,13 @@ export const merchFields: ContactFieldConfig[] = [
     required: false,
     maxLength: 3000,
   },
-  { name: "message", label: "Message", type: "textarea", required: true, maxLength: 3000 },
+  {
+    name: "message",
+    label: "Message",
+    type: "textarea",
+    required: true,
+    maxLength: 3000,
+  },
 ];
 
 export const otherFields: ContactFieldConfig[] = [
@@ -262,7 +288,13 @@ export const otherFields: ContactFieldConfig[] = [
     required: true,
     maxLength: 150,
   },
-  { name: "message", label: "Message", type: "textarea", required: true, maxLength: 3000 },
+  {
+    name: "message",
+    label: "Message",
+    type: "textarea",
+    required: true,
+    maxLength: 3000,
+  },
 ];
 
 /** No file uploads: a removal request describes and locates the content in
@@ -290,16 +322,13 @@ export const removalFields: ContactFieldConfig[] = [
   },
   {
     name: "contentLocation",
-    submissionName: "Content URL",
-    label: "URL of the Content",
-    type: "url",
-    required: false,
-    placeholder: "https://example.com/…",
-    // Optional and syntax-checked only; no request or ownership check occurs.
-    helperText: "Optional. If you don't have a direct link, describe where you saw it below.",
+    submissionName: "Content URL or Location",
+    label: "URL or Location of Content",
+    type: "text",
+    required: true,
+    placeholder: "Paste a link or describe where the content appears",
+    helperText: "Paste the direct link or describe where the content appears.",
     maxLength: 300,
-    pattern: "https?://.+",
-    validationKind: "url",
   },
   {
     name: "contentDescription",
@@ -327,12 +356,13 @@ export const removalFields: ContactFieldConfig[] = [
   },
 ];
 
-export const fieldsByInquiry: Record<ContactInquiryType, ContactFieldConfig[]> = {
-  booking: bookingFields,
-  merch: merchFields,
-  other: otherFields,
-  removal: removalFields,
-};
+export const fieldsByInquiry: Record<ContactInquiryType, ContactFieldConfig[]> =
+  {
+    booking: bookingFields,
+    merch: merchFields,
+    other: otherFields,
+    removal: removalFields,
+  };
 
 /**
  * Protected interface copy: switcher/section labels, validation messages,
@@ -374,7 +404,8 @@ export const contactCopy = {
   /** Just-in-time disclosure rendered beside each Submit button — informational
    * only, never a mandatory agreement checkbox (ordinary inquiries don't need
    * one). `{privacyLinkText}` is replaced with a real link in the component. */
-  jitPrivacyNotice: "By submitting, your information is handled as described in our",
+  jitPrivacyNotice:
+    "By submitting, your information is handled as described in our",
   privacyLinkText: "Privacy Policy",
 
   directEmailIntro: "Prefer to email us directly?",
@@ -387,11 +418,15 @@ export const contactCopy = {
     required: (label: string) => `${label} is required.`,
     email: "Enter a valid email address.",
     phone: "Enter a valid phone number using 7 to 15 digits.",
-    budget: "Enter a non-negative whole-dollar budget without symbols or commas.",
-    requiresLetter: (label: string) => `${label} must include at least one letter.`,
-    positiveInteger: (label: string) => `${label} must be a whole number greater than zero.`,
+    budget:
+      "Enter a non-negative whole-dollar budget without symbols or commas.",
+    requiresLetter: (label: string) =>
+      `${label} must include at least one letter.`,
+    positiveInteger: (label: string) =>
+      `${label} must be a whole number greater than zero.`,
     url: "Enter a valid link starting with http:// or https://, or leave this blank.",
-    tooLong: (label: string, max: number) => `${label} must be ${max} characters or fewer.`,
+    tooLong: (label: string, max: number) =>
+      `${label} must be ${max} characters or fewer.`,
   },
 
   newTabSuffix: " (opens in a new tab)",

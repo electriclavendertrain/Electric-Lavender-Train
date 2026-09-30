@@ -19,13 +19,10 @@
   ],
   "dependencies": {
     "@sanity/icons": "^5.2.1",
-    "@sanity/image-url": "^2.1.1",
-    "@sanity/vision": "^6.8.0",
-    "@tailwindcss/typography": "^0.5.20",
-    "astro-portabletext": "^0.13.0",
+    "@sanity/vision": "^6.16.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "sanity": "^6.8.0",
+    "sanity": "^6.16.0",
     "styled-components": "^6.1.18"
   },
   "devDependencies": {
