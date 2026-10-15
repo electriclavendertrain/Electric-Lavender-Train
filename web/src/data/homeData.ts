@@ -83,6 +83,6 @@ export const bookingCtaFallback = {
 export const newsletterFallback = {
   kicker: "Stay in the Loop",
   heading: "Join the ELT Newsletter",
-  body: "Get the weekly ELT performance schedule delivered to your inbox. Signup uses email confirmation (double opt-in) once the hosted form is live.",
+  body: "Get the weekly ELT performance schedule, music news, and updates delivered straight to your inbox.",
   ctaLabel: "Sign Up for the Newsletter",
 };
