@@ -24,6 +24,7 @@ if (supportsModalDialog) {
    * the dialog that is closing.
    */
   let returnFocusTo: HTMLElement | null = null;
+  let returnScrollPosition: { left: number; top: number } | null = null;
 
   const findTriggerFor = (dialogId: string) =>
     triggers.find((trigger) => trigger.dataset.memberDialogOpen === dialogId) ?? null;
@@ -31,6 +32,10 @@ if (supportsModalDialog) {
   const openDialog = (dialog: HTMLDialogElement, trigger: HTMLElement | null) => {
     if (dialog.open) return;
     returnFocusTo = trigger;
+    returnScrollPosition = {
+      left: window.scrollX,
+      top: window.scrollY,
+    };
     dialog.showModal();
     document.documentElement.classList.add(SCROLL_LOCK_CLASS);
   };
@@ -79,6 +84,7 @@ if (supportsModalDialog) {
     // raises `cancel` and then `close`), so focus return and the scroll lock
     // are handled in exactly one place.
     dialog.addEventListener("close", () => {
+      const scrollPosition = returnScrollPosition;
       document.documentElement.classList.remove(SCROLL_LOCK_CLASS);
 
       // A dialog opened by deep link leaves its fragment in the URL; clearing
@@ -92,8 +98,14 @@ if (supportsModalDialog) {
         );
       }
 
-      returnFocusTo?.focus();
+      returnFocusTo?.focus({ preventScroll: true });
+
+      if (scrollPosition) {
+        window.scrollTo(scrollPosition.left, scrollPosition.top);
+      }
+
       returnFocusTo = null;
+      returnScrollPosition = null;
     });
   }
 
