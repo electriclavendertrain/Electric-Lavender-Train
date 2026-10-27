@@ -23,6 +23,7 @@ export const galleryPage = defineType({
     merch: {
       kicker: 'Take It Home',
       heading: 'Merchandise',
+      body: 'Items are available by inquiry only — there is no online store, cart, or checkout. Use the merchandise inquiry form to email the band.',
     },
     bookingCta: {
       kicker: "Let's Ride Together",
@@ -112,14 +113,43 @@ export const galleryPage = defineType({
       name: 'eventMediaSubmission',
       title: 'Share Your Event Media',
       description:
-        'Optional callout linking to the event-media Google Form. When this section is shown before a valid form link is entered, visitors see an unavailable notice instead of an upload button.',
+        'Optional callout linking to the event-media Google Form. It stays hidden until the section is enabled and its Heading, Invitation text, Button text, and valid Google Form URL are all complete.',
       type: 'object',
+      validation: (Rule) =>
+        Rule.custom(
+          (
+            value:
+              | {
+                  enabled?: boolean
+                  heading?: string
+                  explanation?: string
+                  ctaLabel?: string
+                  formUrl?: string
+                }
+              | undefined,
+          ) => {
+            if (!value?.enabled) return true
+            const heading = value.heading?.trim()
+            const explanation = value.explanation?.trim()
+            const ctaLabel = value.ctaLabel?.trim()
+            if (!heading || !explanation || !ctaLabel) {
+              return 'To show this section, enter its Heading, Invitation text, and Button text.'
+            }
+            if (!value.formUrl) {
+              return 'To show this section, paste the public Google Form URL.'
+            }
+            const formUrlResult = validateGoogleFormUrl(value.formUrl)
+            return formUrlResult === true
+              ? true
+              : `To show this section, correct the Google Form URL: ${formUrlResult}`
+          },
+        ),
       fields: [
         defineField({
           name: 'enabled',
           title: 'Show this section on the website',
           description:
-            'Leave this off until the invitation text is approved. The Google Form link may be added later; without it, the website shows an unavailable notice.',
+            'Turn this on only after the invitation text is approved and the public Google Form link has been added and tested.',
           type: 'boolean',
           initialValue: false,
         }),
@@ -177,8 +207,10 @@ export const galleryPage = defineType({
           name: 'body',
           title: 'Introductory text',
           description:
-            'Optional short paragraph above the merchandise grid. Leave empty unless you have something additional to say — the permanent no-commerce notice ("Items are available by inquiry only — there is no online store, cart, or checkout…") is already rendered automatically by the site for every merchandise item; do not repeat or restate it here, or it will appear twice on the page.',
+            'The single paragraph shown above the merchandise grid. Keep the approved inquiry-only wording here so visitors understand there is no online store, cart, or checkout.',
           type: 'text',
+          validation: (Rule) =>
+            Rule.required().error('Enter the inquiry-only merchandise introduction.'),
         }),
         defineField({
           name: 'items',
@@ -246,7 +278,7 @@ export const galleryPage = defineType({
           name: 'ogImage',
           title: 'Social share image',
           description:
-            'Optional image used when this page is shared. Independent of every other page’s share image.',
+            'Optional image used when the Gallery & Merchandise page is shared. It does not appear in visible page content. All other pages have their own independent share-image fields.',
           type: 'image',
         }),
       ],

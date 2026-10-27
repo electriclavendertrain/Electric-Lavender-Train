@@ -4,7 +4,7 @@
 import BandMemberCard from "./BandMemberCard.astro";
 import MemberProfileDialog from "./MemberProfileDialog.astro";
 import type { NormalizedBandMember } from "../sanity/normalize";
-import { aboutPageCopy } from "../data/aboutData";
+import { memberDialogIdFor } from "../data/aboutData";
 
 interface Props {
   headingId: string;
@@ -15,10 +15,6 @@ interface Props {
 }
 
 const { headingId, kicker, heading, body, members } = Astro.props;
-
-/** A dialog id derived from the member's document id. */
-const dialogIdFor = (memberId: string) =>
-  `${aboutPageCopy.memberDialogIdPrefix}${memberId.replace(/[^A-Za-z0-9_-]/g, "-")}`;
 
 const closeHref = `#${headingId}`;
 ---
@@ -33,7 +29,7 @@ const closeHref = `#${headingId}`;
       {
         members.map((member, index) => (
           <li class={`reveal reveal-${Math.min(index + 1, 4)}`}>
-            <BandMemberCard member={member} dialogId={dialogIdFor(member._id)} />
+            <BandMemberCard member={member} dialogId={memberDialogIdFor(member._id)} />
           </li>
         ))
       }
@@ -49,7 +45,7 @@ const closeHref = `#${headingId}`;
       members.map((member) => (
         <MemberProfileDialog
           member={member}
-          dialogId={dialogIdFor(member._id)}
+          dialogId={memberDialogIdFor(member._id)}
           closeHref={closeHref}
         />
       ))
@@ -64,8 +60,6 @@ const closeHref = `#${headingId}`;
 <style>
   .about-members h2 {
     margin-bottom: 18px;
-    /* The close control links back here; keep it clear of the fixed header. */
-    scroll-margin-top: 110px;
   }
   .about-members__body {
     color: rgba(244, 232, 208, 0.85);

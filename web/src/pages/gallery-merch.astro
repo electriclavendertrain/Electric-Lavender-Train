@@ -107,6 +107,7 @@ if (normalizedGalleryPage) {
       videos: [],
       hasPerformance: galleryItems.some((item) => item.category === "performance"),
       hasVenueCrowd: galleryItems.some((item) => item.category === "venue-crowd"),
+      hasBandPhotos: galleryItems.some((item) => item.category === "band-photos"),
       hasVideos: false,
     },
     // Do not fabricate a Google Form destination in fallback content.
@@ -149,6 +150,7 @@ const inquiryHref = contactInquiryHref("merch");
     videos={pageContent.gallery.videos}
     hasPerformance={pageContent.gallery.hasPerformance}
     hasVenueCrowd={pageContent.gallery.hasVenueCrowd}
+    hasBandPhotos={pageContent.gallery.hasBandPhotos}
     hasVideos={pageContent.gallery.hasVideos}
   />
 

@@ -8,7 +8,7 @@ export const homepage = defineType({
     newsletter: {
       kicker: 'Stay in the Loop',
       heading: 'Join the ELT Newsletter',
-      body: 'Get the weekly ELT performance schedule delivered to your inbox. Signup uses email confirmation (double opt-in) once the hosted form is live.',
+      body: 'Get the weekly ELT performance schedule, music news, and updates delivered straight to your inbox.',
       ctaLabel: 'Sign Up for the Newsletter',
     },
     upcomingShows: {
@@ -17,8 +17,9 @@ export const homepage = defineType({
       viewAllLabel: 'View All Shows',
       emptyState: {
         title: 'No shows on the calendar right now',
-        message: 'Check back soon, or follow along on Instagram for the latest announcements.',
+        message: 'Follow along on Instagram for the latest announcements.',
         actionLabel: 'Follow Us on Instagram',
+        actionUrl: 'https://www.instagram.com/electriclavendertrain',
       },
     },
     experience: {
@@ -69,6 +70,8 @@ export const homepage = defineType({
         defineField({
           name: 'eyebrow',
           title: 'Small label above headline',
+          description:
+            'Shown only when there is no valid configured "Featured Homepage video" below. Otherwise small label reads: "Play Featured Video".',
           type: 'string',
         }),
         defineField({
@@ -99,7 +102,7 @@ export const homepage = defineType({
       name: 'officialBandPhotos',
       title: 'Official band photos',
       description:
-        'A restrained, Homepage-only showcase of professionally photographed, approved official band images — distinct from the fan/live imagery on the Gallery & Merchandise page, and never sourced from it automatically. Rendered immediately after the Hero, before The ELT Experience. Optional: omitted from the page entirely when empty or when every selected photo is invalid. Choose 1 to 4 strong images — fewer, stronger photos are preferred over a large set.',
+        'Homepage-only showcase of approved member portraits. Each portrait links to that member’s About-page profile, so select the same Media item currently used as that member’s Profile photo. Rendered immediately after the Hero, before The ELT Experience. Optional: omitted from the page entirely when empty or invalid. Choose 1 to 4 strong images.',
       type: 'object',
       fields: [
         defineField({
@@ -146,7 +149,7 @@ export const homepage = defineType({
           name: 'photos',
           title: 'Photos — drag to order',
           description:
-            'Image media items only. Choose 1 to 4 professional photographs from the Media Library. Drag to set their display order.',
+            'Choose 1 to 4 image Media items that are also assigned as band-member Profile photos. Each Homepage portrait links to its matching member profile. Drag to set display order.',
           type: 'array',
           of: [
             defineArrayMember({
@@ -195,18 +198,14 @@ export const homepage = defineType({
           name: 'introduction',
           title: 'Introduction',
           description:
-            'One short paragraph answering what ELT sounds like and what a performance feels like.',
+            'Optional short paragraph answering what ELT sounds and feels like without repeating the three highlights below.',
           type: 'text',
-          validation: (Rule) =>
-            Rule.required().error(
-              'Enter the short introduction to the ELT performance experience.',
-            ),
         }),
         defineField({
           name: 'highlights',
           title: 'Highlights',
           description:
-            'Exactly three: the sound, the performance, and the kinds of rooms and audiences that suit the band.',
+            'Exactly three, in this order: The Sound, On Stage, and In the Room. A title may be reworded only if it still clearly matches that category, because the three SVG icons are fixed to these positions in code.',
           type: 'array',
           of: [
             defineArrayMember({
@@ -265,7 +264,7 @@ export const homepage = defineType({
         }),
         defineField({
           name: 'emptyState',
-          title: 'No upcoming shows message',
+          title: 'No upcoming shows message and external redirect',
           description: 'Shown only when there are no eligible upcoming public shows.',
           type: 'object',
           validation: (Rule) =>
@@ -275,7 +274,7 @@ export const homepage = defineType({
               name: 'title',
               title: 'Heading',
               type: 'string',
-              validation: (Rule) => Rule.required().error('Enter the no-upcoming-shows heading.'),
+              validation: (Rule) => Rule.required().error('Enter the no upcoming shows heading.'),
             }),
             defineField({
               name: 'message',
@@ -286,11 +285,33 @@ export const homepage = defineType({
             }),
             defineField({
               name: 'actionLabel',
-              title: 'Instagram button text',
-              description: 'The destination is the verified Instagram URL in site configuration.',
+              title: 'External redirect button text',
+              description:
+                'Optional. Enter this together with the External redirect URL below, or leave both blank to show no button.',
               type: 'string',
               validation: (Rule) =>
-                Rule.required().error('Enter the Instagram link text for the empty schedule.'),
+                Rule.custom((value, context) => {
+                  const parent = context.parent as {actionUrl?: string} | undefined
+                  if (parent?.actionUrl && !value?.trim()) {
+                    return 'Enter the button text for the external redirect, or remove its URL.'
+                  }
+                  return true
+                }),
+            }),
+            defineField({
+              name: 'actionUrl',
+              title: 'External redirect URL',
+              description:
+                'Optional. Redirect visitors to an external social media or other public page when no shows are posted on the site.',
+              type: 'url',
+              validation: (Rule) =>
+                Rule.uri({scheme: ['https']}).custom((value, context) => {
+                  const parent = context.parent as {actionLabel?: string} | undefined
+                  if (value && !parent?.actionLabel?.trim()) {
+                    return 'Enter the button text above, or remove this external redirect URL.'
+                  }
+                  return true
+                }),
             }),
           ],
         }),
@@ -300,7 +321,7 @@ export const homepage = defineType({
       name: 'testimonialsIntro',
       title: 'Testimonials heading (Homepage)',
       description:
-        'This controls only the Homepage section heading. Testimonial quotes, sources, logos, links, and display order are managed in “Testimonials” in the Studio sidebar and are shared with the About page.',
+        'This controls only the Homepage testimonial-section labels. Actual testimonial quotes, sources, logos, links, and display order are managed in “Testimonials” in the Studio sidebar and are shared with the About page. This section is rendered only when testimonials are available; otherwise, it is omitted.',
       type: 'object',
       validation: (Rule) => Rule.required().error('Complete the Homepage testimonial heading.'),
       fields: [
@@ -348,6 +369,7 @@ export const homepage = defineType({
           name: 'ctaLabel',
           title: 'Button text',
           type: 'string',
+          description: 'Links to the Contact page "Booking Inquiry" form.',
           validation: (Rule) => Rule.required().error('Enter the booking button text.'),
         }),
       ],
@@ -356,7 +378,7 @@ export const homepage = defineType({
       name: 'newsletter',
       title: 'Weekly schedule newsletter',
       description:
-        'The one weekly schedule newsletter — not a separate show-alert subscription. The signup button appears only once the hosted signup link is configured; no email is collected on this site directly.',
+        'This controls only the visible copy in the weekly schedule newsletter section. The hosted signup and unsubscribe destinations come from environment variables; site-owned confirmation routes remain code-owned.',
       type: 'object',
       validation: (Rule) => Rule.required().error('Complete the weekly newsletter section.'),
       fields: [
@@ -374,11 +396,9 @@ export const homepage = defineType({
         defineField({
           name: 'body',
           title: 'Newsletter description',
-          description:
-            'Briefly describe the weekly newsletter. Mention that signup uses double opt-in email confirmation. Do not promise a specific delivery day, or a separate new-show-alert subscription.',
+          description: 'Briefly describe the weekly newsletter.',
           type: 'text',
-          validation: (Rule) =>
-            Rule.required().error('Describe the weekly newsletter and its double opt-in signup.'),
+          validation: (Rule) => Rule.required().error('Describe the weekly newsletter.'),
         }),
         defineField({
           name: 'ctaLabel',
@@ -391,7 +411,8 @@ export const homepage = defineType({
     defineField({
       name: 'seo',
       title: 'Search and social sharing',
-      description: 'Optional text and image used by search engines and when this page is shared.',
+      description:
+        'Optional but highly recommended text and image used by search engines and when this page is shared.',
       type: 'object',
       fields: [
         defineField({
@@ -413,7 +434,7 @@ export const homepage = defineType({
           name: 'ogImage',
           title: 'Social share image',
           description:
-            'Optional image used when the Homepage is shared. It does not appear in visible page content, and the About and Shows pages have their own independent share-image fields.',
+            'Optional image used when the Homepage is shared. It does not appear in visible page content. All other pages have their own independent share-image fields.',
           type: 'image',
         }),
       ],

@@ -85,6 +85,8 @@ export const aboutPageCopy = {
 
   memberLinksLabel: "Links",
 
+  memberPhotoCreditPrefix: "Photo credit: ",
+
   newTabSuffix: " (opens in a new tab)",
 
   /** Visible link text per approved link type. "other" uses the editor label. */
@@ -96,6 +98,10 @@ export const aboutPageCopy = {
     website: "Website",
   },
 } as const;
+
+/** Shared by About-page cards/dialogs and Homepage portrait links. */
+export const memberDialogIdFor = (memberId: string) =>
+  `${aboutPageCopy.memberDialogIdPrefix}${memberId.replace(/[^A-Za-z0-9_-]/g, "-")}`;
 
 /* -------------------------------------------------------------------------
  * Development fallback

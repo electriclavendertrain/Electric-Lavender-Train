@@ -7,7 +7,7 @@ import { aboutPageCopy } from "../data/aboutData";
 interface Props {
   member: NormalizedBandMember;
   dialogId: string;
-  /** Where the close control navigates when scripting is unavailable. */
+  /** No-JavaScript fallback destination; never used by the modal close button. */
   closeHref: string;
 }
 
@@ -42,29 +42,60 @@ const linkLabel = (link: NormalizedBandMember["links"][number]) =>
 */}
 <dialog id={dialogId} class="member-dialog" aria-labelledby={titleId} data-member-dialog>
   <div class="member-dialog__panel">
-    <a class="member-dialog__close" href={closeHref} data-member-dialog-close>
+    <button
+      type="button"
+      class="member-dialog__close member-dialog__close--js"
+      data-member-dialog-close
+    >
       <span aria-hidden="true">&times;</span>
       <span class="visually-hidden">
         {aboutPageCopy.memberDialogCloseLabel}
         {member.name}
         {aboutPageCopy.memberDialogCloseSuffix}
       </span>
-    </a>
+    </button>
+    <noscript>
+      <a class="member-dialog__close" href={closeHref}>
+        <span aria-hidden="true">&times;</span>
+        <span class="visually-hidden">
+          {aboutPageCopy.memberDialogCloseLabel}
+          {member.name}
+          {aboutPageCopy.memberDialogCloseSuffix}
+        </span>
+      </a>
+    </noscript>
 
     <div class="member-dialog__scroll">
       <div class="member-dialog__header">
-        <div class="member-dialog__frame">
-          {/* Same URL as the card's image, so the browser reuses one download
-              rather than fetching a second copy of a large photograph. */}
-          <img
-            src={member.image.src}
-            width={member.image.width}
-            height={member.image.height}
-            alt={member.image.alt}
-            loading="lazy"
-            decoding="async"
-            style={`--focal-point: ${member.image.objectPosition}`}
-          />
+        <div class="member-dialog__media">
+          <div class="member-dialog__frame">
+            {/* Same URL as the card's image, so the browser reuses one download
+                rather than fetching a second copy of a large photograph. */}
+            <img
+              src={member.image.src}
+              width={member.image.width}
+              height={member.image.height}
+              alt={member.image.alt}
+              loading="lazy"
+              decoding="async"
+              style={`--focal-point: ${member.image.objectPosition}`}
+            />
+          </div>
+          {
+            member.image.credit && (
+              <p class="member-dialog__credit">
+                <span class="visually-hidden">{aboutPageCopy.memberPhotoCreditPrefix}</span>
+                {member.image.credit.url ? (
+                  <a href={member.image.credit.url} target="_blank" rel="noopener noreferrer">
+                    {member.image.credit.label}
+                    <span class="visually-hidden">{aboutPageCopy.newTabSuffix}</span>
+                  </a>
+                ) : (
+                  member.image.credit.label
+                )}
+              </p>
+            )
+          }
         </div>
 
         <div class="member-dialog__identity">
@@ -109,12 +140,6 @@ const linkLabel = (link: NormalizedBandMember["links"][number]) =>
   /* Global rather than scoped because two rules below key off a class on
      <html>, which Astro's scoping would rewrite into a selector that can never
      match. Every class here is namespaced `member-dialog*`. */
-
-  /* Locks background scroll while a dialog is modal. `showModal()` supplies
-     inertness and the backdrop, but not a scroll lock, in every browser. */
-  html.member-dialog-open {
-    overflow: hidden;
-  }
 
   .member-dialog {
     padding: 0;
@@ -206,6 +231,12 @@ const linkLabel = (link: NormalizedBandMember["links"][number]) =>
     transition: background 0.25s var(--ease), color 0.25s var(--ease),
       border-color 0.25s var(--ease);
   }
+  .member-dialog__close--js {
+    display: none;
+  }
+  html.js-dialogs .member-dialog__close--js {
+    display: inline-flex;
+  }
   .member-dialog__close:hover {
     color: var(--black);
     background: var(--gold);
@@ -225,6 +256,22 @@ const linkLabel = (link: NormalizedBandMember["links"][number]) =>
     border-radius: 14px;
     overflow: hidden;
     border: 1px solid rgba(160, 123, 239, 0.3);
+  }
+  .member-dialog__credit {
+    margin-top: 8px;
+    color: rgba(244, 232, 208, 0.56);
+    font-size: 0.72rem;
+    line-height: 1.4;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .member-dialog__credit a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .member-dialog__credit a:hover {
+    color: var(--lavender-soft);
   }
   .member-dialog__frame img {
     width: 100%;
@@ -344,7 +391,7 @@ const linkLabel = (link: NormalizedBandMember["links"][number]) =>
       gap: 18px;
       justify-items: start;
     }
-    .member-dialog__frame {
+    .member-dialog__media {
       width: min(220px, 60%);
     }
   }

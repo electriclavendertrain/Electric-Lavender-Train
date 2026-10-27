@@ -12,9 +12,8 @@ const unsubscribeUrl = getNewsletterUnsubscribeUrl();
 <LegalPage
   title={title}
   description={description}
-  kicker="Legal"
   heading="Privacy Policy"
-  effectiveDate="September 30, 2026"
+  effectiveDate="October 24, 2026"
 >
   <p>
     This website is operated by The Electric Lavender Train (“we,” “us,” or “our”). This policy
@@ -69,10 +68,10 @@ const unsubscribeUrl = getNewsletterUnsubscribeUrl();
 
   <h2>Newsletter signup</h2>
   <p>
-    When the newsletter link is available, it opens a form hosted by Brevo rather than a form on
-    this website. The form collects your email address for one weekly ELT schedule newsletter.
-    It does not offer a separate show-alert list or preference. Signup uses double opt-in: Brevo
-    sends a confirmation message, and you are not subscribed until you confirm.
+    The newsletter signup link opens a form hosted by Brevo rather than a form on this website.
+    The form collects your email address for one weekly ELT schedule newsletter. It does not offer
+    a separate show-alert list or preference. Signup uses double opt-in: Brevo sends a confirmation
+    message, and you are not subscribed until you confirm.
   </p>
   <p>
     The hosted form may use Google reCAPTCHA to distinguish people from automated submissions.
@@ -81,30 +80,31 @@ const unsubscribeUrl = getNewsletterUnsubscribeUrl();
     information according to the settings applied to our account and Brevo's own practices.
   </p>
   <p>
-    You can unsubscribe two ways: the unsubscribe link included in every newsletter, or{" "}
+    You can unsubscribe through the recipient-specific link included in every newsletter.
     {unsubscribeUrl ? (
-      <a href={unsubscribeUrl} target="_blank" rel="noopener noreferrer">
-        our hosted unsubscribe form
-        <span class="visually-hidden"> (opens in a new tab)</span>
-      </a>
-    ) : (
-      "our hosted unsubscribe form, when available"
-    )}
-    . Either path blocklists (suppresses) your address from future email campaigns. Brevo, our
+      <>
+        {" "}You may also use{" "}
+        <a href={unsubscribeUrl} target="_blank" rel="noopener noreferrer">
+          our hosted unsubscribe form
+          <span class="visually-hidden"> (opens in a new tab)</span>
+        </a>
+        .
+      </>
+    ) : null}
+    {" "}Either path blocklists (suppresses) your address from future email campaigns. Brevo, our
     newsletter provider, may still retain your contact record and list history — including that
     you unsubscribed — so it can honor the opt-out and avoid accidentally re-mailing or
     re-importing the address without a valid new consent. You may also contact us to request
-    deletion, though a suppression record itself may need to persist to keep the address
-    permanently excluded.
+    deletion, though a suppression record itself may need to persist to keep the address excluded.
   </p>
 
   <h2>Event-media submissions</h2>
   <p>
-    When the “Share Your Event Media” link is available, it opens a Google Form. The upload and
-    consent process occurs on Google's systems, not this website. Google may require sign-in and
-    may associate the response with your Google account. The form may collect your contact
-    information, event details, uploaded photos or video, and your response to the consent and
-    permission terms displayed on that form.
+    The “Share Your Event Media” link opens a Google Form. The upload and consent process occurs on
+    Google's systems, not this website. Google may require sign-in and may associate the response
+    with your Google account. The form may collect your contact information, event details,
+    uploaded photos or video, and your required acknowledgment that you reviewed this Privacy
+    Policy and agree to the Terms of Use, including the event-media submission terms.
   </p>
   <p>
     Submission does not guarantee publication. Do not submit media you lack permission to share.
@@ -114,21 +114,21 @@ const unsubscribeUrl = getNewsletterUnsubscribeUrl();
 
   <h2>Testimonial submissions</h2>
   <p>
-    When a “Share Your Experience” or similar testimonial link is available on the About page, it
-    opens a Google Form owned by Hunter, not a form on this website. The form may collect your
-    name, a private email address, your relationship to or experience with Electric Lavender
-    Train, your testimonial text, how you'd like to be publicly credited (or that you'd prefer to
-    stay anonymous), an optional supporting link, and your response to the consent and permission
-    terms displayed on that form.
+    The “Share Your Experience” link on the About page opens a Google Form owned by Hunter, not a
+    form on this website. The form may collect your name, a private email address, your relationship
+    to or experience with Electric Lavender Train, your testimonial text, how you'd like to be
+    publicly credited (or that you'd prefer to stay anonymous), an optional supporting link, and
+    your required acknowledgment that you reviewed this Privacy Policy and agree to the Terms of
+    Use, including the testimonial-submission terms.
   </p>
   <p>
     Submissions are reviewed manually; submitting a testimonial does not guarantee it will be
     published. Only the quote and attribution wording we approve for publication is copied into
-    this website's public content. Your private email address, consent responses, and any
-    moderation notes stay in the private Google Form and its response spreadsheet — never in
-    public website content. We may lightly edit an approved testimonial for length or clarity
-    without changing its meaning, and only with your consent where the form asks for it. If you'd
-    like a published testimonial removed or corrected, use the Content Removal Request form on the
+    this website's public content. Your private email address, acknowledgment response, and any
+    review notes stay in the private Google Form and its response spreadsheet — never in public
+    website content. We may lightly edit an approved testimonial for length or clarity without
+    changing its meaning, as described in the Terms of Use. If you'd like a published testimonial
+    removed or corrected, use the Content Removal Request form on the{" "}
     <a href={siteConfig.routes.contactBooking}>Contact & Booking</a> page or email us directly;
     submitting a request starts our review and does not automatically guarantee removal.
   </p>
@@ -136,8 +136,8 @@ const unsubscribeUrl = getNewsletterUnsubscribeUrl();
   <h2>Service providers and external services</h2>
   <ul>
     <li><strong>Formspree</strong> processes configured inquiry forms and delivers notifications.</li>
-    <li><strong>Google</strong> provides Gmail, Google Forms/Drive for event-media and testimonial submissions where enabled, reCAPTCHA where displayed, and YouTube.</li>
-    <li><strong>Brevo</strong> hosts the newsletter form and manages subscriptions and email delivery when enabled.</li>
+    <li><strong>Google</strong> provides Gmail, Google Forms/Drive for event-media and testimonial submissions, reCAPTCHA where displayed, and YouTube.</li>
+    <li><strong>Brevo</strong> hosts the newsletter forms and manages subscriptions and email delivery.</li>
     <li><strong>Sanity</strong> stores public editorial content; it does not receive inquiry or newsletter submissions.</li>
     <li><strong>Our website host</strong> serves the site and may keep routine access and security logs.</li>
   </ul>
@@ -166,48 +166,53 @@ const unsubscribeUrl = getNewsletterUnsubscribeUrl();
   </p>
 
   <h2>Retention</h2>
+  <p>
+    We have not configured a separate ELT automatic-deletion schedule in Formspree, Brevo, or
+    Google Forms. Records in those services follow the account's current plan, the provider's
+    default behavior, and the manual actions described below. Provider-controlled logs, backups,
+    and suppression records may follow separate provider schedules.
+  </p>
   <ul>
     <li>
-      <strong>Inquiries:</strong> retained only as reasonably necessary to respond, manage a
-      potential or confirmed engagement, maintain appropriate records, resolve disputes, handle
-      removal requests, and meet legal obligations. Closed inquiries are periodically reviewed and
-      deleted when there is no reasonable need to keep them.
+      <strong>Inquiries:</strong> Formspree keeps dashboard submission history according to the
+      account's plan and default settings. Notification emails remain in Gmail until they are
+      manually deleted. We may retain records needed for an active engagement, accounting,
+      disputes, security, a removal outcome, or legal obligations.
     </li>
     <li>
-      <strong>Newsletter:</strong> active subscription information is retained while you remain
-      subscribed. After unsubscribe, a limited suppression record may be retained to honor the
-      opt-out and prevent accidental resubscription.
+      <strong>Newsletter:</strong> Brevo keeps contact and campaign information under its account
+      defaults. Unsubscribing blocklists the address from campaigns; Brevo may retain the contact,
+      list history, and a suppression record so the opt-out continues to be honored.
     </li>
     <li>
-      <strong>Event media:</strong> unselected original uploads are targeted for deletion within
-      approximately one month. Selected media and the associated permission record may be retained
-      as reasonably necessary to support authorized use.
+      <strong>Google Forms:</strong> event-media and testimonial responses, linked spreadsheet
+      rows, and uploaded files remain in Hunter's Google account until they are manually deleted or
+      Google applies its own account, storage, or service rules. Deleting a form response does not
+      automatically delete a linked spreadsheet row or uploaded file, so each location must be
+      reviewed separately.
     </li>
     <li>
-      <strong>Testimonial submissions:</strong> the private Google Form response (including your
-      email address and consent responses) is retained as reasonably necessary for moderation,
-      approval records, and to honor a later removal request. Once we copy approved quote and
-      attribution text into this website's public content, that public copy follows this policy's
-      general retention practice for published content, separate from the private form response.
-    </li>
-    <li>
-      <strong>Provider records:</strong> security logs and backups controlled by a provider may
-      follow that provider's retention schedule and may not disappear immediately.
+      <strong>Published content:</strong> selected media, approved testimonial wording, attribution,
+      and supporting permission records may be retained as reasonably necessary while the content
+      is used and to handle later correction or removal requests.
     </li>
   </ul>
   <p>
-    Retention reviews are performed by people; this website does not run an automatic deletion
-    system. Any export we create is subject to the same retention decision as its source.
+    When we receive a valid access, correction, deletion, or content-removal request, we review the
+    records we control in the relevant provider accounts and remove or correct them where
+    appropriate, unless continued retention is reasonably required for a contract, accounting,
+    dispute, security, suppression, or legal obligation. Deletion from an active account may not
+    immediately remove provider-controlled backups or logs.
   </p>
 
   <h2>Your choices and requests</h2>
   <p>
-    You may ask to access, correct, or delete information you submitted by emailing
-    <a href={`mailto:${email}`}>{email}</a>. For published content, you may also use the
-    Content Removal Request form. We will review the request and may retain information when
-    reasonably required for a contract, accounting, dispute, security, or legal obligation.
-    Newsletter recipients can unsubscribe through the link in any newsletter or the hosted
-    unsubscribe form described above.
+    You may ask to access, correct, or delete information you submitted by emailing{" "}
+    <a href={`mailto:${email}`}>{email}</a>. For published content, you may also use the{" "}
+    <a href={siteConfig.routes.contactBooking}>Content Removal Request form</a>. We will review the
+    request and may retain information when reasonably required for a contract, accounting,
+    dispute, security, suppression, or legal obligation. Newsletter recipients can unsubscribe
+    through the link in any newsletter or the hosted unsubscribe form described above.
   </p>
 
   <h2>Security</h2>

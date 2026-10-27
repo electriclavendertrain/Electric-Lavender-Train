@@ -124,7 +124,7 @@ export const aboutPage = defineType({
       name: 'members',
       title: 'Band members',
       description:
-        'The members shown on this page, in the order they should appear. Drag to reorder — this order is the render order.',
+        'Choose 1 to 8 members, in the order they should appear. Drag to reorder — this order is the render order.',
       type: 'array',
       of: [defineArrayMember({type: 'reference', to: [{type: 'bandMember'}]})],
       validation: (Rule) =>
@@ -137,7 +137,7 @@ export const aboutPage = defineType({
       name: 'testimonialsIntro',
       title: 'Testimonials heading (About Page)',
       description:
-        'This controls only the About page section heading. Testimonial quotes, sources, logos, links, and display order are managed in “Testimonials” in the Studio sidebar and are shared with the Homepage. The Homepage heading is edited separately.',
+        'This controls only the About section testimonial labels. Actual testimonial quotes, sources, logos, links, and display order are managed in “Testimonials” in the Studio sidebar and are shared with the Home page. This section is rendered only when testimonials are present; otherwise, it is omitted.',
       type: 'object',
       validation: (Rule) => Rule.required().error('Complete the About page testimonial heading.'),
       fields: [
@@ -288,7 +288,7 @@ export const aboutPage = defineType({
           name: 'ogImage',
           title: 'Social share image',
           description:
-            'Optional image used when the About page is shared. Independent of the Homepage and Shows page share images.',
+            'Optional image used when the About page is shared. It does not appear in visible page content. All other pages have their own independent share-image fields.',
           type: 'image',
         }),
       ],

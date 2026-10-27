@@ -17,6 +17,7 @@ interface Props {
   videos: NormalizedGalleryVideo[];
   hasPerformance: boolean;
   hasVenueCrowd: boolean;
+  hasBandPhotos: boolean;
   hasVideos: boolean;
   /** Heading element/level — independent of `firstSection` below. Defaults
    * to `"h2"`, matching every existing caller. (Named `headingTag`, not
@@ -38,6 +39,7 @@ const {
   videos,
   hasPerformance,
   hasVenueCrowd,
+  hasBandPhotos,
   hasVideos,
   headingTag: HeadingTag = "h2",
   firstSection = false,
@@ -54,6 +56,9 @@ const filters = [
     : []),
   ...(hasVenueCrowd
     ? [{ value: "venue-crowd", label: galleryMerchCopy.gallery.categoryLabels["venue-crowd"] }]
+    : []),
+  ...(hasBandPhotos
+    ? [{ value: "band-photos", label: galleryMerchCopy.gallery.categoryLabels["band-photos"] }]
     : []),
   ...(hasVideos ? [{ value: "video", label: galleryMerchCopy.gallery.videoFilterLabel }] : []),
 ];
@@ -127,19 +132,6 @@ const hasMedia = items.length > 0 || videos.length > 0;
                         +
                       </span>
                     </a>
-                    {item.credit && (
-                      <figcaption class="media-gallery__credit">
-                        <span class="visually-hidden">{galleryMerchCopy.gallery.photoCreditPrefix}</span>
-                        {item.credit.url ? (
-                          <a href={item.credit.url} target="_blank" rel="noopener noreferrer">
-                            {item.credit.label}
-                            <span class="visually-hidden">{galleryMerchCopy.newTabSuffix}</span>
-                          </a>
-                        ) : (
-                          item.credit.label
-                        )}
-                      </figcaption>
-                    )}
                   </figure>
                 </li>
               );

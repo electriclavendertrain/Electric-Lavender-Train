@@ -86,10 +86,41 @@ export const contactPage = defineType({
       ],
     }),
     defineField({
+      name: 'faq',
+      title: 'Frequently asked questions',
+      description:
+        'Rendered immediately after the Privacy & Delivery material, before the newsletter callout. Choose up to 12. Do not promise response times, fixed prices, guaranteed availability, a confirmed booking, or inventory in any answer.',
+      type: 'array',
+      of: [
+        defineArrayMember({
+          type: 'object',
+          name: 'faqEntry',
+          fields: [
+            defineField({
+              name: 'question',
+              title: 'Question',
+              type: 'string',
+              validation: (Rule) => Rule.required().error('Enter the FAQ question.'),
+            }),
+            defineField({
+              name: 'answer',
+              title: 'Answer',
+              description:
+                'Keep the answer factual and avoid promising response times, prices, availability, bookings, or inventory.',
+              type: 'text',
+              validation: (Rule) => Rule.required().error('Enter the answer to this FAQ question.'),
+            }),
+          ],
+          preview: {select: {title: 'question', subtitle: 'answer'}},
+        }),
+      ],
+      validation: (Rule) => Rule.max(12).error('Keep this list to 12 questions or fewer.'),
+    }),
+    defineField({
       name: 'newsletterCta',
       title: 'Compact newsletter callout',
       description:
-        'A short, secondary callout pointing visitors to the homepage newsletter section. This page never collects an email address directly — the link always leads to "/#newsletter" or the validated hosted signup URL.',
+        'Shown after Frequently asked questions, matching the public Contact page. This page never collects an email address directly — the link leads to the Homepage newsletter section or the validated hosted signup URL.',
       type: 'object',
       validation: (Rule) => Rule.required().error('Complete the newsletter callout.'),
       fields: [
@@ -110,36 +141,6 @@ export const contactPage = defineType({
           title: 'Link text',
           type: 'string',
           validation: (Rule) => Rule.required().error('Enter the newsletter link text.'),
-        }),
-      ],
-    }),
-    defineField({
-      name: 'faq',
-      title: 'Frequently asked questions',
-      description:
-        'Rendered immediately after the Privacy & Delivery material, before the newsletter callout. Do not promise response times, fixed prices, guaranteed availability, a confirmed booking, or inventory in any answer.',
-      type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'object',
-          name: 'faqEntry',
-          fields: [
-            defineField({
-              name: 'question',
-              title: 'Question',
-              type: 'string',
-              validation: (Rule) => Rule.required().error('Enter the FAQ question.'),
-            }),
-            defineField({
-              name: 'answer',
-              title: 'Answer',
-              description:
-                'Draft placeholder wording — safe to publish as-is, but confirm with Hunter before treating it as final.',
-              type: 'text',
-              validation: (Rule) => Rule.required().error('Enter the answer to this FAQ question.'),
-            }),
-          ],
-          preview: {select: {title: 'question', subtitle: 'answer'}},
         }),
       ],
     }),
@@ -166,7 +167,7 @@ export const contactPage = defineType({
           name: 'ogImage',
           title: 'Social share image',
           description:
-            'Optional image used when this page is shared. Independent of every other page’s share image.',
+            'Optional image used when the Contact & Booking page is shared. It does not appear in visible page content. All other pages have their own independent share-image fields.',
           type: 'image',
         }),
       ],

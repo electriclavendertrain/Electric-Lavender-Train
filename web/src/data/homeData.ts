@@ -12,9 +12,9 @@ export const upcomingShowsFallback = {
   viewAllLabel: "View All Shows",
   emptyState: {
     title: "No shows on the calendar right now",
-    message:
-      "Check back soon, or follow along on Instagram for the latest announcements.",
-    actionLabel: "Follow Us on Instagram",
+    message: "Follow along on Instagram for the latest announcements.",
+    actionLabel: null,
+    actionUrl: null,
   },
 };
 

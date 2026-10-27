@@ -273,11 +273,11 @@ export function getOgImageUrl(
   return sanityImageUrl(ogImage, OG_IMAGE_SIZE);
 }
 
-/** The Homepage's "ELT Experience" section requires a heading, an introduction, and exactly `REQUIRED_EXPERIENCE_HIGHLIGHTS` highlights — each with a non-blank title and description. */
+/** The Homepage's "ELT Experience" section requires a heading, and exactly `REQUIRED_EXPERIENCE_HIGHLIGHTS` highlights — each with a non-blank title and description. */
 export function isExperienceContentComplete(
   experience: Homepage["experience"] | undefined,
 ): boolean {
-  if (!cleanText(experience?.heading) || !cleanText(experience?.introduction)) {
+  if (!cleanText(experience?.heading)) {
     return false;
   }
   const highlights = experience?.highlights ?? [];
@@ -311,7 +311,7 @@ export interface NormalizedOfficialBandPhoto {
   alt: string;
   srcSet: string;
   sizes: string;
-  credit: { label: string; url: string | null } | null;
+  member: { _id: string; name: string };
 }
 
 const MAX_OFFICIAL_BAND_PHOTOS = 4;
@@ -329,7 +329,7 @@ type RawOfficialBandPhoto = NonNullable<
 function normalizeOneOfficialBandPhoto(
   media: RawOfficialBandPhoto | null | undefined,
   strict: boolean,
-): Omit<NormalizedOfficialBandPhoto, "_key"> | null {
+): Omit<NormalizedOfficialBandPhoto, "_key" | "member"> | null {
   if (!media) return null;
 
   const alt = cleanText(media.alt);
@@ -349,11 +349,6 @@ function normalizeOneOfficialBandPhoto(
     }
   }
 
-  const creditLabel = cleanText(media.creditLine);
-  const credit = creditLabel
-    ? { label: creditLabel, url: safeExternalUrl(media.creditUrl) }
-    : null;
-
   const width = OFFICIAL_BAND_PHOTO_WIDTH;
   return {
     src: sanityImageUrl(image, { width }),
@@ -363,7 +358,6 @@ function normalizeOneOfficialBandPhoto(
     alt,
     srcSet: sanityImageSrcSet(image, OFFICIAL_BAND_PHOTO_WIDTHS),
     sizes: "(max-width: 560px) 88vw, (max-width: 980px) 44vw, 270px",
-    credit,
   };
 }
 
@@ -384,13 +378,25 @@ export function normalizeOfficialBandPhotos(
       if (strict) return null;
       continue;
     }
+    const members = entry?.members ?? [];
+    const memberId = members.length === 1 ? cleanText(members[0]?._id) : null;
+    const memberName =
+      members.length === 1 ? cleanText(members[0]?.name) : null;
+    if (!memberId || !memberName) {
+      if (strict) return null;
+      continue;
+    }
     const assetId = entry.mediaItem?.image?.asset?._id;
     if (assetId) {
       if (seenAssetIds.has(assetId)) continue;
       seenAssetIds.add(assetId);
     }
 
-    items.push({ _key: entry._key, ...photo });
+    items.push({
+      _key: entry._key,
+      ...photo,
+      member: { _id: memberId, name: memberName },
+    });
   }
 
   return items;
@@ -457,6 +463,7 @@ export interface NormalizedMemberProfileImage {
   height: number;
   objectPosition: string;
   alt: string;
+  credit: { label: string; url: string | null } | null;
   /** Optional — present only for live Sanity-sourced images (never
    * generated for the local dev-fallback photos built in `about.astro`).
    * `<img srcset>`/`sizes` simply omit themselves when this is undefined. */
@@ -609,6 +616,11 @@ function normalizeMemberProfileImage(
   const alt = cleanText(profileImage?.alt);
   if (!image || !assetId || !alt) return null;
 
+  const creditLabel = cleanText(profileImage?.creditLine);
+  const credit = creditLabel
+    ? { label: creditLabel, url: safeExternalUrl(profileImage?.creditUrl) }
+    : null;
+
   const width = MEMBER_PROFILE_IMAGE_WIDTH;
   return {
     src: sanityImageUrl(image, { width }),
@@ -616,6 +628,7 @@ function normalizeMemberProfileImage(
     height: Math.round(width / computeCroppedAspectRatio(image)),
     objectPosition: computeObjectPosition(image),
     alt,
+    credit,
     srcSet: sanityImageSrcSet(image, MEMBER_PROFILE_IMAGE_WIDTHS),
     sizes: "(max-width: 560px) 88vw, (max-width: 980px) 44vw, 270px",
   };
@@ -788,7 +801,9 @@ export function normalizeAboutPageContent(
       kicker: testimonialsKicker,
       heading: testimonialsHeading,
     },
-    testimonialSubmission: normalizeTestimonialSubmission(page.testimonialSubmission),
+    testimonialSubmission: normalizeTestimonialSubmission(
+      page.testimonialSubmission,
+    ),
     bookingCta: {
       kicker: cleanText(page.bookingCta?.kicker),
       heading: bookingHeading,
@@ -870,7 +885,11 @@ export interface NormalizedShowsPageContent {
   };
   upcoming: { heading: string };
   recent: { kicker: string | null; heading: string };
-  emptyState: { title: string; message: string; actionLabel: string };
+  emptyState: {
+    title: string;
+    message: string;
+    externalRedirect: { label: string; url: string } | null;
+  };
   bookingCta: {
     kicker: string | null;
     heading: string;
@@ -882,6 +901,11 @@ export interface NormalizedShowsPageContent {
     metaDescription: string | null;
     ogImageUrl: string | null;
   };
+}
+
+export interface NormalizedExternalRedirect {
+  label: string;
+  url: string;
 }
 
 /** Treats the Shows singleton as one complete editorial unit. */
@@ -899,7 +923,10 @@ export function normalizeShowsPageContent(
   const recentHeading = cleanText(page.recent?.heading);
   const emptyTitle = cleanText(page.emptyState?.title);
   const emptyMessage = cleanText(page.emptyState?.message);
-  const emptyActionLabel = cleanText(page.emptyState?.actionLabel);
+  const externalRedirect = normalizeExternalRedirect(
+    page.emptyState?.actionLabel,
+    page.emptyState?.actionUrl,
+  );
   const bookingHeading = cleanText(page.bookingCta?.heading);
   const bookingBody = cleanText(page.bookingCta?.body);
   const bookingCtaLabel = cleanText(page.bookingCta?.ctaLabel);
@@ -911,7 +938,6 @@ export function normalizeShowsPageContent(
     !recentHeading ||
     !emptyTitle ||
     !emptyMessage ||
-    !emptyActionLabel ||
     !bookingHeading ||
     !bookingBody ||
     !bookingCtaLabel
@@ -933,7 +959,7 @@ export function normalizeShowsPageContent(
     emptyState: {
       title: emptyTitle,
       message: emptyMessage,
-      actionLabel: emptyActionLabel,
+      externalRedirect,
     },
     bookingCta: {
       kicker: cleanText(page.bookingCta?.kicker),
@@ -959,6 +985,16 @@ function safeExternalUrl(value: string | null | undefined): string | null {
   } catch {
     return null;
   }
+}
+
+/** Returns one complete editor-owned external redirect or omits it. */
+export function normalizeExternalRedirect(
+  actionLabel: string | null | undefined,
+  actionUrl: string | null | undefined,
+): NormalizedExternalRedirect | null {
+  const label = cleanText(actionLabel);
+  const url = safeExternalUrl(actionUrl);
+  return label && url ? { label, url } : null;
 }
 
 function isPublicShowStatus(value: unknown): value is PublicShowStatus {
@@ -1052,11 +1088,13 @@ export function normalizePrivateEvents(
  * content is ever logged.
  * ====================================================================== */
 
-export type MediaGalleryCategory = "performance" | "venue-crowd";
+export type MediaGalleryCategory =
+  "performance" | "venue-crowd" | "band-photos";
 
 const GALLERY_CATEGORIES: readonly MediaGalleryCategory[] = [
   "performance",
   "venue-crowd",
+  "band-photos",
 ];
 
 const MAX_GALLERY_ITEMS = 24;
@@ -1180,6 +1218,7 @@ export interface NormalizedGallerySection {
    * without building three duplicate image arrays. */
   hasPerformance: boolean;
   hasVenueCrowd: boolean;
+  hasBandPhotos: boolean;
   /** Whether the code-owned "Videos" filter should render at all — true
    * only when `videos` is non-empty. */
   hasVideos: boolean;
@@ -1192,13 +1231,13 @@ export interface NormalizedMerchSection {
   items: NormalizedMerchItem[];
 }
 
-/** `null` when the section is off (editor hasn't enabled it, or hasn't filled in the required copy) — omitted from the page entirely. */
+/** `null` when the section is off or its required copy/form URL is incomplete — omitted from the page entirely. */
 export interface NormalizedEventMediaSubmission {
   kicker: string | null;
   heading: string;
   explanation: string;
   ctaLabel: string;
-  formUrl: string | null;
+  formUrl: string;
 }
 
 export interface NormalizedGalleryPageContent {
@@ -1543,14 +1582,15 @@ function normalizeEventMediaSubmission(
   const heading = cleanText(raw.heading);
   const explanation = cleanText(raw.explanation);
   const ctaLabel = cleanText(raw.ctaLabel);
-  if (!heading || !explanation || !ctaLabel) return null;
+  const formUrl = safeGoogleFormUrl(raw.formUrl);
+  if (!heading || !explanation || !ctaLabel || !formUrl) return null;
 
   return {
     kicker: cleanText(raw.kicker),
     heading,
     explanation,
     ctaLabel,
-    formUrl: safeGoogleFormUrl(raw.formUrl),
+    formUrl,
   };
 }
 
@@ -1597,6 +1637,9 @@ export function normalizeGalleryPageContent(
       ),
       hasVenueCrowd: galleryItems.some(
         (item) => item.category === "venue-crowd",
+      ),
+      hasBandPhotos: galleryItems.some(
+        (item) => item.category === "band-photos",
       ),
       hasVideos: galleryVideos.length > 0,
     },
@@ -1739,7 +1782,8 @@ export function normalizeContactPageContent(
  * Music page (/music)
  *
  * Visible order: Featured (always rendered, supplies the page's one heading)
- * → Releases (released music only) → Heavy Crush Records label affiliation.
+ * → Releases (released music only) → optional Heavy Crush Records label
+ * affiliation → Booking call to action.
  * There is no Upcoming Releases section, empty state, or countdown anywhere
  * on this page — `musicRelease.state` is retained as a content-model fact
  * (a release may still be authored as "upcoming" before release day), but
@@ -1817,6 +1861,12 @@ export interface NormalizedMusicPageContent {
   featured: NormalizedFeatured;
   releases: NormalizedMusicRelease[];
   labelAffiliation: NormalizedMusicLabelAffiliation | null;
+  bookingCta: {
+    kicker: string | null;
+    heading: string;
+    body: string;
+    ctaLabel: string;
+  } | null;
   seo: {
     metaTitle: string | null;
     metaDescription: string | null;
@@ -2037,6 +2087,20 @@ export function normalizeMusicPageContent(
   const labelAffiliationYoutube = safeYoutubeUrl(
     page.labelAffiliation?.socialLinks?.youtubeUrl,
   );
+  const bookingHeading = cleanText(page.bookingCta?.heading);
+  const bookingBody = cleanText(page.bookingCta?.body);
+  const bookingCtaLabel = cleanText(page.bookingCta?.ctaLabel);
+  const bookingCta =
+    bookingHeading && bookingBody && bookingCtaLabel
+      ? {
+          kicker: cleanText(page.bookingCta?.kicker),
+          heading: bookingHeading,
+          body: bookingBody,
+          ctaLabel: bookingCtaLabel,
+        }
+      : null;
+
+  if (options.strict && bookingCta === null) return null;
 
   return {
     featured,
@@ -2063,6 +2127,7 @@ export function normalizeMusicPageContent(
             },
           }
         : null,
+    bookingCta,
     seo: {
       metaTitle: cleanText(page.seo?.metaTitle),
       metaDescription: cleanText(page.seo?.metaDescription),

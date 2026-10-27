@@ -101,7 +101,8 @@ export const siteConfig: SiteConfig = {
     youtube: null,
     linktree: "https://linktr.ee/electriclavendertrain",
     venmo: "https://venmo.com/u/heavycrushrecords",
-    appleMusic: "https://music.apple.com/us/artist/the-electric-lavender-train/6774378427",
+    appleMusic:
+      "https://music.apple.com/us/artist/the-electric-lavender-train/6774378427",
     spotify: "https://open.spotify.com/artist/6ndUytStOTBMrvOggBzCRf",
   },
   venmoLabel: "Tip the Band",
@@ -109,7 +110,8 @@ export const siteConfig: SiteConfig = {
   heavyCrushRecords: {
     name: "Heavy Crush Records",
     url: "https://www.heavycrushrecords.com/",
-    relationshipText: "The Electric Lavender Train is part of Heavy Crush Records.",
+    relationshipText:
+      "The Electric Lavender Train is part of Heavy Crush Records.",
     missionStatement: "Focus on intent. Empower through performance.",
     socialLinks: {
       facebookUrl: "https://www.facebook.com/profile.php?id=61558015122991",
@@ -119,7 +121,7 @@ export const siteConfig: SiteConfig = {
   },
 
   contact: {
-    email: "electriclavendertrain@gmail.com",
+    email: "info@theelectriclavendertrain.com",
     phone: null,
   },
 };
@@ -141,7 +143,10 @@ export function formatPageTitle(pageTitle: string): string {
 export type ContactInquiryType = "booking" | "merch" | "other" | "removal";
 
 /** Builds a safely encoded link to a selected Contact inquiry form. */
-export function contactInquiryHref(inquiry: ContactInquiryType, item?: string): string {
+export function contactInquiryHref(
+  inquiry: ContactInquiryType,
+  item?: string
+): string {
   const params = new URLSearchParams({ inquiry });
   if (item) params.set("item", item);
   return `${siteConfig.routes.contactBooking}?${params.toString()}#contact-forms`;

@@ -2,6 +2,7 @@
 /** Renders the curated Homepage photo grid. */
 
 import siteConfig from "../data/siteConfig";
+import { aboutPageCopy, memberDialogIdFor } from "../data/aboutData";
 import type { NormalizedOfficialBandPhoto } from "../sanity/normalize";
 
 interface Props {
@@ -13,6 +14,9 @@ interface Props {
 }
 
 const { kicker, heading, body, ctaLabel, photos } = Astro.props;
+
+const memberProfileHref = (photo: NormalizedOfficialBandPhoto) =>
+  `${siteConfig.routes.about}#${memberDialogIdFor(photo.member._id)}`;
 ---
 
 <section class="official-band-photos" aria-labelledby="official-band-photos-heading">
@@ -25,31 +29,11 @@ const { kicker, heading, body, ctaLabel, photos } = Astro.props;
       {
         photos.map((photo) => (
           <li class="official-band-photos__cell">
-            {photo.credit ? (
-              <figure class="official-band-photos__figure">
-                <img
-                  src={photo.src}
-                  srcset={photo.srcSet}
-                  sizes={photo.sizes}
-                  width={photo.width}
-                  height={photo.height}
-                  alt={photo.alt}
-                  decoding="async"
-                  style={`--focal-point: ${photo.objectPosition}`}
-                />
-                <figcaption class="official-band-photos__credit">
-                  <span class="visually-hidden">Photo credit: </span>
-                  {photo.credit.url ? (
-                    <a href={photo.credit.url} target="_blank" rel="noopener noreferrer">
-                      {photo.credit.label}
-                      <span class="visually-hidden"> (opens in a new tab)</span>
-                    </a>
-                  ) : (
-                    photo.credit.label
-                  )}
-                </figcaption>
-              </figure>
-            ) : (
+            <a
+              class="official-band-photos__link"
+              href={memberProfileHref(photo)}
+              aria-label={`${aboutPageCopy.memberCardActionPrefix} ${photo.member.name}`}
+            >
               <img
                 src={photo.src}
                 srcset={photo.srcSet}
@@ -60,7 +44,7 @@ const { kicker, heading, body, ctaLabel, photos } = Astro.props;
                 decoding="async"
                 style={`--focal-point: ${photo.objectPosition}`}
               />
-            )}
+            </a>
           </li>
         ))
       }
@@ -111,8 +95,13 @@ const { kicker, heading, body, ctaLabel, photos } = Astro.props;
     pointer-events: none;
   }
 
-  .official-band-photos__figure {
-    display: contents;
+  .official-band-photos__link {
+    display: block;
+    height: 100%;
+  }
+  .official-band-photos__link:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: -4px;
   }
 
   .official-band-photos__cell img {
@@ -122,28 +111,11 @@ const { kicker, heading, body, ctaLabel, photos } = Astro.props;
     aspect-ratio: 4 / 5;
     object-fit: cover;
     object-position: var(--focal-point, 50% 50%);
+    transition: transform 0.4s var(--ease), filter 0.4s var(--ease);
   }
-
-  .official-band-photos__credit {
-    position: absolute;
-    right: 10px;
-    bottom: 10px;
-    z-index: 2;
-    max-width: calc(100% - 20px);
-    padding: 3px 9px;
-    border-radius: 8px;
-    background: rgba(11, 11, 18, 0.6);
-    font-size: 0.7rem;
-    color: rgba(244, 232, 208, 0.75);
-    overflow-wrap: anywhere;
-  }
-  .official-band-photos__credit a {
-    color: rgba(244, 232, 208, 0.75);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .official-band-photos__credit a:hover {
-    color: var(--lavender-soft);
+  .official-band-photos__link:hover img {
+    transform: scale(1.035);
+    filter: brightness(1.06);
   }
 
   @media (max-width: 900px) {

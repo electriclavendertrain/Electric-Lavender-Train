@@ -6,7 +6,7 @@ import BaseLayout from "./BaseLayout.astro";
 interface Props {
   title: string;
   description: string;
-  kicker: string;
+  kicker?: string;
   heading: string;
   effectiveDate: string;
 }
@@ -17,7 +17,7 @@ const { title, description, kicker, heading, effectiveDate } = Astro.props;
 <BaseLayout title={title} description={description}>
   <section class="legal-page">
     <div class="section-inner intro-enter">
-      <p class="kicker">{kicker}</p>
+      {kicker && <p class="kicker">{kicker}</p>}
       <h1>{heading}</h1>
       <p class="legal-page__effective-date">Effective {effectiveDate}</p>
       <div class="legal-prose">

@@ -158,12 +158,13 @@ export const mediaItem = defineType({
       name: 'category',
       title: 'Gallery category',
       description:
-        'Optional. Groups this image under the Media & Merch gallery filters (Performances / Venue & Crowd). Leave unset for "uncategorized" — it still appears in "All" but not under either named filter.',
+        'Optional. Groups this image under a Gallery & Merchandise filter: Performances, Venue & Crowd, or Band Photos. Leave it unset only when the image should appear in All without a category filter.',
       type: 'string',
       options: {
         list: [
           {title: 'Performances', value: 'performance'},
           {title: 'Venue & Crowd', value: 'venue-crowd'},
+          {title: 'Band Photos', value: 'band-photos'},
         ],
         layout: 'dropdown',
       },

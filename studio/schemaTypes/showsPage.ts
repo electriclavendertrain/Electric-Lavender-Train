@@ -21,6 +21,7 @@ export const showsPage = defineType({
       message:
         'No upcoming dates are currently listed on this page. New public dates are added as they are confirmed. An unlisted date is not guaranteed available — send a booking inquiry and ELT will confirm.',
       actionLabel: 'Follow on Instagram',
+      actionUrl: 'https://www.instagram.com/electriclavendertrain',
     },
     bookingCta: {
       kicker: "Let's Ride Together",
@@ -111,8 +112,9 @@ export const showsPage = defineType({
     }),
     defineField({
       name: 'emptyState',
-      title: 'No upcoming shows message',
-      description: 'Shown only when no public shows or sanitized private bookings are upcoming.',
+      title: 'No upcoming shows message and external redirect',
+      description:
+        'Shown only when there are no upcoming Public shows or “Private booking — show date only” entries. A private entry contributes only its date/time and the website label “Private Event”; its private details are never displayed. The optional external redirect can send visitors to any approved social or public page.',
       type: 'object',
       validation: (Rule) =>
         Rule.required().error('Complete the message used when no upcoming shows are listed.'),
@@ -134,10 +136,33 @@ export const showsPage = defineType({
         }),
         defineField({
           name: 'actionLabel',
-          title: 'Instagram link text',
+          title: 'External redirect button text',
+          description:
+            'Optional. Enter this together with the External redirect URL below, or leave both blank to show no button.',
           type: 'string',
           validation: (Rule) =>
-            Rule.required().error('Enter the Instagram link text for the empty schedule.'),
+            Rule.custom((value, context) => {
+              const parent = context.parent as {actionUrl?: string} | undefined
+              if (parent?.actionUrl && !value?.trim()) {
+                return 'Enter the button text for the external redirect, or remove its URL.'
+              }
+              return true
+            }),
+        }),
+        defineField({
+          name: 'actionUrl',
+          title: 'External redirect URL',
+          description:
+            'Optional. Redirect visitors to an external social media or other public page when no shows are posted on the site.',
+          type: 'url',
+          validation: (Rule) =>
+            Rule.uri({scheme: ['https']}).custom((value, context) => {
+              const parent = context.parent as {actionLabel?: string} | undefined
+              if (value && !parent?.actionLabel?.trim()) {
+                return 'Enter the button text above, or remove this external redirect URL.'
+              }
+              return true
+            }),
         }),
       ],
     }),
@@ -198,7 +223,7 @@ export const showsPage = defineType({
           name: 'ogImage',
           title: 'Social share image',
           description:
-            'Optional image used when the Shows page is shared. Independent of the Homepage and About page share images.',
+            'Optional image used when the Shows page is shared. It does not appear in visible page content. All other pages have their own independent share-image fields.',
           type: 'image',
         }),
       ],

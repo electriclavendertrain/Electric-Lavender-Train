@@ -1,31 +1,63 @@
 ---
 /** Renders the three-item ELT Experience section. */
 
+import inTheRoomIcon from "../assets/icons/experience-in-the-room.svg";
+import onStageIcon from "../assets/icons/experience-on-stage.svg";
+import theSoundIcon from "../assets/icons/experience-the-sound.svg";
+
 interface Props {
   headingId: string;
   kicker?: string | null;
   heading: string;
-  introduction: string;
+  introduction?: string | null;
   highlights: readonly { _key: string; title: string; description: string }[];
 }
 
 const { headingId, kicker, heading, introduction, highlights } = Astro.props;
+const introductionText = introduction?.trim();
+
+// The content model fixes these three semantic positions while allowing an
+// editor to reword their visible titles. Keep presentation tied to position so
+// an editorial wording change cannot silently remove or swap an icon.
+const highlightIcons = [theSoundIcon, onStageIcon, inTheRoomIcon] as const;
 ---
 
 <section class="about-experience" aria-labelledby={headingId}>
   <div class="section-inner">
     {kicker && <p class="kicker reveal">{kicker}</p>}
     <h2 id={headingId} class="reveal reveal-1">{heading}</h2>
-    <p class="about-experience__intro reveal reveal-2">{introduction}</p>
+    {
+      introductionText && (
+        <p class="about-experience__intro reveal reveal-2">{introductionText}</p>
+      )
+    }
 
     <ul class="about-experience__grid">
       {
-        highlights.map((highlight, index) => (
-          <li class={`about-experience__card reveal reveal-${Math.min(index + 1, 4)}`}>
-            <h3 class="about-experience__title">{highlight.title}</h3>
-            <p class="about-experience__description">{highlight.description}</p>
-          </li>
-        ))
+        highlights.map((highlight, index) => {
+          const icon = highlightIcons[index];
+
+          return (
+            <li class={`about-experience__card reveal reveal-${Math.min(index + 1, 4)}`}>
+              <div class="about-experience__title-row">
+                {icon && (
+                  <img
+                    class="about-experience__icon"
+                    src={icon.src}
+                    width="52"
+                    height="52"
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
+                <h3 class="about-experience__title">{highlight.title}</h3>
+              </div>
+              <p class="about-experience__description">{highlight.description}</p>
+            </li>
+          );
+        })
       }
     </ul>
 
@@ -58,13 +90,25 @@ const { headingId, kicker, heading, introduction, highlights } = Astro.props;
     border: 1px solid rgba(160, 123, 239, 0.25);
     background: linear-gradient(160deg, rgba(90, 62, 123, 0.18), rgba(11, 11, 18, 0.4));
   }
+  .about-experience__title-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .about-experience__icon {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    object-fit: contain;
+  }
   .about-experience__title {
     font-size: 0.78rem;
     letter-spacing: 3px;
     text-transform: uppercase;
     font-weight: 600;
     color: var(--gold);
-    margin-bottom: 14px;
+    margin: 0;
     overflow-wrap: anywhere;
   }
   .about-experience__description {

@@ -21,10 +21,8 @@ export const TEST_MEDIA_ITEM_MARKER = "[TEST";
  *
  * Deliberately not editor-controlled: an editor renaming "Performances" to
  * something else would break the correspondence between the stored
- * `category` value and what a visitor is told it means. The no-commerce
- * notice defines the site's no-commerce boundary and stays out of Sanity for
- * the same reason the About page's new-tab notice does — it is an
- * accessibility/policy contract, not editorial voice.
+ * `category` value and what a visitor is told it means. The merchandise
+ * introduction is editor-owned in the Gallery & Merchandise singleton.
  * ---------------------------------------------------------------------- */
 
 export const galleryMerchCopy = {
@@ -35,6 +33,7 @@ export const galleryMerchCopy = {
     categoryLabels: {
       performance: "Performances",
       "venue-crowd": "Venue & Crowd",
+      "band-photos": "Band Photos",
     } satisfies Record<MediaGalleryCategory, string>,
     /** Code-owned, like the two category labels above — video membership
      * comes from `mediaType`, never an editor-selected category, so this is
@@ -63,26 +62,13 @@ export const galleryMerchCopy = {
     /** Shown in place of the filters/grid when zero photos and videos are
      * selected — the heading (this page's `<h1>`) still renders above it,
      * since the page must never be left without one. */
-    emptyMessage: "No gallery photos or videos yet — check back soon.",
+    emptyMessage: "No gallery photos or videos are currently posted.",
   },
 
   merch: {
     headingId: "gallery-merch-items",
-    /** Protected: defines the site's no-commerce boundary. */
-    noCommerceNotice:
-      "Items are available by inquiry only — there is no online store, cart, or checkout. Use the merchandise inquiry form to email the band.",
     /** "Email the Band About {item name}" — an internal link, never a new tab. */
     inquiryLabelPrefix: "Email the Band About",
-  },
-
-  eventMediaSubmission: {
-    /** Shown when the section is enabled but no valid Google Form URL is
-     * configured yet — see `normalizeEventMediaSubmission` in `normalize.ts`.
-     * Never claims the consent/license mechanism is currently operational:
-     * that only becomes true once a real form and its consent language
-     * exist. */
-    notConfiguredNotice:
-      "This form isn't connected yet — check back soon, or use the direct email address in the footer.",
   },
 
   newTabSuffix: " (opens in a new tab)",
@@ -177,27 +163,8 @@ export interface FallbackMerchItem {
   availabilityNote: string | null;
 }
 
-/** Two items, deliberately generic — not the reference's invented shirts, bags, stickers, or vinyl. */
-export const merchFallback: FallbackMerchItem[] = [
-  {
-    _id: "fallback-merch-1",
-    name: `${TEST_PRODUCT_MARKER} Sample Product One`,
-    description: `${TEST_PRODUCT_MARKER} Placeholder description — approved product details are required from the client before this can go live.`,
-    image: null,
-    alt: null,
-    priceDisplay: null,
-    availabilityNote: null,
-  },
-  {
-    _id: "fallback-merch-2",
-    name: `${TEST_PRODUCT_MARKER} Sample Product Two`,
-    description: `${TEST_PRODUCT_MARKER} Placeholder description — approved product details are required from the client before this can go live.`,
-    image: galleryPerformance,
-    alt: "Placeholder product photo pending an approved merchandise photograph.",
-    priceDisplay: `${TEST_PRODUCT_MARKER} Placeholder price text`,
-    availabilityNote: `${TEST_PRODUCT_MARKER} Placeholder availability text`,
-  },
-];
+/** No fabricated merchandise appears when the development singleton is absent. */
+export const merchFallback: FallbackMerchItem[] = [];
 
 export const galleryMerchFallback = {
   gallery: {
@@ -208,7 +175,8 @@ export const galleryMerchFallback = {
   merch: {
     kicker: "Take It Home",
     heading: "Merchandise",
-    body: null as string | null,
+    body:
+      "Items are available by inquiry only — there is no online store, cart, or checkout. Use the merchandise inquiry form to email the band.",
   },
   bookingCta: {
     kicker: "Let's Ride Together",

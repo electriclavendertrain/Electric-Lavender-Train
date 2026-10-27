@@ -9,7 +9,7 @@ import ShowsEventGroup from "../components/ShowsEventGroup.astro";
 import PublicShowCard from "../components/PublicShowCard.astro";
 import ShowsEmptyState from "../components/ShowsEmptyState.astro";
 import PublicEventJsonLd from "../components/PublicEventJsonLd.astro";
-import siteConfig, { formatPageTitle } from "../data/siteConfig";
+import { formatPageTitle } from "../data/siteConfig";
 import { showsPageCopy, showsPageFallback, availabilityNoteParts } from "../data/showsData";
 import { sanityClient } from "../sanity/client";
 import {
@@ -101,8 +101,8 @@ const title = formatPageTitle(metaTitle);
           <ShowsEmptyState
             title={pageContent.emptyState.title}
             message={pageContent.emptyState.message}
-            actionHref={siteConfig.social.instagram}
-            actionLabel={pageContent.emptyState.actionLabel}
+            actionHref={pageContent.emptyState.externalRedirect?.url}
+            actionLabel={pageContent.emptyState.externalRedirect?.label}
             newTabSuffix={showsPageCopy.newTabSuffix}
           />
         )

@@ -16,8 +16,6 @@ export const HOMEPAGE_QUERY = defineQuery(`
           _id,
           title,
           alt,
-          creditLine,
-          creditUrl,
           image{
             ...,
             asset->{
@@ -25,7 +23,11 @@ export const HOMEPAGE_QUERY = defineQuery(`
               metadata{ dimensions }
             }
           }
-        }
+        },
+        "members": *[
+          _type == "bandMember" &&
+          profileImage._ref == ^._ref
+        ][0...2]{ _id, name }
       }
     },
     experience{
@@ -38,7 +40,7 @@ export const HOMEPAGE_QUERY = defineQuery(`
       kicker,
       heading,
       viewAllLabel,
-      emptyState{ title, message, actionLabel }
+      emptyState{ title, message, actionLabel, actionUrl }
     },
     testimonialsIntro{ kicker, heading },
     bookingCta,
@@ -131,6 +133,8 @@ export const ABOUT_PAGE_QUERY = defineQuery(`
           _id,
           title,
           alt,
+          creditLine,
+          creditUrl,
           image{
             ...,
             asset->{
@@ -200,7 +204,7 @@ export const SHOWS_PAGE_QUERY = defineQuery(`
     intro{ kicker, heading, paragraphs },
     upcoming{ heading },
     recent{ kicker, heading },
-    emptyState{ title, message, actionLabel },
+    emptyState{ title, message, actionLabel, actionUrl },
     bookingCta{ kicker, heading, body, ctaLabel },
     seo{ metaTitle, metaDescription, ogImage }
   }
@@ -319,13 +323,14 @@ export const CONTACT_PAGE_QUERY = defineQuery(`
  * `studio/schemaTypes/musicPage.ts`. The deprecated `featuredVideo` field
  * has been removed from the schema and is no longer selected here.
  *
- * Field order below (featured, labelAffiliation, releases, seo) matches
+ * Field order below (featured, releases, labelAffiliation, bookingCta, seo) matches
  * the editorial placement on the page: Featured renders first
- * and supplies the page's one heading, then Releases, then the Heavy Crush
- * Records label affiliation — see `music.astro` and the matching field
- * order in `studio/schemaTypes/musicPage.ts`. GROQ doesn't care about
- * projection field order, but keeping it visually consistent with the
- * page/schema avoids the two silently drifting apart.
+ * and supplies the page's one heading, then Releases, the optional Heavy
+ * Crush Records label affiliation, and the Booking call to action — see
+ * `music.astro` and the matching field order in
+ * `studio/schemaTypes/musicPage.ts`. GROQ doesn't care about projection
+ * field order, but keeping it visually consistent with the page/schema
+ * avoids the two silently drifting apart.
  * ---------------------------------------------------------------------- */
 
 export const MUSIC_PAGE_QUERY = defineQuery(`
@@ -338,14 +343,6 @@ export const MUSIC_PAGE_QUERY = defineQuery(`
         videoProvider,
         title
       }
-    },
-    labelAffiliation{
-      kicker,
-      text,
-      logoAlt,
-      url,
-      missionStatement,
-      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }
     },
     releases[]{
       _key,
@@ -374,6 +371,15 @@ export const MUSIC_PAGE_QUERY = defineQuery(`
         watchVideoUrl
       }
     },
+    labelAffiliation{
+      kicker,
+      text,
+      logoAlt,
+      url,
+      missionStatement,
+      socialLinks{ facebookUrl, instagramUrl, youtubeUrl }
+    },
+    bookingCta{ kicker, heading, body, ctaLabel },
     seo{ metaTitle, metaDescription, ogImage }
   }
 `);

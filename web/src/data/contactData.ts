@@ -2,7 +2,7 @@
 
 import type { ContactInquiryType } from "./siteConfig";
 
-/** The marker that makes the "contact delivery isn't configured yet" development state unmistakable, mirroring `TEST_BIOGRAPHY_MARKER` and `TEST_PRODUCT_MARKER`. */
+/** Prevents an unapproved fallback address from being treated as launch-ready. */
 export const TEST_EMAIL_MARKER = "[TEST — PUBLIC EMAIL REQUIRED]";
 
 export const DEFAULT_INQUIRY: ContactInquiryType = "booking";
@@ -390,11 +390,11 @@ export const contactCopy = {
    * invalid submission, which is blocked before this label ever changes. */
   submittingLabel: "Sending…",
 
-  devEmailNotice: `${TEST_EMAIL_MARKER} Contact delivery is not yet configured for this site. These forms are shown for layout and review only and cannot send a real inquiry until a public contact email is approved.`,
+  devEmailNotice: `${TEST_EMAIL_MARKER} Use the inquiry forms below to contact the band.`,
 
   /** Shown inside a specific panel when THAT inquiry type's own Formspree endpoint isn't configured — a state independent of whether the public contact email above is set. */
   formNotConfiguredNotice:
-    "This form isn't connected yet — please use the direct email address below instead.",
+    "Please use the direct email address below for this inquiry.",
 
   /** Rendered once, applying to all four forms — not tied to any single
    * field, so it isn't repeated per-panel. */

@@ -5,6 +5,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Featured from "../components/FeaturedVideo.astro";
 import MusicReleaseCard from "../components/MusicReleaseCard.astro";
 import LabelAffiliation from "../components/LabelAffiliation.astro";
+import BookingCTA from "../components/BookingCTA.astro";
 import siteConfig, { formatPageTitle } from "../data/siteConfig";
 import { musicPageCopy, musicPageFallback } from "../data/musicData";
 import { sanityClient } from "../sanity/client";
@@ -23,8 +24,8 @@ const normalizedMusicPage = normalizeMusicPageContent(rawMusicPage, {
 if (normalizedMusicPage === null && isProductionDataset) {
   throw new Error(
     "The Sanity `musicPage` singleton is missing or incomplete in the production dataset. " +
-      "The Featured section's heading must be complete, and every selected released release " +
-      "must resolve with a title, a recognized state, and a valid release date. Publish the " +
+      "The Featured and Booking call-to-action sections must be complete, and every selected " +
+      "released release must resolve with a title, a recognized state, and a valid release date. Publish the " +
       "Music Page in Sanity Studio before building for production.",
   );
 }
@@ -34,20 +35,13 @@ const pageContent: NormalizedMusicPageContent = normalizedMusicPage ?? {
   featured: musicPageFallback.featured,
   releases: [],
   labelAffiliation: null,
+  bookingCta: null,
   seo: { metaTitle: musicPageFallback.seo.metaTitle, metaDescription: musicPageFallback.seo.metaDescription, ogImageUrl: null },
 };
 
 const featuredVideoTitle = pageContent.featured.video?.title ?? `${siteConfig.bandNameFormal} — Featured Video`;
 
-// Use the complete verified code-owned label block when Sanity omits it.
-const labelAffiliation = pageContent.labelAffiliation ?? {
-  kicker: null,
-  text: siteConfig.heavyCrushRecords.relationshipText,
-  logoAlt: "Heavy Crush Records logo",
-  url: siteConfig.heavyCrushRecords.url,
-  missionStatement: siteConfig.heavyCrushRecords.missionStatement,
-  socialLinks: siteConfig.heavyCrushRecords.socialLinks,
-};
+const bookingCta = pageContent.bookingCta ?? musicPageFallback.bookingCta;
 
 const title = formatPageTitle(pageContent.seo.metaTitle ?? musicPageFallback.seo.metaTitle);
 const description = pageContent.seo.metaDescription ?? musicPageFallback.seo.metaDescription;
@@ -80,16 +74,28 @@ const description = pageContent.seo.metaDescription ?? musicPageFallback.seo.met
     </div>
   </section>
 
-  <LabelAffiliation
-    kicker={labelAffiliation.kicker}
-    text={labelAffiliation.text}
-    logoAlt={labelAffiliation.logoAlt}
-    url={labelAffiliation.url}
-    missionStatement={labelAffiliation.missionStatement}
-    facebookUrl={labelAffiliation.socialLinks.facebookUrl}
-    instagramUrl={labelAffiliation.socialLinks.instagramUrl}
-    youtubeUrl={labelAffiliation.socialLinks.youtubeUrl}
-    newTabSuffix={musicPageCopy.newTabSuffix}
+  {
+    pageContent.labelAffiliation && (
+      <LabelAffiliation
+        kicker={pageContent.labelAffiliation.kicker}
+        text={pageContent.labelAffiliation.text}
+        logoAlt={pageContent.labelAffiliation.logoAlt}
+        url={pageContent.labelAffiliation.url}
+        missionStatement={pageContent.labelAffiliation.missionStatement}
+        facebookUrl={pageContent.labelAffiliation.socialLinks.facebookUrl}
+        instagramUrl={pageContent.labelAffiliation.socialLinks.instagramUrl}
+        youtubeUrl={pageContent.labelAffiliation.socialLinks.youtubeUrl}
+        newTabSuffix={musicPageCopy.newTabSuffix}
+      />
+    )
+  }
+
+  <BookingCTA
+    kicker={bookingCta.kicker}
+    heading={bookingCta.heading}
+    body={bookingCta.body}
+    ctaLabel={bookingCta.ctaLabel}
+    balancedKicker={true}
   />
 </BaseLayout>
 

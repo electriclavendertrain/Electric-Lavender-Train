@@ -8,7 +8,7 @@ export const musicPageCopy = {
   releasedHeadingId: "music-released",
   releasedHeading: "Releases",
 
-  emptyReleasedMessage: "No releases are live yet — check back soon.",
+  emptyReleasedMessage: "No releases are currently posted.",
 
   /** Release-type badge text. "other"/unset render nothing rather than a
    * label that would just say "Other". */
@@ -41,6 +41,12 @@ export const musicPageFallback = {
     kicker: "Featured",
     heading: "Heavy Crush Records Presents...",
     video: null,
+  },
+  bookingCta: {
+    kicker: "Let’s Ride Together",
+    heading: "Bring the Music to You.",
+    body: "From winery patios and packed rooms to private celebrations, bring ELT’s live sound to your next event. Tell us what you’re planning and we’ll follow up about the details.",
+    ctaLabel: "Send a Booking Inquiry",
   },
   seo: {
     metaTitle: "Music",

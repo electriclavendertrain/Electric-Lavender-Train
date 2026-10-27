@@ -27,7 +27,7 @@ const { kicker, heading, body, ctaLabel, signupUrl, unsubscribeUrl } = Astro.pro
       <p class="newsletter__body">{body}</p>
 
       {
-        signupUrl ? (
+        signupUrl && (
           <a
             href={signupUrl}
             target="_blank"
@@ -37,12 +37,6 @@ const { kicker, heading, body, ctaLabel, signupUrl, unsubscribeUrl } = Astro.pro
             {ctaLabel}
             <span class="visually-hidden"> (opens in a new tab)</span>
           </a>
-        ) : (
-          <p class="newsletter__notice" data-newsletter-notice>
-            [TEST — NEWSLETTER SIGNUP NOT YET CONFIGURED] The hosted signup form isn't connected
-            yet, so there's nothing to submit to here. This notice — not a working button — is
-            what should appear until a real signup URL is configured.
-          </p>
         )
       }
 
@@ -93,15 +87,6 @@ const { kicker, heading, body, ctaLabel, signupUrl, unsubscribeUrl } = Astro.pro
   }
   .newsletter__cta {
     margin: 0 auto;
-  }
-  .newsletter__notice {
-    max-width: 58ch;
-    margin: 0 auto;
-    font-size: 0.85rem;
-    color: rgba(244, 232, 208, 0.65);
-    border: 1px dashed rgba(200, 168, 107, 0.4);
-    border-radius: 12px;
-    padding: 14px 18px;
   }
   /* Deliberately smaller and quieter than .newsletter__cta — an opt-out is a
      real, always-findable action, but never the visual peer of signup. */

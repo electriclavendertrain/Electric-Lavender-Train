@@ -22,6 +22,12 @@ export const musicPage = defineType({
         youtubeUrl: 'https://www.youtube.com/c/thetens',
       },
     },
+    bookingCta: {
+      kicker: 'Let’s Ride Together',
+      heading: 'Bring the Music to You.',
+      body: 'From winery patios and packed rooms to private celebrations, bring ELT’s live sound to your next event. Tell us what you’re planning and we’ll follow up about the details.',
+      ctaLabel: 'Send a Booking Inquiry',
+    },
     seo: {
       metaTitle: 'Music',
       metaDescription:
@@ -62,10 +68,36 @@ export const musicPage = defineType({
       ],
     }),
     defineField({
+      name: 'releases',
+      title: 'Releases — drag to order',
+      description:
+        'Only released music appears on the public Music page — this list should contain released releases only (Studio\'s picker below only offers releases already marked "Released"). Order here is the display order. Choose up to 40, each only once.',
+      type: 'array',
+      of: [
+        defineArrayMember({
+          type: 'reference',
+          to: [{type: 'musicRelease'}],
+          options: {filter: 'state == "released"'},
+        }),
+      ],
+      validation: (Rule) =>
+        Rule.max(40).custom((value) => {
+          if (!value || value.length === 0) return true
+          const refs = value
+            .map((entry) => (entry as {_ref?: string})._ref)
+            .filter((ref): ref is string => Boolean(ref))
+          const uniqueRefs = new Set(refs)
+          return (
+            uniqueRefs.size === refs.length ||
+            'Each release may only appear once — remove the duplicate.'
+          )
+        }),
+    }),
+    defineField({
       name: 'labelAffiliation',
       title: 'Heavy Crush Records information',
       description:
-        'Editable wording, mission statement, and social links for the Heavy Crush Records relationship, shown after Releases. Leave blank to use the approved default wording and links. Keep the relationship wording factual — check with Hunter before changing it.',
+        'Editable wording, mission statement, and social links for the Heavy Crush Records relationship, shown after Releases.',
       type: 'object',
       fields: [
         defineField({
@@ -191,30 +223,40 @@ export const musicPage = defineType({
       ],
     }),
     defineField({
-      name: 'releases',
-      title: 'Releases — drag to order',
+      name: 'bookingCta',
+      title: 'Booking call to action',
       description:
-        'Only released music appears on the public Music page — this list should contain released releases only (Studio\'s picker below only offers releases already marked "Released"). Order here is the display order. Choose up to 40, each only once.',
-      type: 'array',
-      of: [
-        defineArrayMember({
-          type: 'reference',
-          to: [{type: 'musicRelease'}],
-          options: {filter: 'state == "released"'},
+        'The final Music-page section inviting visitors to open the booking form. Complete all required fields before production launch.',
+      type: 'object',
+      validation: (Rule) =>
+        Rule.required().error('Complete the Music page booking call to action.'),
+      fields: [
+        defineField({
+          name: 'kicker',
+          title: 'Small label above heading',
+          type: 'string',
+        }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          type: 'string',
+          validation: (Rule) => Rule.required().error('Enter the booking call-to-action heading.'),
+        }),
+        defineField({
+          name: 'body',
+          title: 'Body',
+          type: 'text',
+          validation: (Rule) =>
+            Rule.required().error('Enter the booking call-to-action description.'),
+        }),
+        defineField({
+          name: 'ctaLabel',
+          title: 'Button text',
+          description: 'Links to the Contact page Booking Inquiry form.',
+          type: 'string',
+          validation: (Rule) => Rule.required().error('Enter the booking button text.'),
         }),
       ],
-      validation: (Rule) =>
-        Rule.max(40).custom((value) => {
-          if (!value || value.length === 0) return true
-          const refs = value
-            .map((entry) => (entry as {_ref?: string})._ref)
-            .filter((ref): ref is string => Boolean(ref))
-          const uniqueRefs = new Set(refs)
-          return (
-            uniqueRefs.size === refs.length ||
-            'Each release may only appear once — remove the duplicate.'
-          )
-        }),
     }),
     defineField({
       name: 'seo',
@@ -239,7 +281,7 @@ export const musicPage = defineType({
           name: 'ogImage',
           title: 'Social share image',
           description:
-            'Optional image used when this page is shared. Independent of every other page’s share image.',
+            'Optional image used when the Music page is shared. It does not appear in visible page content. All other pages have their own independent share-image fields.',
           type: 'image',
         }),
       ],

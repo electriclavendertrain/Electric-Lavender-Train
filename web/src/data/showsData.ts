@@ -18,7 +18,7 @@ export const showsPageFallback = {
     title: "No upcoming dates listed right now",
     message:
       "No upcoming dates are currently listed on this page. New public dates are added as they are confirmed. An unlisted date is not guaranteed available — send a booking inquiry and ELT will confirm.",
-    actionLabel: "Follow on Instagram",
+    externalRedirect: null,
   },
   bookingCta: {
     kicker: "Let's Ride Together",

@@ -64,7 +64,7 @@ export const bandMember = defineType({
       name: 'publicLinks',
       title: 'Public links',
       description:
-        'Optional. Only add accounts and pages this member has approved for publication. Leave empty if there are none — nothing is invented or guessed.',
+        'Optional. Add up to six accounts or pages this member has approved for publication. Leave empty if there are none — nothing is invented or guessed.',
       type: 'array',
       of: [
         defineArrayMember({
@@ -117,7 +117,7 @@ export const bandMember = defineType({
           },
         }),
       ],
-      validation: (Rule) => Rule.max(6),
+      validation: (Rule) => Rule.max(6).error('Keep this list to six public links or fewer.'),
     }),
   ],
   preview: {

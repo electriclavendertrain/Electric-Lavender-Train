@@ -10,7 +10,8 @@ interface Props {
   events: NormalizedEventCard[];
   emptyStateTitle: string;
   emptyStateMessage: string;
-  emptyStateActionLabel: string;
+  emptyStateActionLabel?: string | null;
+  emptyStateActionHref?: string | null;
 }
 
 const {
@@ -21,6 +22,7 @@ const {
   emptyStateTitle,
   emptyStateMessage,
   emptyStateActionLabel,
+  emptyStateActionHref,
 } = Astro.props;
 ---
 
@@ -40,10 +42,10 @@ const {
           <p class="empty-state__icon" aria-hidden="true">&#9835;</p>
           <h3>{emptyStateTitle}</h3>
           <p class="empty-state__message">{emptyStateMessage}</p>
-          {siteConfig.social.instagram && (
+          {emptyStateActionHref && emptyStateActionLabel && (
             <a
               class="btn btn-ghost empty-state__action"
-              href={siteConfig.social.instagram}
+              href={emptyStateActionHref}
               target="_blank"
               rel="noopener noreferrer"
             >

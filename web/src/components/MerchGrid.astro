@@ -1,8 +1,7 @@
 ---
-/** Renders inquiry-only merchandise and the protected no-checkout notice. */
+/** Renders inquiry-only merchandise with its Studio-owned introduction. */
 
 import MerchCard from "./MerchCard.astro";
-import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedMerchItem } from "../sanity/normalize";
 
 interface Props {
@@ -25,8 +24,6 @@ const { headingId, kicker, heading, body, items } = Astro.props;
           {heading}
         </h2>
         {body && <p class="merch-grid__body reveal reveal-2">{body}</p>}
-        <p class="merch-grid__notice reveal reveal-2">{galleryMerchCopy.merch.noCommerceNotice}</p>
-
         <ul class="merch-grid__list reveal reveal-3">
           {items.map((item) => (
             <li>
@@ -48,15 +45,6 @@ const { headingId, kicker, heading, body, items } = Astro.props;
     margin-top: 12px;
     overflow-wrap: anywhere;
   }
-  .merch-grid__notice {
-    max-width: 62ch;
-    margin-top: 16px;
-    font-size: 0.88rem;
-    color: rgba(244, 232, 208, 0.7);
-    border-left: 2px solid rgba(200, 168, 107, 0.55);
-    padding-left: 16px;
-  }
-
   .merch-grid__list {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

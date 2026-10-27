@@ -32,6 +32,7 @@ The Netlify address is the current hosted preview. Domain connection, final cont
 ## Experience highlights
 
 - **Editorially managed pages** for Home, About, Shows, Music, Gallery & Merchandise, and Contact & Booking.
+- **Build-time Sanity data fetching** through typed GROQ queries and `sanityClient.fetch(...)`, with normalization and production guards applied before Astro generates the public pages.
 - **Public and private event handling** with deliberate redaction of private booking details.
 - **Four native inquiry forms** for booking, merchandise, general questions, and content-removal requests.
 - **Hosted newsletter boundary** using Brevo for signup, double opt-in, unsubscribe, and campaign delivery—the Astro site never collects newsletter addresses.
@@ -65,7 +66,7 @@ Event media ──────────────────────�
 Testimonials ────────────────────── separate Google Form, when enabled
 ```
 
-The browser never receives a Sanity API token and does not query the Sanity Content Lake at runtime. A content change becomes public only after a new static build.
+Astro page modules fetch Homepage, About, Shows, Music, Gallery & Merchandise, Contact, event, and testimonial data from Sanity during static generation. The browser never receives a Sanity API token and does not query the Sanity Content Lake at runtime. A content change becomes public only after a new static build.
 
 ## Repository map
 

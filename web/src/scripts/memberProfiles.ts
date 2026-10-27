@@ -1,12 +1,10 @@
-/** Controls member dialogs, focus return, and fragment fallbacks. */
+/** Opens member dialogs and dismisses them without moving the document. */
 
 const supportsModalDialog =
   typeof HTMLDialogElement !== "undefined" &&
   typeof HTMLDialogElement.prototype.showModal === "function";
 
 if (supportsModalDialog) {
-  const SCROLL_LOCK_CLASS = "member-dialog-open";
-
   const dialogs = Array.from(
     document.querySelectorAll<HTMLDialogElement>("dialog[data-member-dialog]"),
   );
@@ -18,26 +16,22 @@ if (supportsModalDialog) {
     document.documentElement.classList.add("js-dialogs");
   }
 
-  /**
-   * The control focus returns to on close. Held here rather than read from
-   * `document.activeElement` at close time, because by then focus is inside
-   * the dialog that is closing.
-   */
-  let returnFocusTo: HTMLElement | null = null;
-  let returnScrollPosition: { left: number; top: number } | null = null;
+  const openerByDialog = new WeakMap<HTMLDialogElement, HTMLElement>();
 
-  const findTriggerFor = (dialogId: string) =>
-    triggers.find((trigger) => trigger.dataset.memberDialogOpen === dialogId) ?? null;
-
-  const openDialog = (dialog: HTMLDialogElement, trigger: HTMLElement | null) => {
+  const openDialog = (dialog: HTMLDialogElement, trigger?: HTMLElement) => {
     if (dialog.open) return;
-    returnFocusTo = trigger;
-    returnScrollPosition = {
-      left: window.scrollX,
-      top: window.scrollY,
-    };
+
+    // Native dialogs remember the focused opener and focus it again on close.
+    // That browser-managed focus return scrolls the page to the member card.
+    // Blurring before showModal() prevents the card from becoming that return
+    // target, so X and Escape can dismiss the dialog without moving the page.
+    if (trigger) {
+      openerByDialog.set(dialog, trigger);
+      trigger.blur();
+    } else {
+      openerByDialog.delete(dialog);
+    }
     dialog.showModal();
-    document.documentElement.classList.add(SCROLL_LOCK_CLASS);
   };
 
   for (const trigger of triggers) {
@@ -70,42 +64,21 @@ if (supportsModalDialog) {
       "[data-member-dialog-close]",
     )) {
       control.addEventListener("click", (event) => {
-        // Without scripting this control is a real link back to the section
-        // heading. With scripting, closing is the better behavior and the URL
-        // is left alone.
         event.preventDefault();
         dialog.close();
       });
     }
 
-    // Backdrop dismissal is delegated to the dialog's `closedby="any"` behavior.
-
-    // Fires for the close control, light dismissal, AND Escape (which
-    // raises `cancel` and then `close`), so focus return and the scroll lock
-    // are handled in exactly one place.
     dialog.addEventListener("close", () => {
-      const scrollPosition = returnScrollPosition;
-      document.documentElement.classList.remove(SCROLL_LOCK_CLASS);
+      const opener = openerByDialog.get(dialog);
+      openerByDialog.delete(dialog);
 
-      // A dialog opened by deep link leaves its fragment in the URL; clearing
-      // it means the same link can be opened again, and a later back/forward
-      // navigation does not silently reopen it.
-      if (window.location.hash === `#${dialog.id}`) {
-        window.history.replaceState(
-          null,
-          "",
-          window.location.pathname + window.location.search,
-        );
+      // Blurring before showModal() prevents Chrome's native focus return from
+      // scrolling to the opener. Restore keyboard focus ourselves with page
+      // movement explicitly disabled once the dialog has finished closing.
+      if (opener?.isConnected) {
+        opener.focus({ preventScroll: true });
       }
-
-      returnFocusTo?.focus({ preventScroll: true });
-
-      if (scrollPosition) {
-        window.scrollTo(scrollPosition.left, scrollPosition.top);
-      }
-
-      returnFocusTo = null;
-      returnScrollPosition = null;
     });
   }
 
@@ -121,7 +94,7 @@ if (supportsModalDialog) {
     if (!(dialog instanceof HTMLDialogElement)) return;
     if (!dialog.hasAttribute("data-member-dialog")) return;
 
-    openDialog(dialog, findTriggerFor(id));
+    openDialog(dialog);
   };
 
   openFromHash();

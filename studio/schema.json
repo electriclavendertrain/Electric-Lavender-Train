@@ -155,6 +155,28 @@
         },
         "optional": false
       },
+      "releases": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "array",
+          "of": {
+            "type": "object",
+            "attributes": {
+              "_key": {
+                "type": "objectAttribute",
+                "value": {
+                  "type": "string"
+                }
+              }
+            },
+            "rest": {
+              "type": "inline",
+              "name": "musicRelease.reference"
+            }
+          }
+        },
+        "optional": true
+      },
       "labelAffiliation": {
         "type": "objectAttribute",
         "value": {
@@ -229,27 +251,42 @@
         },
         "optional": true
       },
-      "releases": {
+      "bookingCta": {
         "type": "objectAttribute",
         "value": {
-          "type": "array",
-          "of": {
-            "type": "object",
-            "attributes": {
-              "_key": {
-                "type": "objectAttribute",
-                "value": {
-                  "type": "string"
-                }
-              }
+          "type": "object",
+          "attributes": {
+            "kicker": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": true
             },
-            "rest": {
-              "type": "inline",
-              "name": "musicRelease.reference"
+            "heading": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "body": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "ctaLabel": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
             }
           }
         },
-        "optional": true
+        "optional": false
       },
       "seo": {
         "type": "objectAttribute",
@@ -483,36 +520,6 @@
         },
         "optional": false
       },
-      "newsletterCta": {
-        "type": "objectAttribute",
-        "value": {
-          "type": "object",
-          "attributes": {
-            "heading": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            },
-            "body": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            },
-            "linkLabel": {
-              "type": "objectAttribute",
-              "value": {
-                "type": "string"
-              },
-              "optional": false
-            }
-          }
-        },
-        "optional": false
-      },
       "faq": {
         "type": "objectAttribute",
         "value": {
@@ -556,6 +563,36 @@
           }
         },
         "optional": true
+      },
+      "newsletterCta": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "object",
+          "attributes": {
+            "heading": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "body": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            },
+            "linkLabel": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": false
+            }
+          }
+        },
+        "optional": false
       },
       "seo": {
         "type": "objectAttribute",
@@ -843,7 +880,7 @@
               "value": {
                 "type": "string"
               },
-              "optional": true
+              "optional": false
             },
             "items": {
               "type": "objectAttribute",
@@ -1111,7 +1148,14 @@
               "value": {
                 "type": "string"
               },
-              "optional": false
+              "optional": true
+            },
+            "actionUrl": {
+              "type": "objectAttribute",
+              "value": {
+                "type": "string"
+              },
+              "optional": true
             }
           }
         },
@@ -1723,7 +1767,7 @@
               "value": {
                 "type": "string"
               },
-              "optional": false
+              "optional": true
             },
             "highlights": {
               "type": "objectAttribute",
@@ -1823,7 +1867,14 @@
                     "value": {
                       "type": "string"
                     },
-                    "optional": false
+                    "optional": true
+                  },
+                  "actionUrl": {
+                    "type": "objectAttribute",
+                    "value": {
+                      "type": "string"
+                    },
+                    "optional": true
                   }
                 }
               },
@@ -2675,6 +2726,10 @@
             {
               "type": "string",
               "value": "venue-crowd"
+            },
+            {
+              "type": "string",
+              "value": "band-photos"
             }
           ]
         },
