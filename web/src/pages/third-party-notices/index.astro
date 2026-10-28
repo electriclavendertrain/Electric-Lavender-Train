@@ -6,7 +6,7 @@ import { formatPageTitle } from "../../data/siteConfig";
 
 const title = formatPageTitle("Third-Party Notices");
 const description =
-  "License and attribution notices for third-party font files self-hosted by this website.";
+  "License and attribution notices for third-party fonts, icons, and interface patterns used by this website.";
 ---
 
 <BaseLayout title={title} description={description} noIndex={true}>
@@ -17,8 +17,9 @@ const description =
       <p class="notices__lede">
         This site self-hosts two open-source font families rather than loading them from a
         third-party font CDN at request time, and uses a small set of open-source brand icon
-        glyphs for the footer's social links. The files themselves live in this site's own build
-        output; this page records where they came from and under what license.
+        glyphs for the footer's social links. The Gallery's loading dots are adapted from the
+        open-source Loading UI Dots component. The files and implementation live in this site's
+        own build output; this page records where they came from and under what license.
       </p>
 
       <table class="notices__table">
@@ -44,6 +45,27 @@ const description =
           <tr>
             <th>Full license text</th>
             <td><a href="/third-party-notices/jost/LICENSE.txt">/third-party-notices/jost/LICENSE.txt</a></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="notices__table">
+        <caption>Loading UI Dots</caption>
+        <tbody>
+          <tr><th>Component</th><td>Dots loading indicator</td></tr>
+          <tr><th>Use in this site</th><td>Adapted as dependency-free Astro/CSS for Gallery image loading states</td></tr>
+          <tr><th>License</th><td>MIT License</td></tr>
+          <tr><th>Copyright attribution</th><td>Copyright (c) 2026 Bartosz Zagrodzki</td></tr>
+          <tr>
+            <th>Source</th>
+            <td>
+              <a href="https://www.loading-ui.com/docs/components/dots">loading-ui.com/docs/components/dots</a> /
+              <a href="https://github.com/turbostarter/loading-ui">github.com/turbostarter/loading-ui</a>
+            </td>
+          </tr>
+          <tr>
+            <th>Full license text</th>
+            <td><a href="/third-party-notices/loading-ui/LICENSE.txt">/third-party-notices/loading-ui/LICENSE.txt</a></td>
           </tr>
         </tbody>
       </table>
@@ -112,7 +134,9 @@ const description =
         link to that brand's platform (Instagram, Facebook, YouTube, Apple Music, Spotify, Linktree,
         Venmo), the ordinary nominative use every site linking to a social profile relies on. The SVG files themselves
         live at <code>web/public/icons/social/</code>, are served only from this site's own build
-        output, and are never fetched from a third-party CDN at request time.
+        output, and are never fetched from a third-party CDN at request time. The Loading UI Dots
+        idea is reimplemented locally without its React, Tailwind, or animation dependencies; its
+        MIT copyright and permission notice are preserved above and in the linked license file.
       </p>
     </div>
   </section>

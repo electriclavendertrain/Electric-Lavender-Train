@@ -1,0 +1,245 @@
+/* ELT nebula cursors. Native .cur files are primary; PNG and semantic cursors
+   keep the site usable when a browser does not support that format. */
+@media (hover: hover) and (pointer: fine) {
+  html,
+  body {
+    cursor:
+      url("/cursors/elt-nebula/normal.cur") 5 3,
+      url("/cursors/elt-nebula/normal.png") 5 3,
+      auto;
+  }
+
+  :root [data-cursor="help"],
+  :root [data-cursor="help"] * {
+    cursor:
+      url("/cursors/elt-nebula/help.cur") 2 2,
+      url("/cursors/elt-nebula/help.png") 2 2,
+      help !important;
+  }
+
+  :root [data-cursor="progress"],
+  :root [data-cursor="progress"] *,
+  :root [aria-busy="true"],
+  :root [aria-busy="true"] * {
+    cursor:
+      url("/cursors/elt-nebula/working.cur") 2 2,
+      url("/cursors/elt-nebula/working.png") 2 2,
+      progress !important;
+  }
+
+  :root [data-cursor="wait"],
+  :root [data-cursor="wait"] * {
+    cursor:
+      url("/cursors/elt-nebula/busy.cur") 16 16,
+      url("/cursors/elt-nebula/busy.png") 16 16,
+      wait !important;
+  }
+
+  :root [data-cursor="crosshair"],
+  :root [data-cursor="crosshair"] * {
+    cursor:
+      url("/cursors/elt-nebula/precision.cur") 16 16,
+      url("/cursors/elt-nebula/precision.png") 16 16,
+      crosshair !important;
+  }
+
+  :root
+    :is(
+      p,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      li,
+      dt,
+      dd,
+      th,
+      td,
+      caption,
+      blockquote,
+      figcaption,
+      address,
+      time,
+      code,
+      pre,
+      abbr,
+      cite,
+      q,
+      strong,
+      em,
+      b,
+      i,
+      small,
+      mark,
+      span
+    ) {
+    cursor:
+      url("/cursors/elt-nebula/text.cur") 16 16,
+      url("/cursors/elt-nebula/text.png") 16 16,
+      text !important;
+  }
+
+  :root input:not([type]),
+  :root
+    input:is(
+      [type="text"],
+      [type="email"],
+      [type="password"],
+      [type="search"],
+      [type="tel"],
+      [type="url"]
+    ),
+  :root textarea,
+  :root [contenteditable]:not([contenteditable="false"]) {
+    cursor:
+      url("/cursors/elt-nebula/text.cur") 16 16,
+      url("/cursors/elt-nebula/text.png") 16 16,
+      text !important;
+  }
+
+  :root .resize-ns {
+    cursor:
+      url("/cursors/elt-nebula/vertical.cur") 16 16,
+      url("/cursors/elt-nebula/vertical.png") 16 16,
+      ns-resize !important;
+  }
+
+  :root .resize-ew {
+    cursor:
+      url("/cursors/elt-nebula/horizontal.cur") 16 16,
+      url("/cursors/elt-nebula/horizontal.png") 16 16,
+      ew-resize !important;
+  }
+
+  :root .resize-nwse {
+    cursor:
+      url("/cursors/elt-nebula/diagonal1.cur") 16 16,
+      url("/cursors/elt-nebula/diagonal1.png") 16 16,
+      nwse-resize !important;
+  }
+
+  :root .resize-nesw {
+    cursor:
+      url("/cursors/elt-nebula/diagonal2.cur") 16 16,
+      url("/cursors/elt-nebula/diagonal2.png") 16 16,
+      nesw-resize !important;
+  }
+
+  :root .draggable {
+    cursor:
+      url("/cursors/elt-nebula/move.cur") 16 16,
+      url("/cursors/elt-nebula/move.png") 16 16,
+      move !important;
+  }
+
+  :root a,
+  :root button,
+  :root [role="button"],
+  :root label,
+  :root select,
+  :root summary,
+  :root input[type="button"],
+  :root input[type="submit"],
+  :root input[type="reset"],
+  :root input[type="checkbox"],
+  :root input[type="radio"],
+  :root input[type="file"],
+  :root input[type="image"],
+  :root input[type="range"],
+  :root input[type="color"],
+  :root input[type="number"],
+  :root input[type="date"],
+  :root input[type="datetime-local"],
+  :root input[type="month"],
+  :root input[type="week"],
+  :root input[type="time"],
+  :root a *,
+  :root button *,
+  :root [role="button"] *,
+  :root label *,
+  :root summary * {
+    cursor:
+      url("/cursors/elt-nebula/link.cur") 13 1,
+      url("/cursors/elt-nebula/link.png") 13 1,
+      pointer !important;
+  }
+
+  :root input[type="number"]::-webkit-inner-spin-button,
+  :root input[type="number"]::-webkit-outer-spin-button,
+  :root
+    input:is(
+      [type="date"],
+      [type="datetime-local"],
+      [type="month"],
+      [type="week"],
+      [type="time"]
+    )::-webkit-calendar-picker-indicator {
+    cursor:
+      url("/cursors/elt-nebula/link.cur") 13 1,
+      url("/cursors/elt-nebula/link.png") 13 1,
+      pointer !important;
+  }
+
+  :root a:active,
+  :root button:active,
+  :root [role="button"]:active,
+  :root label:active,
+  :root select:active,
+  :root summary:active,
+  :root input[type="button"]:active,
+  :root input[type="submit"]:active,
+  :root input[type="reset"]:active,
+  :root input[type="checkbox"]:active,
+  :root input[type="radio"]:active,
+  :root input[type="file"]:active,
+  :root input[type="image"]:active,
+  :root input[type="range"]:active,
+  :root input[type="color"]:active,
+  :root input[type="number"]:active,
+  :root input[type="date"]:active,
+  :root input[type="datetime-local"]:active,
+  :root input[type="month"]:active,
+  :root input[type="week"]:active,
+  :root input[type="time"]:active,
+  :root a:active *,
+  :root button:active *,
+  :root [role="button"]:active *,
+  :root label:active *,
+  :root summary:active *,
+  :root .cursor-alternate,
+  :root .cursor-alternate * {
+    cursor:
+      url("/cursors/elt-nebula/alternate.cur") 16 1,
+      url("/cursors/elt-nebula/alternate.png") 16 1,
+      pointer !important;
+  }
+
+  :root .cursor-handwriting {
+    cursor:
+      url("/cursors/elt-nebula/handwriting.cur") 4 28,
+      url("/cursors/elt-nebula/handwriting.png") 4 28,
+      crosshair !important;
+  }
+
+  :root [disabled],
+  :root [disabled] *,
+  :root [aria-disabled="true"],
+  :root [aria-disabled="true"] *,
+  :root .disabled,
+  :root .disabled * {
+    cursor:
+      url("/cursors/elt-nebula/unavailable.cur") 16 16,
+      url("/cursors/elt-nebula/unavailable.png") 16 16,
+      not-allowed !important;
+  }
+}
+
+@media (forced-colors: active) {
+  *,
+  *::before,
+  *::after {
+    cursor: auto !important;
+  }
+}

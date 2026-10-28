@@ -3,6 +3,7 @@
 
 import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedGalleryPhoto } from "../sanity/normalize";
+import LoadingDots from "./LoadingDots.astro";
 
 interface Props {
   item: NormalizedGalleryPhoto;
@@ -15,7 +16,13 @@ const { item, dialogId, closeHref } = Astro.props;
 const captionId = `${dialogId}-caption`;
 ---
 
-<dialog id={dialogId} class="gallery-lightbox" aria-labelledby={captionId} data-gallery-lightbox>
+<dialog
+  id={dialogId}
+  class="gallery-lightbox"
+  aria-labelledby={captionId}
+  data-gallery-lightbox
+  data-image-state="loading"
+>
   <div class="gallery-lightbox__panel">
     <a class="gallery-lightbox__close" href={closeHref} data-gallery-lightbox-close>
       <span aria-hidden="true">&times;</span>
@@ -30,9 +37,15 @@ const captionId = `${dialogId}-caption`;
           fully visible — never the reverse. See the CSS for the full
           explanation of why this needs a definite dialog height. */}
       <div class="gallery-lightbox__viewport">
+        <LoadingDots
+          class="gallery-lightbox__loader"
+          label="Loading full-size image"
+          announce={true}
+        />
         {/* Same alt text as the thumbnail — this is the same photo, larger. */}
         <img
           class="gallery-lightbox__image"
+          data-gallery-lightbox-image
           src={item.full.src}
           width={item.full.width}
           height={item.full.height}
@@ -40,6 +53,7 @@ const captionId = `${dialogId}-caption`;
           loading="lazy"
           decoding="async"
         />
+        <p class="gallery-lightbox__error" role="status">This image could not be loaded.</p>
       </div>
       <div class="gallery-lightbox__meta">
         <p class="gallery-lightbox__caption" id={captionId}>{item.title}</p>
@@ -145,6 +159,7 @@ const captionId = `${dialogId}-caption`;
    * a corner.
    */
   .gallery-lightbox__viewport {
+    position: relative;
     flex: 1 1 0;
     min-height: 0;
     display: flex;
@@ -169,6 +184,51 @@ const captionId = `${dialogId}-caption`;
     max-height: 100%;
     object-fit: contain;
     border-radius: 10px;
+    transition: opacity 0.2s var(--ease);
+  }
+
+  html .gallery-lightbox .gallery-lightbox__loader,
+  .gallery-lightbox__error {
+    display: none;
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .gallery-lightbox__error {
+    width: min(30rem, calc(100% - 32px));
+    color: rgba(244, 232, 208, 0.78);
+    text-align: center;
+  }
+
+  html.js-gallery-lightbox
+    .gallery-lightbox[data-image-state="loading"]
+    .gallery-lightbox__loader {
+    display: inline-flex;
+  }
+
+  html.js-gallery-lightbox
+    .gallery-lightbox[data-image-state="loading"]
+    .gallery-lightbox__image,
+  html.js-gallery-lightbox
+    .gallery-lightbox[data-image-state="error"]
+    .gallery-lightbox__image {
+    opacity: 0;
+  }
+
+  html.js-gallery-lightbox
+    .gallery-lightbox[data-image-state="error"]
+    .gallery-lightbox__error {
+    display: block;
+  }
+
+  html.js-gallery-lightbox
+    .gallery-lightbox[data-image-state="ready"]
+    .gallery-lightbox__loader,
+  html.js-gallery-lightbox
+    .gallery-lightbox[data-image-state="error"]
+    .gallery-lightbox__loader {
+    display: none;
   }
 
   /*

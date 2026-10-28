@@ -2,21 +2,20 @@
 
 import type { ImageMetadata } from "astro";
 import siteConfig from "./siteConfig";
-import familyPhoto from "../assets/images/elt-family.jpeg";
-import rachelProfile from "../assets/images/members/rachel.png";
-import hunterProfile from "../assets/images/members/hunter.png";
-import geertProfile from "../assets/images/members/geert.png";
-import paulProfile from "../assets/images/members/paul.png";
+import aboutHeroPhoto from "../assets/images/elt-band-photo2.jpg";
+import memberGroupPhoto from "../assets/images/elt-band-photo6.jpg";
 
 /** The marker that makes placeholder biography text unmistakable, and mechanically detectable. */
 export const TEST_BIOGRAPHY_MARKER = "[TEST — CLIENT BIO REQUIRED]";
 
 /* -------------------------------------------------------------------------
- * Local profile-photo fallbacks
+ * Local member-photo fallbacks
  *
  * Live member photographs now live in Sanity's Media Library and carry their
- * own alt text and hotspot. These source assets remain bundled only so the
- * complete development fallback can render when no About singleton exists.
+ * own alt text and hotspot. The complete development fallback reuses one
+ * existing local group photograph with a member-specific focal point so it
+ * can render when no About singleton exists without retaining four duplicate
+ * portrait assets.
  * ---------------------------------------------------------------------- */
 
 export type ProfileImageFallbackKey = "rachel" | "hunter" | "geert" | "paul";
@@ -37,24 +36,24 @@ export const memberProfileFallbackAssets: Record<
   MemberProfileFallbackAsset
 > = {
   rachel: {
-    src: rachelProfile,
-    alt: "Rachel singing into a microphone while playing a baritone ukulele at an outdoor show.",
-    objectPosition: "46% 24%",
+    src: memberGroupPhoto,
+    alt: "Rachel standing outdoors with the other members of Electric Lavender Train.",
+    objectPosition: "36% 43%",
   },
   hunter: {
-    src: hunterProfile,
-    alt: "Hunter playing electric guitar mid-performance at an outdoor show.",
-    objectPosition: "44% 26%",
+    src: memberGroupPhoto,
+    alt: "Hunter standing outdoors with the other members of Electric Lavender Train.",
+    objectPosition: "64% 42%",
   },
   geert: {
-    src: geertProfile,
-    alt: "Geert playing bass and singing at an outdoor show.",
-    objectPosition: "50% 20%",
+    src: memberGroupPhoto,
+    alt: "Geert standing outdoors with the other members of Electric Lavender Train.",
+    objectPosition: "11% 43%",
   },
   paul: {
-    src: paulProfile,
-    alt: "Paul smiling behind the drum kit at an outdoor show.",
-    objectPosition: "46% 28%",
+    src: memberGroupPhoto,
+    alt: "Paul standing outdoors with the other members of Electric Lavender Train.",
+    objectPosition: "89% 43%",
   },
 };
 
@@ -113,10 +112,9 @@ export const memberDialogIdFor = (memberId: string) =>
  * ---------------------------------------------------------------------- */
 
 /** Hero photograph for the development fallback only; optimized via astro:assets. */
-export const aboutHeroFallbackImage: ImageMetadata = familyPhoto;
+export const aboutHeroFallbackImage: ImageMetadata = aboutHeroPhoto;
 
-export const aboutHeroFallbackAlt =
-  `${siteConfig.bandNameFormal} together at an outdoor Central Coast show.`;
+export const aboutHeroFallbackAlt = `${siteConfig.bandNameFormal} sitting together with their instruments.`;
 
 /**
  * Lorem Ipsum. Not a biography, not a draft of one, and not to be tidied up

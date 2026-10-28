@@ -183,7 +183,10 @@ for (const form of forms) {
 
   resetPendingState.push(() => {
     submitting = false;
-    if (submitButton) submitButton.disabled = false;
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.removeAttribute("aria-busy");
+    }
     if (submitLabel) submitLabel.textContent = contactCopy.submitLabel;
   });
 
@@ -204,7 +207,10 @@ for (const form of forms) {
 
     // Preserve native Formspree navigation while showing progress.
     submitting = true;
-    if (submitButton) submitButton.disabled = true;
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.setAttribute("aria-busy", "true");
+    }
     if (submitLabel) submitLabel.textContent = contactCopy.submittingLabel;
   });
 }

@@ -9,6 +9,8 @@ interface Props {
   /** Adds a matching rule before the centered kicker. Off by default so
    * existing uses keep their approved appearance. */
   balancedKicker?: boolean;
+  /** Restores the shared section divider when another section follows. */
+  showDivider?: boolean;
   /** Where the button goes. */
   href?: string;
   /** Marks `href` as an external destination: opens in a new tab and appends the standard visually-hidden new-tab notice to the accessible name, matching every other external link in the project (Footer, Testimonials, member links). */
@@ -21,12 +23,13 @@ const {
   body,
   ctaLabel,
   balancedKicker = false,
+  showDivider = false,
   href = siteConfig.routes.bookingForm,
   isExternal = false,
 } = Astro.props;
 ---
 
-<section class="cta" id="contact">
+<section class:list={["cta", { "cta--with-divider": showDivider }]} id="contact">
   <div class="cta-blob" aria-hidden="true"></div>
   {kicker && (
     <p class:list={["kicker", "centered", { "centered--balanced": balancedKicker }]}>

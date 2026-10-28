@@ -2,6 +2,34 @@
 
 import { createYouTubeIframe } from "./youtubeEmbed";
 
+type ImageState = "loading" | "ready" | "error";
+
+const getImageState = (image: HTMLImageElement): ImageState => {
+  if (!image.complete) return "loading";
+  return image.naturalWidth > 0 ? "ready" : "error";
+};
+
+const galleryMedia = Array.from(
+  document.querySelectorAll<HTMLElement>("[data-gallery-media-state]"),
+);
+
+if (galleryMedia.length > 0) {
+  document.documentElement.classList.add("js-gallery-loading");
+
+  for (const item of galleryMedia) {
+    const image = item.querySelector<HTMLImageElement>("[data-gallery-media-image]");
+    if (!image) continue;
+
+    const updateState = () => {
+      item.dataset.galleryMediaState = getImageState(image);
+    };
+
+    image.addEventListener("load", updateState);
+    image.addEventListener("error", updateState);
+    updateState();
+  }
+}
+
 /* -------------------------------------------------------------------------
  * Category filters
  *
@@ -108,6 +136,20 @@ if (supportsGalleryLightbox) {
     document.documentElement.classList.add("js-gallery-lightbox");
   }
 
+  const updateDialogImageState = (dialog: HTMLDialogElement) => {
+    const image = dialog.querySelector<HTMLImageElement>("[data-gallery-lightbox-image]");
+    if (!image) return;
+    dialog.dataset.imageState = getImageState(image);
+  };
+
+  for (const dialog of dialogs) {
+    const image = dialog.querySelector<HTMLImageElement>("[data-gallery-lightbox-image]");
+    if (!image) continue;
+    image.addEventListener("load", () => updateDialogImageState(dialog));
+    image.addEventListener("error", () => updateDialogImageState(dialog));
+    updateDialogImageState(dialog);
+  }
+
   /** Held rather than read from `document.activeElement` at close time,
    * because by then focus is inside the dialog that is closing. */
   let returnFocusTo: HTMLElement | null = null;
@@ -118,6 +160,7 @@ if (supportsGalleryLightbox) {
   const openDialog = (dialog: HTMLDialogElement, trigger: HTMLElement | null) => {
     if (dialog.open) return;
     returnFocusTo = trigger;
+    updateDialogImageState(dialog);
     dialog.showModal();
     document.documentElement.classList.add(SCROLL_LOCK_CLASS);
   };

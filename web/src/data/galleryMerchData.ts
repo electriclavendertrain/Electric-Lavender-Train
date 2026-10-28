@@ -1,12 +1,12 @@
 /** Code-owned Gallery labels and development-only fallback content. */
 
 import type { ImageMetadata } from "astro";
-import galleryPerformance from "../assets/images/gallery/elt-04.jpg";
-import galleryVocals from "../assets/images/gallery/elt-09.jpg";
-import galleryGuitar from "../assets/images/gallery/elt-08.jpg";
-import galleryBass from "../assets/images/gallery/elt-06.jpg";
-import galleryCrowd from "../assets/images/gallery/elt-10.jpg";
-import galleryDanceFloor from "../assets/images/gallery/elt-12.jpg";
+import galleryBandPortrait from "../assets/images/elt-band-photo3.jpg";
+import galleryVenueLineup from "../assets/images/elt-band-photo4.jpg";
+import galleryOutdoorPortrait from "../assets/images/elt-band-photo5.jpg";
+import galleryOutdoorStage from "../assets/images/elt-band-photo7.jpg";
+import galleryStageLineup from "../assets/images/elt-band-photo8.jpg";
+import galleryForestPortrait from "../assets/images/elt-band-photo9.jpeg";
 import { getYouTubeVideoId } from "../lib/youtube";
 import type { MediaGalleryCategory } from "../sanity/normalize";
 
@@ -83,21 +83,21 @@ export const galleryMerchCopy = {
  * document and this fallback is used instead — live content and placeholder
  * copy are never mixed in one render (see `gallery-merch.astro`).
  *
- * The gallery reuses the same six existing local development images already
- * bundled for the Homepage fallback gallery — not new assets, and nothing
- * copied from `skele/`. "Existing" and "bundled" describe where the files
- * came from, not their copyright status — these are development/preview
- * assets with unresolved rights, exactly like every other local photo; see
- * `docs/content-rights-checklist.md`, which lists each one individually.
- * Being used in a development preview is not proof that publishing them in
- * `production` is authorized.
+ * The gallery reuses six existing ELT band photos retained in this codebase.
+ * They remain development-only fallback assets; production still requires a
+ * complete Sanity singleton and never silently promotes this local selection.
+ * Repository presence alone is not rights evidence — see
+ * `docs/content-rights-checklist.md`.
  * ---------------------------------------------------------------------- */
 
 /** A well-known filler YouTube URL, retained only as the source for `TEST_VIDEO_ID` below — this page's own fallback no longer renders any featured video, but the id is still used as a belt-and-suspenders production guard against this exact well-known filler… */
-export const TEST_FEATURED_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+export const TEST_FEATURED_VIDEO_URL =
+  "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
 /** The video id embedded in `TEST_FEATURED_VIDEO_URL` above ("Never Gonna Give You Up"), extracted once via the approved parser rather than hardcoded a second time. */
-export const TEST_VIDEO_ID = getYouTubeVideoId(TEST_FEATURED_VIDEO_URL) as string;
+export const TEST_VIDEO_ID = getYouTubeVideoId(
+  TEST_FEATURED_VIDEO_URL,
+) as string;
 
 export interface FallbackGalleryPhoto {
   _key: string;
@@ -111,44 +111,44 @@ export interface FallbackGalleryPhoto {
 export const galleryFallback: FallbackGalleryPhoto[] = [
   {
     _key: "fallback-1",
-    image: galleryPerformance,
-    alt: "The full Electric Lavender Train performing outdoors.",
-    category: "performance",
+    image: galleryBandPortrait,
+    alt: "The four members of Electric Lavender Train posing together with their instruments.",
+    category: "band-photos",
     credit: null,
   },
   {
     _key: "fallback-2",
-    image: galleryVocals,
-    alt: "Rachel singing and playing baritone ukulele.",
+    image: galleryVenueLineup,
+    alt: "Electric Lavender Train standing together onstage at Mr. Rick's.",
     category: "performance",
     credit: null,
   },
   {
     _key: "fallback-3",
-    image: galleryGuitar,
-    alt: "Hunter singing and playing electric guitar.",
-    category: "performance",
+    image: galleryOutdoorPortrait,
+    alt: "Electric Lavender Train posing together outdoors before a show.",
+    category: "band-photos",
     credit: null,
   },
   {
     _key: "fallback-4",
-    image: galleryBass,
-    alt: "Geert playing bass during an outdoor performance.",
+    image: galleryOutdoorStage,
+    alt: "Electric Lavender Train standing together on an outdoor stage.",
     category: "performance",
     credit: null,
   },
   {
     _key: "fallback-5",
-    image: galleryCrowd,
-    alt: "A wide view of the outdoor venue and audience.",
-    category: "venue-crowd",
+    image: galleryStageLineup,
+    alt: "Electric Lavender Train together under the stage lights after a performance.",
+    category: "performance",
     credit: null,
   },
   {
     _key: "fallback-6",
-    image: galleryDanceFloor,
-    alt: "Audience members dancing in front of the band.",
-    category: "venue-crowd",
+    image: galleryForestPortrait,
+    alt: "The four members of Electric Lavender Train posing together in the forest.",
+    category: "band-photos",
     credit: null,
   },
 ];
@@ -175,8 +175,7 @@ export const galleryMerchFallback = {
   merch: {
     kicker: "Take It Home",
     heading: "Merchandise",
-    body:
-      "Items are available by inquiry only — there is no online store, cart, or checkout. Use the merchandise inquiry form to email the band.",
+    body: "Items are available by inquiry only — there is no online store, cart, or checkout. Use the merchandise inquiry form to email the band.",
   },
   bookingCta: {
     kicker: "Let's Ride Together",

@@ -143,18 +143,20 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
                           rows={4}
                         />
                       ) : field.type === "select" ? (
-                        <select
-                          id={fieldId}
-                          name={field.submissionName ?? field.name}
-                          class="field__control"
-                          required={field.required}
-                          aria-describedby={describedBy}
-                          data-field
-                          data-label={field.label}
-                        >
-                          <option value="">Choose one…</option>
-                          {field.options?.map((option) => <option value={option}>{option}</option>)}
-                        </select>
+                        <div class="field__select-wrap">
+                          <select
+                            id={fieldId}
+                            name={field.submissionName ?? field.name}
+                            class="field__control"
+                            required={field.required}
+                            aria-describedby={describedBy}
+                            data-field
+                            data-label={field.label}
+                          >
+                            <option value="">Choose one…</option>
+                            {field.options?.map((option) => <option value={option}>{option}</option>)}
+                          </select>
+                        </div>
                       ) : (
                         <input
                           id={fieldId}
@@ -330,6 +332,7 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
     display: flex;
     flex-direction: column;
     gap: 6px;
+    min-width: 0;
   }
   .field__label {
     font-size: 0.82rem;
@@ -343,6 +346,8 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
     color: rgba(244, 232, 208, 0.55);
   }
   .field__control {
+    width: 100%;
+    max-width: 100%;
     min-height: 44px;
     padding: 10px 14px;
     border-radius: 10px;
@@ -363,8 +368,26 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
     min-height: 110px;
     resize: vertical;
   }
+  .field__select-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+  }
+  .field__select-wrap::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 18px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--warm-white);
+    border-bottom: 2px solid var(--warm-white);
+    pointer-events: none;
+    transform: translateY(-70%) rotate(45deg);
+  }
   select.field__control {
-    appearance: auto;
+    appearance: none;
+    padding-right: 48px;
   }
   /* Invalid state is communicated by aria-invalid + this visible border AND
      the text error below — never by color alone. */

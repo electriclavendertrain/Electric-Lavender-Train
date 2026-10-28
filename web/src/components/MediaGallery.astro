@@ -5,6 +5,7 @@ import { Image } from "astro:assets";
 import eltLogo from "../assets/images/elt-logo.jpg";
 import MediaLightbox from "./MediaLightbox.astro";
 import MediaVideoLightbox from "./MediaVideoLightbox.astro";
+import LoadingDots from "./LoadingDots.astro";
 import { galleryMerchCopy } from "../data/galleryMerchData";
 import type { NormalizedGalleryPhoto, NormalizedGalleryVideo } from "../sanity/normalize";
 
@@ -115,6 +116,7 @@ const hasMedia = items.length > 0 || videos.length > 0;
                       class="media-gallery__item"
                       href={`#${dialogId}`}
                       data-gallery-lightbox-open={dialogId}
+                      data-gallery-media-state="loading"
                     >
                       <span class="visually-hidden">View larger: </span>
                       <img
@@ -124,10 +126,13 @@ const hasMedia = items.length > 0 || videos.length > 0;
                         width={item.thumbnail.width}
                         height={item.thumbnail.height}
                         alt={item.alt}
+                        data-gallery-media-image
                         loading="lazy"
                         decoding="async"
                         style={`--focal-point: ${item.thumbnail.objectPosition}`}
                       />
+                      <LoadingDots class="media-gallery__loader" />
+                      <span class="media-gallery__load-error">Image unavailable</span>
                       <span class="media-gallery__zoom" aria-hidden="true">
                         +
                       </span>
@@ -149,6 +154,7 @@ const hasMedia = items.length > 0 || videos.length > 0;
                       data-gallery-video-open={dialogId}
                       data-video-id={video.videoId}
                       data-video-title={video.title}
+                      data-gallery-media-state="loading"
                     >
                       <span class="visually-hidden">{galleryMerchCopy.gallery.playVideoLabelPrefix}</span>
                       {video.poster ? (
@@ -157,6 +163,7 @@ const hasMedia = items.length > 0 || videos.length > 0;
                           width={video.poster.width}
                           height={video.poster.height}
                           alt=""
+                          data-gallery-media-image
                           loading="lazy"
                           decoding="async"
                           style={`--focal-point: ${video.poster.objectPosition}`}
@@ -168,8 +175,11 @@ const hasMedia = items.length > 0 || videos.length > 0;
                           alt=""
                           width={700}
                           loading="lazy"
+                          data-gallery-media-image
                         />
                       )}
+                      <LoadingDots class="media-gallery__loader" />
+                      <span class="media-gallery__load-error">Preview unavailable</span>
                       <span class="media-gallery__play" aria-hidden="true">
                         <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
                           <path d="M8 5v14l11-7z" />
@@ -326,6 +336,7 @@ const hasMedia = items.length > 0 || videos.length > 0;
     border-radius: 14px;
     overflow: hidden;
     box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+    background: rgba(11, 11, 18, 0.58);
   }
   .media-gallery__item img {
     width: 100%;
@@ -333,8 +344,54 @@ const hasMedia = items.length > 0 || videos.length > 0;
     object-fit: cover;
     /* Each photo's own Sanity hotspot, propagated by normalize.ts. */
     object-position: var(--focal-point, 50% 50%);
-    transition: transform 0.5s var(--ease), filter 0.5s var(--ease);
+    transition: transform 0.5s var(--ease), filter 0.5s var(--ease),
+      opacity 0.2s var(--ease);
     filter: saturate(0.85) brightness(0.92);
+  }
+
+  :global(html) .media-gallery__item :global(.media-gallery__loader),
+  .media-gallery__load-error {
+    display: none;
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .media-gallery__load-error {
+    width: calc(100% - 24px);
+    color: rgba(244, 232, 208, 0.72);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+
+  :global(html.js-gallery-loading)
+    .media-gallery__item[data-gallery-media-state="loading"]
+    img,
+  :global(html.js-gallery-loading)
+    .media-gallery__item[data-gallery-media-state="error"]
+    img {
+    opacity: 0;
+  }
+
+  :global(html.js-gallery-loading)
+    .media-gallery__item[data-gallery-media-state="loading"]
+    :global(.media-gallery__loader) {
+    display: inline-flex;
+  }
+
+  :global(html.js-gallery-loading)
+    .media-gallery__item[data-gallery-media-state="error"]
+    .media-gallery__load-error {
+    display: block;
+  }
+
+  :global(html.js-gallery-loading)
+    .media-gallery__item[data-gallery-media-state="ready"]
+    :global(.media-gallery__loader),
+  :global(html.js-gallery-loading)
+    .media-gallery__item[data-gallery-media-state="error"]
+    :global(.media-gallery__loader) {
+    display: none;
   }
   .media-gallery__zoom {
     position: absolute;

@@ -72,8 +72,16 @@ const {
                   {formatEventDateTime(event.startDateTime, event.endDateTime)}
                 </span>
                 {event.externalEventUrl && (
-                  <a href={event.externalEventUrl} class="details">
+                  <a
+                    href={event.externalEventUrl}
+                    class="details"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     Event Details
+                    <span class="visually-hidden">
+                      {" "}for {event.title} (opens in a new tab)
+                    </span>
                   </a>
                 )}
               </div>
