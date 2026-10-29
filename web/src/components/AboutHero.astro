@@ -1,6 +1,8 @@
 ---
 /** Renders the About introduction and its only h1. */
 
+import LoadingDots from "./LoadingDots.astro";
+
 interface Props {
   kicker?: string | null;
   heading: string;
@@ -35,7 +37,7 @@ const nonEmptyParagraphs = paragraphs
       {nonEmptyParagraphs.map((paragraph) => <p class="about-hero__lede">{paragraph}</p>)}
     </div>
 
-    <div class="about-hero__frame intro-enter intro-enter-2">
+    <div class="about-hero__frame intro-enter intro-enter-2" data-image-load-state="loading">
       {/* Above the fold, so eagerly loaded and given a fetch priority — this is
           the page's largest contentful paint candidate. */}
       <img
@@ -48,11 +50,18 @@ const nonEmptyParagraphs = paragraphs
         loading="eager"
         fetchpriority="high"
         decoding="async"
+        data-image-load-target
         style={`--focal-point: ${image.objectPosition}`}
       />
+      <LoadingDots class="image-load__loader" />
+      <span class="image-load__error">Image unavailable</span>
     </div>
   </div>
 </section>
+
+<script>
+  import "../scripts/imageLoadState";
+</script>
 
 <style>
   /* Clears the fixed site header, which the homepage's full-height hero
@@ -92,6 +101,8 @@ const nonEmptyParagraphs = paragraphs
     border-radius: 18px;
     overflow: hidden;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    /* Visible behind the loading dots while the photo is still loading. */
+    background: rgba(11, 11, 18, 0.58);
   }
   .about-hero__frame::after {
     content: "";
@@ -109,6 +120,7 @@ const nonEmptyParagraphs = paragraphs
     /* The editor's hotspot, re-based against any manual crop in
        `normalize.ts`, so exactly one crop happens — here, in the browser. */
     object-position: var(--focal-point, 50% 50%);
+    transition: opacity 0.2s var(--ease);
   }
 
   @media (max-width: 860px) {

@@ -2,6 +2,7 @@
 /** Renders the curated Homepage photo grid. */
 
 import siteConfig from "../data/siteConfig";
+import LoadingDots from "./LoadingDots.astro";
 import { aboutPageCopy, memberDialogIdFor } from "../data/aboutData";
 import type { NormalizedOfficialBandPhoto } from "../sanity/normalize";
 
@@ -28,7 +29,7 @@ const memberProfileHref = (photo: NormalizedOfficialBandPhoto) =>
     <ul class="official-band-photos__grid reveal reveal-3">
       {
         photos.map((photo) => (
-          <li class="official-band-photos__cell">
+          <li class="official-band-photos__cell" data-image-load-state="loading">
             <a
               class="official-band-photos__link"
               href={memberProfileHref(photo)}
@@ -42,8 +43,11 @@ const memberProfileHref = (photo: NormalizedOfficialBandPhoto) =>
                 height={photo.height}
                 alt={photo.alt}
                 decoding="async"
+                data-image-load-target
                 style={`--focal-point: ${photo.objectPosition}`}
               />
+              <LoadingDots class="image-load__loader" />
+              <span class="image-load__error">Image unavailable</span>
             </a>
           </li>
         ))
@@ -57,6 +61,10 @@ const memberProfileHref = (photo: NormalizedOfficialBandPhoto) =>
     </div>
   </div>
 </section>
+
+<script>
+  import "../scripts/imageLoadState";
+</script>
 
 <style>
   .official-band-photos__body {
@@ -85,6 +93,8 @@ const memberProfileHref = (photo: NormalizedOfficialBandPhoto) =>
     border-radius: 18px;
     overflow: hidden;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    /* Visible behind the loading dots while the photo is still loading. */
+    background: rgba(11, 11, 18, 0.58);
   }
   .official-band-photos__cell::after {
     content: "";
@@ -111,7 +121,8 @@ const memberProfileHref = (photo: NormalizedOfficialBandPhoto) =>
     aspect-ratio: 4 / 5;
     object-fit: cover;
     object-position: var(--focal-point, 50% 50%);
-    transition: transform 0.4s var(--ease), filter 0.4s var(--ease);
+    transition: transform 0.4s var(--ease), filter 0.4s var(--ease),
+      opacity 0.2s var(--ease);
   }
   .official-band-photos__link:hover img {
     transform: scale(1.035);

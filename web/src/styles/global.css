@@ -652,3 +652,35 @@ h2 {
     0 0 40px rgba(160, 123, 239, 0.35),
     0 10px 40px rgba(0, 0, 0, 0.5);
 }
+
+/* Shared image loading state for the About hero and Homepage official band
+   photos, matching the Gallery treatment. `imageLoadState.ts` sets the
+   wrapper's `data-image-load-state` and adds `html.js-image-loading`, so
+   without JavaScript the image simply renders and no loader is shown.
+   `html [data-image-load-state]` keeps the hidden state more specific than
+   LoadingDots' own scoped `display: inline-flex`. */
+html [data-image-load-state] .image-load__loader,
+html [data-image-load-state] .image-load__error {
+  display: none;
+  position: absolute;
+  inset: 50% auto auto 50%;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+html [data-image-load-state] .image-load__error {
+  width: calc(100% - 24px);
+  color: rgba(244, 232, 208, 0.72);
+  font-size: 0.8rem;
+  text-align: center;
+}
+html.js-image-loading [data-image-load-state="loading"] [data-image-load-target],
+html.js-image-loading [data-image-load-state="error"] [data-image-load-target] {
+  opacity: 0;
+}
+html.js-image-loading [data-image-load-state="loading"] .image-load__loader {
+  display: inline-flex;
+}
+html.js-image-loading [data-image-load-state="error"] .image-load__error {
+  display: block;
+}
