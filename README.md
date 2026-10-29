@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://eltwebsite.netlify.app/">
+  <a href="https://theelectriclavendertrain.com/">
     <img src="./web/src/assets/images/elt-logo.jpg" alt="The Electric Lavender Train" width="760" />
   </a>
 
@@ -7,8 +7,7 @@
 
 **A fast, accessible home on the web for California Central Coast live music.**
 
-[![Live preview](https://img.shields.io/badge/Live_preview-eltwebsite.netlify.app-C8A86B?style=for-the-badge)](https://eltwebsite.netlify.app/)
-![Future home](https://img.shields.io/badge/Future_home-theelectriclavendertrain.com-A07BEF?style=for-the-badge)
+[![Live site](https://img.shields.io/badge/Live-theelectriclavendertrain.com-A07BEF?style=for-the-badge)](https://theelectriclavendertrain.com/)
 
 ![Astro](https://img.shields.io/badge/Astro_7-0B0B12?style=flat-square&logo=astro&logoColor=white)
 ![Sanity](https://img.shields.io/badge/Sanity_Studio_6-F03E2F?style=flat-square&logo=sanity&logoColor=white)
@@ -22,61 +21,57 @@
 
 This repository contains the official website and content-management system for **The Electric Lavender Train**, a high-energy dance band performing across California's Central Coast.
 
-The project pairs a statically generated Astro website with a tailored Sanity Studio. Editors can manage shows, music, band members, testimonials, approved media, merchandise, and page copy without turning the public site into a client-rendered application.
+The site is live at **[theelectriclavendertrain.com](https://theelectriclavendertrain.com/)**. A statically generated Astro website is paired with a tailored Sanity Studio, so the band can manage shows, music, members, testimonials, media, merchandise, and page copy itself. The public site stays a set of fast static pages rather than a client-rendered application.
 
-> **Current preview:** [eltwebsite.netlify.app](https://eltwebsite.netlify.app/)  
-> **Planned production domain:** `theelectriclavendertrain.com`
+## Highlights
 
-The Netlify address is the current hosted preview. Domain connection, final content promotion, service authentication, and launch verification remain part of the production cutover.
-
-## Experience highlights
-
-- **Editorially managed pages** for Home, About, Shows, Music, Gallery & Merchandise, and Contact & Booking.
-- **Build-time Sanity data fetching** through typed GROQ queries and `sanityClient.fetch(...)`, with normalization and production guards applied before Astro generates the public pages.
-- **Public and private event handling** with deliberate redaction of private booking details.
-- **Four native inquiry forms** for booking, merchandise, general questions, and content-removal requests.
-- **Hosted newsletter boundary** using Brevo for signup, double opt-in, unsubscribe, and campaign delivery—the Astro site never collects newsletter addresses.
-- **Media and testimonial intake boundaries** designed for separate, Hunter-owned Google Forms when those workflows are enabled.
-- **Responsive, keyboard-friendly UI** with semantic structure, visible focus, reduced-motion support, honest empty states, and no-JavaScript fallbacks where promised.
-- **Static performance and security model**: browsers receive generated HTML and assets rather than querying Sanity directly.
-- **Launch-aware content guards** that prevent incomplete production content from silently becoming public.
+- **Editor-managed pages** for Home, About, Shows, Music, Gallery & Merchandise, and Contact & Booking.
+- **Automatic publishing:** publishing in Sanity Studio triggers a Netlify rebuild. A nightly check rebuilds the site only when a show has started or ended, so "upcoming" and "past" lists stay correct.
+- **Public and private events:** private bookings show only a date and time, never client details.
+- **Four native inquiry forms** for booking, merchandise, general questions, and content removal. They post directly to Formspree, keep its CAPTCHA flow, and clear themselves when a visitor returns after sending.
+- **Hosted newsletter:** signup, double opt-in, unsubscribe, and campaigns run on Brevo's authenticated sending domain. The website never collects newsletter addresses itself.
+- **Separate intake for fan media and testimonials** through two Google Forms.
+- **Accessible by design:** semantic HTML, keyboard-friendly dialogs and tabs, visible focus, reduced-motion support, honest empty states, and no-JavaScript fallbacks where promised.
+- **Search-ready:** canonical and Open Graph metadata, event structured data, a generated sitemap, and `robots.txt`.
+- **Guarded builds:** production builds fail rather than publish incomplete or test content.
 
 ## Architecture
 
 ```text
-Sanity Studio
-    │
-    │ published editorial content
+Sanity Studio (production dataset)
+    │  publish ──► Sanity webhook ──► Netlify build hook
     ▼
 Astro build ── GROQ queries ── normalization and production guards
     │
     ▼
-Static HTML, CSS, images, and small browser scripts
+Static HTML, CSS, images, sitemap, and small browser scripts
     │
     ▼
-Netlify
+Netlify ── https://theelectriclavendertrain.com
+
+GitHub Actions (nightly) ── show started or ended? ──► Netlify build hook
 ```
 
-External submissions remain intentionally separate:
+External submissions stay outside the website:
 
 ```text
 Contact & Booking ── native POST ── Formspree
 Newsletter links ────────────────── Brevo-hosted forms
-Event media ─────────────────────── Google Form, when enabled
-Testimonials ────────────────────── separate Google Form, when enabled
+Event media ─────────────────────── Google Form
+Testimonials ────────────────────── separate Google Form
 ```
 
-Astro page modules fetch Homepage, About, Shows, Music, Gallery & Merchandise, Contact, event, and testimonial data from Sanity during static generation. The browser never receives a Sanity API token and does not query the Sanity Content Lake at runtime. A content change becomes public only after a new static build.
+Pages fetch their content from Sanity at build time. The browser never receives a Sanity API token and never queries Sanity's content API; it only loads public images from Sanity's CDN.
 
 ## Repository map
 
 | Path       | Purpose                                                                                                |
 | ---------- | ------------------------------------------------------------------------------------------------------ |
-| `web/`     | Astro website, components, styles, routes, browser scripts, GROQ queries, and normalized frontend data |
+| `web/`     | Astro website: pages, components, styles, browser scripts, GROQ queries, and data normalization |
 | `studio/`  | Sanity Studio configuration, content schemas, editor structure, schema extraction, and TypeGen         |
-| `.github/` | Scheduled check for event time-boundary changes and conditional Netlify rebuild workflow               |
-| `docs/`    | Private, gitignored operating notes and project records; intentionally unavailable on GitHub           |
-| `skele/`   | Read-only historical design and feature references; excluded from Git                                  |
+| `.github/` | Nightly workflow that rebuilds the site when a show crosses its start or end time                |
+| `docs/`    | Private, gitignored operating notes and owner/developer guides; not published to GitHub          |
+| `skele/`   | Read-only historical design references; excluded from Git                                              |
 
 Generated Sanity files are committed for review but must not be edited by hand:
 
@@ -85,17 +80,17 @@ Generated Sanity files are committed for review but must not be edited by hand:
 
 ## Public routes
 
-| Route                                  | Purpose                                                                                 |
-| -------------------------------------- | --------------------------------------------------------------------------------------- |
-| `/`                                    | Homepage, upcoming shows, testimonials, booking, and newsletter entry points            |
-| `/about`                               | Band story, member profiles, testimonials, and optional testimonial submission link     |
-| `/shows`                               | Public upcoming and past performances                                                   |
-| `/music`                               | Releases, streaming links, and approved media                                           |
-| `/gallery-merch`                       | Approved gallery media, merchandise inquiries, and optional event-media submission link |
-| `/contact-booking`                     | Booking, merchandise, general, and content-removal inquiry forms                        |
-| `/privacy`, `/terms`, `/accessibility` | Public policy and accessibility information                                             |
+| Route                                     | Purpose                                                                                 |
+| ----------------------------------------- | --------------------------------------------------------------------------------------- |
+| `/`                                       | Homepage: hero, band photos, upcoming shows, testimonials, booking, and newsletter       |
+| `/about/`                                 | Band story, member profiles, testimonials, and testimonial submission link              |
+| `/shows/`                                 | Upcoming and past performances                                                          |
+| `/music/`                                 | Releases, streaming links, featured video, and label information                        |
+| `/gallery-merch/`                         | Photo and video gallery, inquiry-only merchandise, and event-media submission link      |
+| `/contact-booking/`                       | Booking, merchandise, general, and content-removal inquiry forms, plus FAQ              |
+| `/privacy/`, `/terms/`, `/accessibility/` | Privacy Policy, Terms of Use, and accessibility statement                              |
 
-Provider confirmation routes also exist for future dashboard redirects. They are intentionally excluded from primary navigation and search indexing.
+Pages are built as folders, so every route ends in `/`. Internal links, canonical URLs, and the sitemap all use that form. Confirmation pages for form and newsletter providers also exist; they are excluded from navigation, the sitemap, and search indexing.
 
 ## Local development
 
@@ -103,9 +98,9 @@ Provider confirmation routes also exist for future dashboard redirects. They are
 
 - Node.js **22.12 or newer**
 - npm
-- Access to the intended Sanity project and dataset
+- Access to the band's Sanity project
 
-Clone the repository, then install each workspace independently:
+Clone the repository, then install each workspace separately:
 
 ```bash
 git clone https://github.com/electriclavendertrain/Electric-Lavender-Train.git
@@ -120,7 +115,7 @@ npm install
 cp .env.example .env
 ```
 
-Add the appropriate local values to each `.env` file. Never commit environment files or credentials.
+Fill in each `.env` file. Use the `development` dataset for local work. Never commit environment files or credentials.
 
 ### Run the website
 
@@ -136,35 +131,44 @@ cd studio
 npm run dev
 ```
 
+The Studio labels itself with the dataset it is editing, and shows an amber banner on any dataset other than production.
+
 ## Environment variables
 
-Only variable names and responsibilities belong in Git. Real values stay in local `.env` files and the appropriate hosting dashboard.
+Only variable names and responsibilities belong in Git. Real values live in local `.env` files and the hosting dashboard.
 
 ### Website
 
 | Variable                            | Responsibility                                                                        |
 | ----------------------------------- | ------------------------------------------------------------------------------------- |
 | `PUBLIC_SANITY_PROJECT_ID`          | Sanity project read during the static build                                           |
-| `PUBLIC_SANITY_DATASET`             | Dataset used for the build, normally `development` locally and `production` at launch |
+| `PUBLIC_SANITY_DATASET`             | `development` locally; `production` on Netlify                                        |
 | `PUBLIC_FORMSPREE_BOOKING_ENDPOINT` | Booking inquiry destination                                                           |
 | `PUBLIC_FORMSPREE_MERCH_ENDPOINT`   | Merchandise inquiry destination                                                       |
 | `PUBLIC_FORMSPREE_OTHER_ENDPOINT`   | General inquiry destination                                                           |
 | `PUBLIC_FORMSPREE_REMOVAL_ENDPOINT` | Content-removal request destination                                                   |
 | `PUBLIC_NEWSLETTER_SIGNUP_URL`      | Brevo-hosted double-opt-in signup form                                                |
-| `PUBLIC_NEWSLETTER_UNSUBSCRIBE_URL` | Independent Brevo-hosted unsubscribe form                                             |
+| `PUBLIC_NEWSLETTER_UNSUBSCRIBE_URL` | Brevo-hosted unsubscribe form                                                         |
 
-Each optional public integration fails closed: an absent or invalid URL disables only its own entry point and does not expose a broken form.
+Each optional integration fails closed. An absent or invalid URL hides only its own entry point rather than showing a broken form.
 
 ### Studio
 
 | Variable                   | Responsibility                                       |
 | -------------------------- | ---------------------------------------------------- |
 | `SANITY_STUDIO_PROJECT_ID` | Sanity project opened by Studio and the CLI          |
-| `SANITY_STUDIO_DATASET`    | Dataset edited by Studio and used for schema tooling |
+| `SANITY_STUDIO_DATASET`    | Dataset Studio edits; `production` for the hosted Studio |
+
+### GitHub Actions
+
+| Name                     | Type       | Responsibility                                          |
+| ------------------------ | ---------- | ------------------------------------------------------- |
+| `SANITY_DATASET`         | Variable   | Dataset the nightly show check reads (`production`)     |
+| `NETLIFY_BUILD_HOOK_URL` | Secret     | Netlify build hook the nightly check calls when needed  |
 
 ## Validation
 
-Run the standard checks before opening a pull request or preparing a deploy:
+Run these checks before committing:
 
 ```bash
 cd web
@@ -186,56 +190,45 @@ cd studio
 npm run types
 ```
 
-Interaction changes should also be checked at mobile and desktop widths, with a keyboard, reduced motion, and JavaScript disabled wherever a fallback is promised.
+Check interaction changes at mobile and desktop widths, with a keyboard, with reduced motion, and with JavaScript disabled wherever a fallback is promised.
 
 ## Deployment
 
-The current preview is served by Netlify at [eltwebsite.netlify.app](https://eltwebsite.netlify.app/).
+The production site is served by Netlify at [theelectriclavendertrain.com](https://theelectriclavendertrain.com/). `www` and the default Netlify address redirect to it.
 
-Expected Netlify build settings:
+| Setting           | Value                                    |
+| ----------------- | ---------------------------------------- |
+| Base directory    | `web`                                    |
+| Build command     | `npm run build`                          |
+| Publish directory | `dist` (relative to the base directory)  |
+| Node.js           | `NODE_VERSION=22`                        |
 
-| Setting           | Value                                 |
-| ----------------- | ------------------------------------- |
-| Base directory    | `web`                                 |
-| Build command     | `npm run build`                       |
-| Publish directory | `dist` relative to the base directory |
-| Node.js           | `>=22.12.0`                           |
+A deploy happens when:
 
-Astro reads public configuration at build time. Any Sanity publication or environment-variable change requires a rebuild before the generated site can reflect it.
+- code is pushed to `main`;
+- content is published in Sanity Studio (through a webhook);
+- the nightly GitHub Actions check finds a show that started or ended in the last 25 hours; or
+- someone triggers a deploy manually in Netlify.
 
-The repository also contains a daily GitHub Actions workflow that checks whether an event crossed a time boundary and requests a Netlify rebuild only when the static show lists may be stale. Production ownership, alerting, hook configuration, and final verification must be completed during launch.
+Astro reads public configuration at build time, so a changed environment variable takes effect only after the next deploy. Deploy the hosted Studio with `npm run deploy` from `studio/` only when Studio code or schemas change, with the dataset set to `production`.
 
 ## Content and service boundaries
 
-- Sanity contains public editorial content—not form submissions, newsletter subscribers, or secrets.
-- Formspree receives inquiry data through native form navigation so its hosted CAPTCHA flow remains available.
+- Sanity holds public editorial content only. Form submissions, newsletter subscribers, and secrets never go there.
+- Formspree receives inquiries through native form navigation, which keeps its hosted CAPTCHA working.
 - Brevo owns newsletter consent, double opt-in, suppression, and campaign delivery.
-- Google Forms will own event-media uploads and testimonial intake when those two independent workflows are enabled.
-- Merchandise is inquiry-only. The website has no cart, checkout, or payment collection.
-- Venmo is a tip link only.
-- YouTube embeds use the privacy-enhanced host and load only after visitor activation.
-
-## Launch path
-
-The project is in pre-production hardening. The high-level path to `theelectriclavendertrain.com` is:
-
-1. Receive and approve the remaining official photos and member biographies.
-2. Finish the two Google Form intake workflows and the client Studio walkthrough.
-3. Complete the Sanity, GitHub Actions, and Netlify rebuild configuration.
-4. Promote the approved Sanity development snapshot to production with verified backups.
-5. Connect the GoDaddy-managed domain and verify HTTPS and redirects.
-6. Authenticate the Brevo sending domain and complete deliverability testing.
-7. Apply Formspree production-domain restrictions and test all inquiry flows.
-8. Reconcile legal pages and operating documentation against the live configuration.
-9. Run final end-to-end launch and accessibility verification.
+- Google Forms handle event-media uploads and testimonial intake as two independent workflows.
+- Merchandise is inquiry-only; the website has no cart, checkout, or payment collection. Venmo is a tip link only.
+- YouTube embeds use the privacy-enhanced host and load only after a visitor chooses to play.
+- The site has no analytics, advertising pixels, or tracking cookies.
 
 ## Project principles
 
-- Prefer semantic Astro, CSS, and small browser scripts over unnecessary client frameworks.
-- Keep meaningful editorial content in Sanity and infrastructure behavior in code.
-- Preserve honest empty states and never invent client facts or testimonials.
-- Keep secrets out of Git and browser-delivered JavaScript.
-- Treat accessibility, privacy, content rights, and operational ownership as launch requirements.
+- Prefer semantic Astro, CSS, and small browser scripts over client frameworks.
+- Keep editorial content in Sanity and infrastructure behavior in code.
+- Keep honest empty states; never invent client facts or testimonials.
+- Keep secrets out of Git and out of browser-delivered JavaScript.
+- Treat accessibility, privacy, content rights, and operational ownership as requirements, not extras.
 
 ## License and use
 
@@ -245,5 +238,5 @@ This repository does not currently provide an open-source license. The Electric 
 
 <div align="center">
   Built for <strong>The Electric Lavender Train</strong>.<br />
-  <a href="https://eltwebsite.netlify.app/">Visit the current site preview →</a>
+  <a href="https://theelectriclavendertrain.com/">Visit theelectriclavendertrain.com →</a>
 </div>

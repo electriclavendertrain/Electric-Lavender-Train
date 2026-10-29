@@ -412,7 +412,7 @@ export const contactCopy = {
 
   privacyHeading: "Privacy & delivery",
   privacyNote:
-    "When you submit a form, it's processed by our form provider, Formspree, and delivered to The Electric Lavender Train's Gmail account. We use it to respond to your inquiry and handle it as described in our Privacy Policy — we don't sell it or add you to a marketing list.",
+    "When you submit a form, it's processed by our form provider, Formspree, and delivered to The Electric Lavender Train's business email inbox. We use it to respond to your inquiry and handle it as described in our Privacy Policy — we don't sell it or add you to a marketing list.",
 
   validation: {
     required: (label: string) => `${label} is required.`,
