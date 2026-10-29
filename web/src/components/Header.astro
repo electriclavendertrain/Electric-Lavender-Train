@@ -12,11 +12,15 @@ const NAV_LINKS = [
   { href: siteConfig.routes.contactBooking, label: "Contact" },
 ];
 
-const currentPath = Astro.url.pathname;
-const isActive = (href: string) =>
-  href === siteConfig.routes.home
-    ? currentPath === href
-    : currentPath === href || currentPath.startsWith(`${href}/`);
+/** Compares paths without trailing slashes, so `/about` and `/about/` match. */
+const trimSlash = (path: string) => path.replace(/\/+$/, "");
+const currentPath = trimSlash(Astro.url.pathname);
+const isActive = (href: string) => {
+  const target = trimSlash(href);
+  return target === ""
+    ? currentPath === ""
+    : currentPath === target || currentPath.startsWith(`${target}/`);
+};
 ---
 
 <header id="site-header" class="site-header">

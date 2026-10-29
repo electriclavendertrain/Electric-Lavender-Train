@@ -1,0 +1,7 @@
+# Netlify redirect rules (copied to dist/ at build time).
+#
+# Send the project's default Netlify address to the custom domain, keeping
+# the path. The exact hostname only matches production on the default
+# address; Deploy Preview and branch-deploy hostnames
+# (deploy-preview-N--eltwebsite.netlify.app) are not affected.
+https://eltwebsite.netlify.app/*  https://theelectriclavendertrain.com/:splat  301!

@@ -13,27 +13,37 @@ const { PUBLIC_SANITY_PROJECT_ID, PUBLIC_SANITY_DATASET } = loadEnv(
 );
 
 /**
+ * Normalizes a path to end in "/", matching BaseLayout's canonical URLs and
+ * the URL Netlify serves for each built page folder.
+ * @param {string} path
+ */
+const withTrailingSlash = (path) => `${path.replace(/\/+$/, "")}/`;
+
+/**
  * Routes kept out of the sitemap. Each one either sets `noIndex` (the 404,
  * the provider confirmation/status pages, and the third-party notices) or
  * is the static `/media-merch` redirect. Add any new `noIndex` route here.
  */
-const SITEMAP_EXCLUDED_PATHS = new Set([
-  "/404",
-  "/media-merch",
-  "/third-party-notices",
-  siteConfig.routes.contactBookingThankYou,
-  siteConfig.routes.newsletterCheckInbox,
-  siteConfig.routes.newsletterConfirmed,
-  siteConfig.routes.newsletterUnsubscribed,
-]);
+const SITEMAP_EXCLUDED_PATHS = new Set(
+  [
+    "/404",
+    "/media-merch",
+    "/third-party-notices",
+    siteConfig.routes.contactBookingThankYou,
+    siteConfig.routes.newsletterCheckInbox,
+    siteConfig.routes.newsletterConfirmed,
+    siteConfig.routes.newsletterUnsubscribed,
+  ].map(withTrailingSlash),
+);
 
 /**
- * Matches BaseLayout's canonical URLs: no trailing slash except the homepage.
+ * Rewrites a full URL so its path ends in "/".
  * @param {string} url
  */
-const withoutTrailingSlash = (url) => {
-  const { pathname } = new URL(url);
-  return pathname === "/" ? url : url.replace(/\/+$/, "");
+const urlWithTrailingSlash = (url) => {
+  const parsed = new URL(url);
+  parsed.pathname = withTrailingSlash(parsed.pathname);
+  return parsed.href;
 };
 
 export default defineConfig({
@@ -47,9 +57,8 @@ export default defineConfig({
       useCdn: false,
     }),
     sitemap({
-      filter: (page) =>
-        !SITEMAP_EXCLUDED_PATHS.has(new URL(withoutTrailingSlash(page)).pathname),
-      serialize: (item) => ({ ...item, url: withoutTrailingSlash(item.url) }),
+      filter: (page) => !SITEMAP_EXCLUDED_PATHS.has(withTrailingSlash(new URL(page).pathname)),
+      serialize: (item) => ({ ...item, url: urlWithTrailingSlash(item.url) }),
     }),
   ],
 

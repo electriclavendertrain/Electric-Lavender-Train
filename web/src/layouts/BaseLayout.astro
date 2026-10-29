@@ -30,7 +30,9 @@ const {
 } = Astro.props;
 
 /** One canonical URL per route, derived here rather than passed in by each page — a page cannot forget it, and it cannot disagree with the route it is actually built at. */
-const canonicalPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
+// Always ends in "/", matching the URL Netlify actually serves for each page
+// folder and the URLs listed in the generated sitemap.
+const canonicalPath = `${Astro.url.pathname.replace(/\/+$/, "")}/`;
 const canonicalUrl = new URL(canonicalPath, siteConfig.siteUrl).href;
 ---
 

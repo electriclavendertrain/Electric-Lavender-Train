@@ -75,23 +75,26 @@ export const siteConfig: SiteConfig = {
   location: "Central Coast California",
   siteUrl: "https://theelectriclavendertrain.com",
 
+  // Page routes end in "/" because each page is built as a folder
+  // (`about/index.html`) and Netlify redirects `/about` to `/about/`.
+  // Linking to the final URL avoids that redirect on every click.
   routes: {
     home: "/",
-    about: "/about",
-    shows: "/shows",
-    music: "/music",
-    galleryMerch: "/gallery-merch",
-    contactBooking: "/contact-booking",
-    bookingForm: "/contact-booking?inquiry=booking#contact-forms",
+    about: "/about/",
+    shows: "/shows/",
+    music: "/music/",
+    galleryMerch: "/gallery-merch/",
+    contactBooking: "/contact-booking/",
+    bookingForm: "/contact-booking/?inquiry=booking#contact-forms",
     newsletterSection: "/#newsletter",
-    faqSection: "/contact-booking#faq",
-    privacy: "/privacy",
-    terms: "/terms",
-    accessibility: "/accessibility",
-    contactBookingThankYou: "/contact-booking/thank-you",
-    newsletterCheckInbox: "/newsletter/check-your-inbox",
-    newsletterConfirmed: "/newsletter/confirmed",
-    newsletterUnsubscribed: "/newsletter/unsubscribed",
+    faqSection: "/contact-booking/#faq",
+    privacy: "/privacy/",
+    terms: "/terms/",
+    accessibility: "/accessibility/",
+    contactBookingThankYou: "/contact-booking/thank-you/",
+    newsletterCheckInbox: "/newsletter/check-your-inbox/",
+    newsletterConfirmed: "/newsletter/confirmed/",
+    newsletterUnsubscribed: "/newsletter/unsubscribed/",
   },
 
   social: {
