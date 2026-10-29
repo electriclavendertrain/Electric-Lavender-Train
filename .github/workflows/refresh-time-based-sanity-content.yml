@@ -26,12 +26,17 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          # The event check never pushes, so don't leave a Git token on the runner.
+          persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
+          # No dependencies are installed, so skip package-manager caching.
+          package-manager-cache: false
 
       - name: Trigger Netlify only when the static event lists are stale
         env:
