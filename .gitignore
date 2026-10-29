@@ -42,6 +42,3 @@ skele/
 
 # Agent-only planning and maintenance notes
 docs/*
-
-# Sanity Studio Backups
-studio/*.tar.gz

@@ -464,6 +464,25 @@ const { headingId, emailConfigured, contactEmail } = Astro.props;
     overflow-wrap: anywhere;
   }
 
+  /* Mobile date inputs: iOS Safari gives native date controls an intrinsic
+     minimum width and a centered value, which can overflow a narrow column.
+     Width, max-width, and box-sizing already come from .field__control and
+     the global reset. */
+  input[type="date"].field__control {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    min-width: 0;
+    text-align: left;
+  }
+  input[type="date"].field__control::-webkit-date-and-time-value {
+    min-height: 1.2em;
+    text-align: left;
+  }
+  input[type="date"].field__control::-webkit-datetime-edit {
+    padding: 0;
+  }
+
   @media (max-width: 700px) {
     .field-grid {
       grid-template-columns: 1fr;

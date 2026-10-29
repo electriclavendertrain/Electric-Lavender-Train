@@ -28,4 +28,8 @@
 # Dotenv and similar local-only files
 *.local
 
+# Sanity Studio Backups
+/backups
+*.tar.gz
+
 

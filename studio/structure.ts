@@ -7,10 +7,12 @@ import {ImagesIcon} from '@sanity/icons/Images'
 import {MicrophoneIcon} from '@sanity/icons/Microphone'
 import {TagIcon} from '@sanity/icons/Tag'
 import {UsersIcon} from '@sanity/icons/Users'
+import {datasetLabel} from './datasetLabel'
 
-export const structure: StructureResolver = (S) =>
+export const structure: StructureResolver = (S, context) =>
   S.list()
-    .title('Website Content')
+    // e.g. "Website Content — Production"; the dataset comes from the Studio config.
+    .title(`Website Content — ${datasetLabel(context.dataset)}`)
     .items([
       // Page singletons — each opens its one fixed document by id. There is
       // no "+ create" for these; see SINGLETON_TYPES in sanity.config.ts.

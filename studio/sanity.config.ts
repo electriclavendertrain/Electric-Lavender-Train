@@ -4,8 +4,12 @@ import {visionTool} from '@sanity/vision'
 import {schemaTypes} from './schemaTypes'
 import {eventTemplates} from './schemaTypes/templates'
 import {structure} from './structure'
+import {datasetLabel} from './datasetLabel'
+import {DatasetNavbar} from './components/DatasetNavbar'
 
 /** Sanity Studio configuration and singleton creation guards. */
+const dataset = process.env.SANITY_STUDIO_DATASET as string
+
 const SINGLETON_TYPES = [
   'homepage',
   'aboutPage',
@@ -17,12 +21,20 @@ const SINGLETON_TYPES = [
 
 export default defineConfig({
   name: 'default',
-  title: 'elt-sanity',
+  // The dataset is fixed at build/deploy time, so label the Studio with it.
+  title: `ELT Studio — ${datasetLabel(dataset)}`,
 
   projectId: process.env.SANITY_STUDIO_PROJECT_ID as string,
-  dataset: process.env.SANITY_STUDIO_DATASET as string,
+  dataset,
 
   plugins: [structureTool({structure}), visionTool()],
+
+  studio: {
+    components: {
+      // Adds a caution banner on every dataset except production.
+      navbar: DatasetNavbar,
+    },
+  },
 
   schema: {
     types: schemaTypes,

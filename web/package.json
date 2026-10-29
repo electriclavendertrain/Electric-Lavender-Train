@@ -19,7 +19,7 @@
     "@sanity/image-url": "^2.1.1",
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
-    "astro": "^7.1.6",
+    "astro": "^7.4.4",
     "astro-portabletext": "^0.13.0",
     "groq": "^6.7.0",
     "react": "^19.2.8",
