@@ -2,6 +2,10 @@
  * Progressive inquiry tabs and accessible validation. The first valid
  * submission remains a native navigation; only invalid or duplicate submits
  * are prevented. Native HTML validation remains available without JavaScript.
+ *
+ * After a valid submission, returning to this page with the browser's Back
+ * button (including Formspree's "Go back" link) clears that form, so a
+ * finished inquiry is not left filled in. This runs only with JavaScript.
  */
 
 import { contactCopy } from "../data/contactData";
@@ -71,14 +75,17 @@ if (switcher && tabs.length > 0 && panels.length > 0) {
   const initialParams = new URLSearchParams(window.location.search);
   selectInquiry(normalizeInquiry(initialParams.get("inquiry")), { updateUrl: false });
 
-  // Treat the merch prefill as capped plain text, never HTML or a record lookup.
-  const itemParam = initialParams.get("item");
-  if (itemParam) {
-    const merchItemField = document.querySelector<HTMLInputElement>("[data-merch-item-field]");
-    if (merchItemField) {
-      const cap = merchItemField.maxLength > 0 ? merchItemField.maxLength : MAX_ITEM_PARAM_LENGTH;
-      merchItemField.value = itemParam.slice(0, cap);
-    }
+  applyMerchItemPrefill();
+}
+
+/** Treats the merch prefill as capped plain text, never HTML or a record lookup. */
+function applyMerchItemPrefill() {
+  const itemParam = new URLSearchParams(window.location.search).get("item");
+  if (!itemParam) return;
+  const merchItemField = document.querySelector<HTMLInputElement>("[data-merch-item-field]");
+  if (merchItemField) {
+    const cap = merchItemField.maxLength > 0 ? merchItemField.maxLength : MAX_ITEM_PARAM_LENGTH;
+    merchItemField.value = itemParam.slice(0, cap);
   }
 }
 
@@ -158,11 +165,64 @@ function validateForm(form: HTMLFormElement): HTMLElement | null {
 
 const forms = Array.from(document.querySelectorAll<HTMLFormElement>("[data-inquiry-form]"));
 
-/** Reset pending buttons when a submitted page is restored from bfcache. */
+/**
+ * Per-tab marker for a form that was validly submitted. Session storage
+ * survives the trip to Formspree and back, but not a new tab or browser
+ * session. Storage can be unavailable (private modes, blocked site data), in
+ * which case the form simply keeps the browser's normal Back behavior.
+ */
+const SUBMITTED_KEY_PREFIX = "elt-inquiry-submitted:";
+
+function markSubmitted(inquiry: string) {
+  try {
+    window.sessionStorage.setItem(SUBMITTED_KEY_PREFIX + inquiry, "1");
+  } catch {
+    /* Storage unavailable: keep the browser's default Back behavior. */
+  }
+}
+
+function takeSubmittedMark(inquiry: string): boolean {
+  try {
+    const key = SUBMITTED_KEY_PREFIX + inquiry;
+    const wasSubmitted = window.sessionStorage.getItem(key) === "1";
+    if (wasSubmitted) window.sessionStorage.removeItem(key);
+    return wasSubmitted;
+  } catch {
+    return false;
+  }
+}
+
+/** Clears a form's values and any visible validation errors. */
+function clearForm(form: HTMLFormElement) {
+  form.reset();
+  for (const field of Array.from(form.querySelectorAll<HTMLElement>("[data-field]"))) {
+    field.removeAttribute("aria-invalid");
+    const errorEl = document.getElementById(`${field.id}-error`);
+    if (errorEl) {
+      errorEl.hidden = true;
+      errorEl.textContent = "";
+    }
+  }
+}
+
+/**
+ * Runs when the page is shown, including a Back-button return. A restored
+ * page (bfcache) also gets its pending submit button reset. Browsers can
+ * restore typed values with or without bfcache, so a submitted form is
+ * cleared in both cases.
+ */
 const resetPendingState: Array<() => void> = [];
+const clearSubmittedForms: Array<() => boolean> = [];
 window.addEventListener("pageshow", (event) => {
-  if (!event.persisted) return;
-  for (const reset of resetPendingState) reset();
+  if (event.persisted) {
+    for (const reset of resetPendingState) reset();
+  }
+  let clearedAny = false;
+  for (const clear of clearSubmittedForms) {
+    if (clear()) clearedAny = true;
+  }
+  // `form.reset()` also clears the merch field, so restore any ?item= prefill.
+  if (clearedAny) applyMerchItemPrefill();
 });
 
 for (const form of forms) {
@@ -179,7 +239,14 @@ for (const form of forms) {
 
   const submitButton = form.querySelector<HTMLButtonElement>("[data-inquiry-submit]");
   const submitLabel = form.querySelector<HTMLElement>("[data-submit-label]");
+  const inquiry = form.dataset.inquiryForm ?? "";
   let submitting = false;
+
+  clearSubmittedForms.push(() => {
+    if (!inquiry || !takeSubmittedMark(inquiry)) return false;
+    clearForm(form);
+    return true;
+  });
 
   resetPendingState.push(() => {
     submitting = false;
@@ -207,6 +274,7 @@ for (const form of forms) {
 
     // Preserve native Formspree navigation while showing progress.
     submitting = true;
+    if (inquiry) markSubmitted(inquiry);
     if (submitButton) {
       submitButton.disabled = true;
       submitButton.setAttribute("aria-busy", "true");
